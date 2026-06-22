@@ -55,15 +55,15 @@ func (r *Raft) runLeader(ctx context.Context) {
 // Updates the current state of this node
 func (r *Raft) updateRaftState(state RaftState) {
 	r.mu.RLock()
-	r.state = state
 	defer r.mu.RUnlock()
+	r.state = state
 }
 
 // getCurrentState returns the current state of the Node
 func (r *Raft) getCurrentState() RaftState {
 	r.mu.RLock()
-	currentState := r.state
 	defer r.mu.RUnlock()
+	currentState := r.state
 	return currentState
 }
 
