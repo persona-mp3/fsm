@@ -23,42 +23,31 @@ type RPC struct {
 }
 
 type Raft struct {
-	term            *atomic.Uint64
 	RaftState       RaftState
-	electionTimeout time.Duration
 	server          *Server
+	term            *atomic.Uint64
+	electionTimeout time.Duration
 	incoming        chan RPC
 	outgoing        chan any
 	address         string
 	peers           []string
 }
 
-func NewRaft(
-	address string,
-	peers []string,
-	electionTimeout time.Duration,
-) *Raft {
+func NewRaft(address string, peers []string, electionTimeout time.Duration) *Raft {
 	incoming := make(chan RPC)
 	outgoing := make(chan any)
 
-	s := NewServer(incoming, outgoing)
+	server := NewServer(incoming, outgoing)
 	return &Raft{
+		RaftState:       Follower,
+		server:          server,
 		address:         address,
 		peers:           peers,
 		term:            &atomic.Uint64{},
 		electionTimeout: electionTimeout,
-		RaftState:       Follower,
 		outgoing:        outgoing,
 		incoming:        incoming,
-		server:          s,
 	}
-}
-
-func generateRandomTimeout(d time.Duration) time.Duration {
-	minInterval, maxInterval := 100, 500
-	n := rand.IntN(maxInterval-minInterval) + minInterval
-
-	return d * time.Duration(n)
 }
 
 func (r *Raft) Run(parentCtx context.Context) {
@@ -89,4 +78,11 @@ func (r *Raft) Run(parentCtx context.Context) {
 		}
 	}
 
+}
+
+func generateRandomTimeout(d time.Duration) time.Duration {
+	minInterval, maxInterval := 100, 500
+	n := rand.IntN(maxInterval-minInterval) + minInterval
+
+	return d * time.Duration(n)
 }

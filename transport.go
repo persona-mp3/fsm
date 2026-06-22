@@ -9,12 +9,6 @@ import (
 	"net/rpc"
 )
 
-type Transport interface {
-	Start(ctx context.Context, incoming chan<- RPC, outgoing <-chan RPC)
-	Listen()
-	Send()
-}
-
 type TestReq struct {
 	From    string
 	Message string
@@ -33,14 +27,11 @@ func (s *Server) TestServer(req TestReq, res *TestReq) error {
 
 type Server struct {
 	incoming chan RPC
-	// todo: we might not need this afterall
-	outgoing chan any
 }
 
 func NewServer(in chan RPC, out chan any) *Server {
 	return &Server{
 		incoming: in,
-		outgoing: out,
 	}
 }
 
@@ -68,7 +59,7 @@ func (s *Server) Listen(ctx context.Context, addr string) error {
 				log.Println("listener closed")
 				return nil
 			}
-			log.Println("could not accept connection. %w", err)
+			log.Println("could not accept connection: ", err)
 			continue
 		}
 
