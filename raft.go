@@ -159,7 +159,8 @@ func (r *Raft) Run(parentCtx context.Context) {
 				r.updateRaftState(raftState)
 				r.log.Println("updated state to Leader: ", r.Diagnostics())
 
-				go r.startLeader()
+				// go r.startLeader()
+				go r.runLeader(nil)
 			case Follower:
 				r.log.Println("received transition request to Follower from: ", r.getCurrentState())
 				if r.getCurrentState() == Follower {

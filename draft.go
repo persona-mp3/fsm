@@ -114,67 +114,67 @@ func (r *Raft) startFollower() {
 		}
 	}
 }
-func (r *Raft) startLeader() {
-	log.Println("(d-leader) started:", r.Diagnostics())
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			log.Println("(d-leader) sending heartbeats to ye followers")
-		case <-r.stateCtx.Done():
-			return
-		case rpc := <-r.incoming:
-			rpcKind := rpc.kind
-			switch rpcKind {
-			case AppendEntry:
-				payload, ok := rpc.payload.(AppendEntryReq)
-				if !ok {
-					log.Panicf("(d_leader) expected appendEntry: %+v\n", payload)
-				}
-
-				if payload.Term > r.term.Load() {
-					r.term.Store(payload.Term)
-					rpc.reply <- RPCReply{
-						kind: AppendEntry,
-						payload: &AppendEntryRes{
-							Id:           "(d-leader) [-]",
-							Data:         "your rpc is bigger,  yielding to you",
-							Acknowledged: true,
-						},
-					}
-					log.Printf("(d_leader) dropping from leader to follower: %+v\n", payload)
-					r.transition <- Follower
-				} else {
-					rpc.reply <- RPCReply{
-						kind: AppendEntry,
-						payload: &AppendEntryRes{
-							Id:           "(d-leader)",
-							Data:         "disregarding your opinions",
-							Acknowledged: false,
-						},
-					}
-					log.Printf("(d_leader) disregarding rpc from lowerterm candidate: %+v\n", payload)
-				}
-
-			default:
-				rpc.reply <- RPCReply{
-					kind: AppendEntry,
-					payload: &AppendEntryRes{
-						Id:           "(d-leader)",
-						Data:         "I dont understand this rpc call yet",
-						Acknowledged: false,
-					},
-				}
-				log.Printf("(d_leader) leader does not understand this rpc: %+v\n", rpc)
-			}
-		}
-	}
-}
-
+// func (r *Raft) startLeader() {
+// 	log.Println("(d-leader) started:", r.Diagnostics())
+// 	ticker := time.NewTicker(1 * time.Second)
+// 	defer ticker.Stop()
+// 	for {
+// 		select {
+// 		case <-ticker.C:
+// 			log.Println("(d-leader) sending heartbeats to ye followers")
+// 		case <-r.stateCtx.Done():
+// 			return
+// 		case rpc := <-r.incoming:
+// 			rpcKind := rpc.kind
+// 			switch rpcKind {
+// 			case AppendEntry:
+// 				payload, ok := rpc.payload.(AppendEntryReq)
+// 				if !ok {
+// 					log.Panicf("(d_leader) expected appendEntry: %+v\n", payload)
+// 				}
+//
+// 				if payload.Term > r.term.Load() {
+// 					r.term.Store(payload.Term)
+// 					rpc.reply <- RPCReply{
+// 						kind: AppendEntry,
+// 						payload: &AppendEntryRes{
+// 							Id:           "(d-leader) [-]",
+// 							Data:         "your rpc is bigger,  yielding to you",
+// 							Acknowledged: true,
+// 						},
+// 					}
+// 					log.Printf("(d_leader) dropping from leader to follower: %+v\n", payload)
+// 					r.transition <- Follower
+// 				} else {
+// 					rpc.reply <- RPCReply{
+// 						kind: AppendEntry,
+// 						payload: &AppendEntryRes{
+// 							Id:           "(d-leader)",
+// 							Data:         "disregarding your opinions",
+// 							Acknowledged: false,
+// 						},
+// 					}
+// 					log.Printf("(d_leader) disregarding rpc from lowerterm candidate: %+v\n", payload)
+// 				}
+//
+// 			default:
+// 				rpc.reply <- RPCReply{
+// 					kind: AppendEntry,
+// 					payload: &AppendEntryRes{
+// 						Id:           "(d-leader)",
+// 						Data:         "I dont understand this rpc call yet",
+// 						Acknowledged: false,
+// 					},
+// 				}
+// 				log.Printf("(d_leader) leader does not understand this rpc: %+v\n", rpc)
+// 			}
+// 		}
+// 	}
+// }
+//
 
 func (r *Raft) Diagnostics() string {
-	diagnostics := fmt.Sprintf("diagnostics: { address: %s, state: %s, term: %d, electionTimeout: %s }\n\n",
+	diagnostics := fmt.Sprintf("diagnostics: { address: %s, state: %s, term: %d, electionTimeout: %s }",
 		r.serverAddr, r.state.String(), r.term.Load(), r.electionTimeout)
 	return diagnostics
 }
