@@ -20,6 +20,8 @@ const (
 	Candidate
 )
 
+// RPCKind tells what kind of payload we received and helps to determine what 
+// kind of reply to send back
 type RPCKind int
 
 const (
@@ -52,7 +54,7 @@ type Raft struct {
 	term atomic.Uint64
 
 	// max amount of time before a node in the [Follower] state can go
-	// before transitioning into a [Leader]
+	// before transitioning into a [Candidate]
 	electionTimeout time.Duration
 
 	// rpcRequests are forwarded from the server for the node to process
@@ -62,10 +64,10 @@ type Raft struct {
 	// after their exit or preconditions are met
 	transition chan RaftState
 
-	// each raft state will be cancelled via this context. After each cancel
-	// a new ctx is created
-	stateCtx context.Context
-	// cancels the goroutine state of a [RaftState]
+	// each raft state __could__ be cancelled via this context. But isn't strictly
+	// necessary as of the moment. It primarily serves as a way for signal handling or
+	// ensuring no resource leaks
+	stateCtx       context.Context
 	stateCtxCancel context.CancelFunc
 
 	// TODO: this is meant for debug purposes and will probably be enforced later
@@ -120,21 +122,19 @@ func (r *Raft) Run(parentCtx context.Context) {
 
 	go func() {
 		if err := r.server.Listen(ctx, r.serverAddr); err != nil {
-			log.Println("(node) error occured while starting the sever")
+			r.log.Println("error occured while starting the sever")
 			errCh <- err
 		}
 	}()
 
 	stateCtx, stateCtxCancel := context.WithCancel(parentCtx)
-	// used to terminate states that might be running in the seperate routines
 	r.stateCtx = stateCtx
 	r.stateCtxCancel = stateCtxCancel
 	defer stateCtxCancel()
 
 	r.log.Println("starting raft node: ", r.Diagnostics())
-	go func() {
-		r.startFollower()
-	}()
+
+	go r.startFollower()
 
 	for {
 		select {
@@ -185,8 +185,13 @@ func (r *Raft) Run(parentCtx context.Context) {
 	}
 }
 
+const (
+	// According to the Raft Paper, it's recommended for timeouts(election) to range from 100-500ms
+	minInterval = 100
+	maxInterval = 500
+)
+
 func randomTimeout(d time.Duration) time.Duration {
-	minInterval, maxInterval := 100, 500
 	n := rand.IntN(maxInterval-minInterval) + minInterval
 
 	return d * time.Duration(n)
