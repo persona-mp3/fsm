@@ -17,6 +17,10 @@ func defaultOpts() *Opts {
 	}
 }
 
+// runLeader is responsible for sending out heartbeats to other
+// peers in the cluster. When it receives an [AppendEntryReq] from another node,
+// it sends a transition to the [Raft.Run] loop. Otherwise it disregards the rpcRequest
+// and responds with it's own term
 func (r *Raft) runLeader(opts *Opts) {
 	var o *Opts
 	if opts == nil {
@@ -51,7 +55,7 @@ func (r *Raft) runLeader(opts *Opts) {
 				if transit := r.handleAppendEntryRPC(o, payload, rpc.reply); transit {
 					o.log.Println("sending transition request to manager")
 					r.transition <- Follower
-					o.log.Println("sent tranition request successfully")
+					o.log.Println("sent transition request successfully")
 					return
 				}
 
@@ -73,6 +77,10 @@ func (r *Raft) runLeader(opts *Opts) {
 
 }
 
+// handleAppendEntryRPC returns replies back to the caller. It returns true when this
+// to signify that a change needs to happen. If this node is a [Leader] and handleAppendEntryRPC
+// returns true, this node should turn to a [Follower]. If this node is [Follower], it
+// should restart it's heartbeat. A [Candidate], should return to [Follower].
 func (r *Raft) handleAppendEntryRPC(o *Opts, req AppendEntryReq, reply chan RPCReply) bool {
 	if req.Term > r.term.Load() {
 		o.log.Printf("reqRPC: %d is larger %s\n", req.Term, r.Diagnostics())
@@ -103,5 +111,3 @@ func (r *Raft) handleAppendEntryRPC(o *Opts, req AppendEntryReq, reply chan RPCR
 	o.log.Printf("sent rpc to lowerClient")
 	return false
 }
-
-func (r *Raft) handleUnknownRPC(rpc RPC) {}
