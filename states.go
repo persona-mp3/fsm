@@ -12,19 +12,33 @@ import (
 // fires, this function returns, and updates the state of this node to
 // a [Candidate], otherwise it keeps running until it's ctx is cancelled
 func (r *Raft) runFollower(ctx context.Context) {
-	log.Println("becoming a follower")
-	ticker := time.NewTicker(r.electionTimeout)
-	defer ticker.Stop()
+	log.Println("(follower) becoming a follower")
+	timer := time.NewTimer(r.electionTimeout)
+	defer func() {
+		if !timer.Stop() {
+			go func() {
+				<-timer.C
+			}()
+		}
+	}()
 
 	for {
 		select {
+		case <-r.heartbeat:
+			log.Println("(follower) heartbeat met: ", time.Now())
+			if !timer.Stop() {
+				<-timer.C
+			}
+			timer.Reset(r.electionTimeout)
+			log.Println("(follower) reseting timeout: ", r.electionTimeout)
+
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
+		case <-timer.C:
+			log.Printf("(follower) timeout elasped, becoming candidate after %s, at %s\n", r.electionTimeout, time.Now())
 			r.updateRaftState(Candidate)
 			return
-		case <-r.heartbeat:
-			log.Println("heartbeat met")
+		default:
 		}
 	}
 
@@ -38,7 +52,6 @@ func (r *Raft) runCandidate(ctx context.Context) {
 	newTerm := r.incrementTerm()
 	log.Println("going all out for a newTerm: ", newTerm)
 	// STUB to transition into leader
-	time.Sleep(5 * time.Second)
 	if seed := generateRandomTimeout(time.Millisecond).Milliseconds(); seed%2 == 0 {
 		r.updateRaftState(Leader)
 	} else {
@@ -49,14 +62,15 @@ func (r *Raft) runCandidate(ctx context.Context) {
 
 func (r *Raft) runLeader(ctx context.Context) {
 	log.Println("running as leader")
-	time.Sleep(3 * time.Second)
+	time.Sleep(1 * time.Second)
 }
 
 // Updates the current state of this node
 func (r *Raft) updateRaftState(state RaftState) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.state = state
+	r.recentChange.Store(true)
 }
 
 // getCurrentState returns the current state of the Node

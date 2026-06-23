@@ -14,17 +14,6 @@ type TestReq struct {
 	Message string
 }
 
-func (s *Server) TestServer(req TestReq, res *TestReq) error {
-	reply := make(chan string)
-	s.incoming <- RPC{payload: req.Message, reply: reply}
-
-	msg := <-reply
-
-	res.Message = msg
-	res.From = "test-server"
-	return nil
-}
-
 type Server struct {
 	incoming chan RPC
 }
