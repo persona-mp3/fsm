@@ -25,7 +25,7 @@ type AppendEntryRes struct {
 	err          error
 }
 
-var term = 1002
+var term = 1000
 
 func lead(d *rpc.Client) {
 	ticker := time.NewTicker(110 * time.Millisecond)
@@ -46,6 +46,11 @@ func lead(d *rpc.Client) {
 
 		if res.err != nil {
 			log.Println("(error) remoteServer failed down or sent error", res.err)
+			return
+		}
+
+		if !res.Acknowledged {
+			log.Println("(rpc_res) was not acked by peer")
 			return
 		}
 

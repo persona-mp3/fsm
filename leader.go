@@ -77,11 +77,20 @@ func (r *Raft) runLeader(opts *Opts) {
 
 }
 
-// handleAppendEntryRPC returns replies back to the caller. It returns true when this
-// to signify that a change needs to happen. If this node is a [Leader] and handleAppendEntryRPC
-// returns true, this node should turn to a [Follower]. If this node is [Follower], it
-// should restart it's heartbeat. A [Candidate], should return to [Follower].
+// handleAppendEntryRPC processes an incoming AppendEntry RPC and sends a reply to the caller.
+// It returns true to signal that a state transition is required, and false if the RPC
+// should be ignored.
+//
+//   - [Leader] or [Candidate]: if true is returned, this node should transition to [Follower].
+//   - [Follower]: if true is returned, reset the heartbeat timer and apply any log entries
+//     present in the payload.
+//
+// Returns true when the incoming term is greater than or equal to this node's current term,
+// indicating the RPC is from a legitimate or more up-to-date leader.
 func (r *Raft) handleAppendEntryRPC(o *Opts, req AppendEntryReq, reply chan RPCReply) bool {
+	// while a  node is a leader or candidate, they will change to a follower state
+	// with their term updated. if a follower, the term and logs are just updated
+	// heartbeat timers reset
 	if req.Term > r.term.Load() {
 		o.log.Printf("reqRPC: %d is larger %s\n", req.Term, r.Diagnostics())
 		r.term.Store(req.Term)
@@ -89,25 +98,39 @@ func (r *Raft) handleAppendEntryRPC(o *Opts, req AppendEntryReq, reply chan RPCR
 			kind: AppendEntry,
 			payload: &AppendEntryRes{
 				Id:           r.id,
-				Data:         "leader(-_-) recvd larger rpc, stepping down from leader",
+				Data:         "recvd larger rpc, yielded",
 				Acknowledged: true,
 			}}
 		o.log.Println("sentRPC  sending transition to Follower")
 		o.log.Println("sentRPC")
 		return true
+	} else if req.Term < r.term.Load() {
+		o.log.Printf("recvd a lower termRPC: %d,  %s Ignoring rpc\n", req.Term, r.Diagnostics())
+		reply <- RPCReply{
+			kind: AppendEntry,
+			payload: &AppendEntryRes{
+				Id:           r.id,
+				Term:         r.term.Load(),
+				Data:         "sender's rpc outdated",
+				Acknowledged: false,
+			},
+		}
+
+		o.log.Printf("sent rpc to lowerClient")
+		return false
+	} else {
+		// Terms are equal - treat as valid heartbeat from leader
+		o.log.Printf("reqRPC term %d match. possibly from current leader %s\n", req.Term, r.Diagnostics())
+		reply <- RPCReply{
+			kind: AppendEntry,
+			payload: &AppendEntryRes{
+				Id:           r.id,
+				Data:         "updated my logs",
+				Acknowledged: true,
+			}}
+		o.log.Println("sentRPC  sending transition to Follower")
+		o.log.Println("sentRPC")
 	}
 
-	o.log.Printf("recvd a lower termRPC: %d,  %s Ignoring rpc\n", req.Term, r.Diagnostics())
-	reply <- RPCReply{
-		kind: AppendEntry,
-		payload: &AppendEntryRes{
-			Id:           r.id,
-			Term:         r.term.Load(),
-			Data:         "disregarding your opinions",
-			Acknowledged: false,
-		},
-	}
-
-	o.log.Printf("sent rpc to lowerClient")
-	return false
+	return true
 }
