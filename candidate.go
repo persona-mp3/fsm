@@ -120,7 +120,7 @@ func (r *Raft) Candidate(opts *Opts) {
 			wg.Add(1)
 			go func(dialer *rpc.Client, totalVotes *atomic.Uint64) {
 				defer wg.Done()
-				makeRequestVoteRPC(dialer, totalVotes)
+				r.makeRequestVoteRPC(dialer, totalVotes)
 
 			}(rpcClient, &totalVotes)
 		}
@@ -179,6 +179,36 @@ func (r *Raft) Candidate(opts *Opts) {
 
 }
 
-func makeRequestVoteRPC(dial *rpc.Client, totalVotes *atomic.Uint64) {
-	log.Panicf("[makeRequestVoteRPC] not implemented yet")
+type RequestVoteReq struct {
+	Id     string
+	Term   uint64
+	Reason string
+}
+type RequestVoteRes struct {
+	Id     string
+	Term   uint64
+	Acked  bool
+	Reason string
+}
+
+func (r *Raft) makeRequestVoteRPC(dial *rpc.Client, totalVotes *atomic.Uint64) {
+	log.Printf("[makeRequestVoteRPC] not implemented yet\n")
+	req := RequestVoteReq{
+		Id:     r.id,
+		Term:   r.term.Load(),
+		Reason: "I need your vote luh bro",
+	}
+	res := &RequestVoteRes{}
+	if err := dial.Call("Server.RequestVoteRPC", req, res); err != nil {
+		log.Println("[makeRequestVoteRPC] failed: ", err)
+		return
+	}
+
+	if res.Acked {
+		totalVotes.Add(1)
+		r.log.Println("[makeRequestVote] recvd vote from", res.Id)
+	} else {
+		r.log.Printf("[makeRequestVote] denied vote from: %s Reason: %s", res.Id, res.Reason)
+	}
+
 }
