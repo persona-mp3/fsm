@@ -86,6 +86,7 @@ func (r *Raft) newStateContext(parentCtx context.Context) {
 // Candidate increments this nodes term and sends rpcs too all the peers
 // it has connections to
 func (r *Raft) Candidate(opts *Opts) {
+	r.incrementTerm()
 	var o *Opts
 	if opts == nil {
 		o = defaultOpts()
