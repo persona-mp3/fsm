@@ -88,7 +88,7 @@ type RequestVoteRes struct {
 
 
 func (s *Server) RequestVoteRPC(req RequestVoteReq, res *RequestVoteRes) error {
-	s.log.Println("revd requestVoteRPC: %+v\n", req)
+	s.log.Printf("revd requestVoteRPC: %+v\n", req)
 	replyCh := make(chan RPCReply)
 	s.incoming <- RPC{kind: RequestVote, payload: req, reply: replyCh}
 	reply := <-replyCh

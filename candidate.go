@@ -149,7 +149,7 @@ func (r *Raft) Candidate(opts *Opts) {
 
 			// TODO: It's not yet clear that we might need a mutex here considering the fact that
 			// each RaftState owns the Node ie only one thread can mutate r.rpcClients
-			r.rpcPeers = append(r.rpcPeers, rpcPeers...)
+			r.rpcPeers = rpcPeers
 			r.transition <- Leader
 			return
 		}
@@ -222,8 +222,6 @@ func (r *Raft) Candidate(opts *Opts) {
 	}
 
 }
-
-func (r *Raft) sendHeartbeats() {}
 
 func (r *Raft) makeRequestVoteRPC(dial *rpc.Client, totalVotes *atomic.Uint64) {
 	req := RequestVoteReq{

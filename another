@@ -1,0 +1,197 @@
+(cluster) 2026/06/25 00:32:35.324789 initialising cluster with totalNodes: 3
+(cluster) 2026/06/25 00:32:35.325040 started node with id: 0
+(raft) 2026/06/25 00:32:35.325111 starting raft node:  diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 0, electionTimeout: 5m46s }
+(cluster) 2026/06/25 00:32:35.325067 started node with id: 1
+(raft) 2026/06/25 00:32:35.325290 starting raft node:  diagnostics: { address: 127.0.0.1:5171, state: Follower, term: 0, electionTimeout: 1m51s }
+(cluster) 2026/06/25 00:32:35.325295 started node with id: 2
+(raft) 2026/06/25 00:32:35.325338 starting raft node:  diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 0, electionTimeout: 7m26s }
+(0:server) 2026/06/25 00:32:35.325707 tcp server active at 127.0.0.1:28412
+(2:server) 2026/06/25 00:32:35.325749 tcp server active at 127.0.0.1:4958
+(1:server) 2026/06/25 00:32:35.325802 tcp server active at 127.0.0.1:5171
+(1:follower) 2026/06/25 00:34:26.326047 timeout reached without hearbeat, tranisitioning to Candidate 
+(1:follower) 2026/06/25 00:34:26.326114 exiting state 
+(raft) 2026/06/25 00:34:26.326147 received transition request to Candidate from:  Follower
+(0:server) 2026/06/25 00:34:26.327954 revd requestVoteRPC: {Id:1 Term:1 Reason:I need your vote luh bro}
+(2:server) 2026/06/25 00:34:26.327928 revd requestVoteRPC: {Id:1 Term:1 Reason:I need your vote luh bro}
+(2:follower) 2026/06/25 00:34:26.328135 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:34:26.328166 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:4958, state: Follower, term
+: 0, electionTimeout: 7m26s }
+(2:follower) 2026/06/25 00:34:26.328186 updated term diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTimeout: 7m26s }
+(2:follower) 2026/06/25 00:34:26.328191 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTimeout: 7m26s 
+}
+(2:server) 2026/06/25 00:34:26.328200 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:34:26.328098 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:34:26.328297 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:28412, state: Follower, ter
+m: 0, electionTimeout: 5m46s }
+(0:follower) 2026/06/25 00:34:26.328322 updated term diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTimeout: 5m46s }
+(0:follower) 2026/06/25 00:34:26.328330 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTimeout: 5m46s
+ }
+(0:server) 2026/06/25 00:34:26.328322 sent requestVoteRPCResponse to client
+(raft) 2026/06/25 00:34:26.328706 [makeRequestVote] recvd vote from 2
+(raft) 2026/06/25 00:34:26.328704 [makeRequestVote] recvd vote from 0
+(1:candidate_) 2026/06/25 00:34:26.328737 all votes have been collected before electionTimer, checking vote count
+
+-------LEADER IS 1-------
+(1:candidate_) 2026/06/25 00:34:26.328743 i'm going to be a leader... 3
+(1:leader) 2026/06/25 00:34:26.328803 started:  diagnostics: { address: 127.0.0.1:5171, state: Leader, term: 1, electionTimeout: 2m54s }
+-------LEADER-------
+
+(0:follower) 2026/06/25 00:34:26.379908 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTim
+eout: 5m46s }
+(0:follower) 2026/06/25 00:34:26.379913 sent rpcReply to client-node
+(0:follower) 2026/06/25 00:34:26.379916 sentRPC
+(0:follower) 2026/06/25 00:34:26.379921 updated term info and reset timer
+
+
+(2:follower) 2026/06/25 00:34:26.380010 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTime
+out: 7m26s }
+(2:follower) 2026/06/25 00:34:26.380018 sent rpcReply to client-node
+(2:follower) 2026/06/25 00:34:26.380033 sentRPC
+(2:follower) 2026/06/25 00:34:26.380041 updated term info and reset timer
+
+--------------LEADER------------
+(1:leader [heartbeat]) 2026/06/25 00:34:26.380253 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:34:26.380321 heartbeat sent...
+--------------LEADER--------------
+
+
+(2:follower) 2026/06/25 00:34:26.430185 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTime
+out: 7m26s }
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(2:follower) 2026/06/25 00:34:26.430240 sent rpcReply to client-node
+(2:follower) 2026/06/25 00:34:26.430262 sentRPC
+(2:follower) 2026/06/25 00:34:26.430269 updated term info and reset timer
+(0:follower) 2026/06/25 00:34:26.430283 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTim
+eout: 5m46s }
+(0:follower) 2026/06/25 00:34:26.430340 sent rpcReply to client-node
+(0:follower) 2026/06/25 00:34:26.430345 sentRPC
+(0:follower) 2026/06/25 00:34:26.430351 updated term info and reset timer
+(1:leader [heartbeat]) 2026/06/25 00:34:26.430576 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:34:26.430657 heartbeat sent...
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(2:follower) 2026/06/25 00:34:26.479520 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTime
+out: 7m26s }
+(2:follower) 2026/06/25 00:34:26.479533 sent rpcReply to client-node
+(2:follower) 2026/06/25 00:34:26.479538 sentRPC
+(2:follower) 2026/06/25 00:34:26.479546 updated term info and reset timer
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(0:follower) 2026/06/25 00:34:26.479684 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTim
+eout: 5m46s }
+(0:follower) 2026/06/25 00:34:26.479689 sent rpcReply to client-node
+(0:follower) 2026/06/25 00:34:26.479691 sentRPC
+(0:follower) 2026/06/25 00:34:26.479696 updated term info and reset timer
+(1:leader [heartbeat]) 2026/06/25 00:34:26.479695 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:34:26.479792 heartbeat sent...
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(0:follower) 2026/06/25 00:34:26.529316 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTim
+eout: 5m46s }
+(0:follower) 2026/06/25 00:34:26.529320 sent rpcReply to client-node
+(0:follower) 2026/06/25 00:34:26.529322 sentRPC
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+(0:follower) 2026/06/25 00:34:26.529326 updated term info and reset timer
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(2:follower) 2026/06/25 00:34:26.529389 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTime
+out: 7m26s }
+(2:follower) 2026/06/25 00:34:26.529407 sent rpcReply to client-node
+(2:follower) 2026/06/25 00:34:26.529416 sentRPC
+(2:follower) 2026/06/25 00:34:26.529422 updated term info and reset timer
+(1:leader [heartbeat]) 2026/06/25 00:34:26.529565 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:34:26.529606 heartbeat sent...
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+2026/06/25 00:34:26 (server) was able to send rpc to node
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+(0:follower) 2026/06/25 00:34:26.579297 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTim
+eout: 5m46s }
+(0:follower) 2026/06/25 00:34:26.579303 sent rpcReply to client-node
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(0:follower) 2026/06/25 00:34:26.579306 sentRPC
+(0:follower) 2026/06/25 00:34:26.579311 updated term info and reset timer
+(2:follower) 2026/06/25 00:34:26.579317 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTime
+out: 7m26s }
+(2:follower) 2026/06/25 00:34:26.579322 sent rpcReply to client-node
+(2:follower) 2026/06/25 00:34:26.579324 sentRPC
+(2:follower) 2026/06/25 00:34:26.579328 updated term info and reset timer
+(1:leader [heartbeat]) 2026/06/25 00:34:26.579531 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:34:26.579554 heartbeat sent...
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+2026/06/25 00:34:26 (server) was able to send rpc to node
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+(0:follower) 2026/06/25 00:34:26.629251 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTim
+eout: 5m46s }
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(0:follower) 2026/06/25 00:34:26.629256 sent rpcReply to client-node
+(0:follower) 2026/06/25 00:34:26.629259 sentRPC
+(0:follower) 2026/06/25 00:34:26.629262 updated term info and reset timer
+(2:follower) 2026/06/25 00:34:26.629264 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTime
+out: 7m26s }
+(2:follower) 2026/06/25 00:34:26.629268 sent rpcReply to client-node
+(2:follower) 2026/06/25 00:34:26.629271 sentRPC
+(2:follower) 2026/06/25 00:34:26.629273 updated term info and reset timer
+(1:leader [heartbeat]) 2026/06/25 00:34:26.629524 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:34:26.629547 heartbeat sent...
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(2:follower) 2026/06/25 00:34:26.679955 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTime
+out: 7m26s }
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+(2:follower) 2026/06/25 00:34:26.679959 sent rpcReply to client-node
+(2:follower) 2026/06/25 00:34:26.679966 sentRPC
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(2:follower) 2026/06/25 00:34:26.679970 updated term info and reset timer
+(0:follower) 2026/06/25 00:34:26.679981 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTim
+eout: 5m46s }
+(0:follower) 2026/06/25 00:34:26.679986 sent rpcReply to client-node
+(0:follower) 2026/06/25 00:34:26.679989 sentRPC
+(0:follower) 2026/06/25 00:34:26.679992 updated term info and reset timer
+(1:leader [heartbeat]) 2026/06/25 00:34:26.680139 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:34:26.680166 heartbeat sent...
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(2:follower) 2026/06/25 00:34:26.729833 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTime
+out: 7m26s }
+(2:follower) 2026/06/25 00:34:26.729838 sent rpcReply to client-node
+(2:follower) 2026/06/25 00:34:26.729840 sentRPC
+(2:follower) 2026/06/25 00:34:26.729843 updated term info and reset timer
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(0:follower) 2026/06/25 00:34:26.729865 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTim
+eout: 5m46s }
+(0:follower) 2026/06/25 00:34:26.729869 sent rpcReply to client-node
+(0:follower) 2026/06/25 00:34:26.729871 sentRPC
+(0:follower) 2026/06/25 00:34:26.729874 updated term info and reset timer
+(1:leader [heartbeat]) 2026/06/25 00:34:26.730159 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:34:26.730186 heartbeat sent...
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+2026/06/25 00:34:26 (server) was able to send rpc to node
+2026/06/25 00:34:26 (server) recvd appendEntryRPC {Id:1 Term:1 Data:this is a heartbeat rpc}
+(2:follower) 2026/06/25 00:34:26.779851 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:4958, state: Follower, term: 1, electionTime
+out: 7m26s }
+(2:follower) 2026/06/25 00:34:26.779861 sent rpcReply to client-node
+(2:follower) 2026/06/25 00:34:26.779865 sentRPC
+2026/06/25 00:34:26 (server) was able to send rpc to node
+(2:follower) 2026/06/25 00:34:26.779869 updated term info and reset timer
+(0:follower) 2026/06/25 00:34:26.779883 reqRPC term 1 match. possibly from current leader diagnostics: { address: 127.0.0.1:28412, state: Follower, term: 1, electionTim
+eout: 5m46s }
+(0:follower) 2026/06/25 00:34:26.779889 sent rpcReply to client-node
+(0:follower) 2026/06/25 00:34:26.779891 sentRPC
+(0:follower) 2026/06/25 00:34:26.779894 updated term info and reset timer
+(1:leader [heartbeat]) 2026/06/25 00:34:26.780067 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:34:26.780075 heartbeat sent...
+^C(cluster) 2026/06/25 00:34:26.785639 parentCtx cancelled first, killing all rafts
+(0:server) 2026/06/25 00:34:26.785714 listener closed
+(raft) 2026/06/25 00:34:26.785728 exiting full raftState
+(1:leader:heartbeat) 2026/06/25 00:34:26.785733 mainLeaderLoop exited, sendHeartBeats control is about to do so
+(1:leader [heartbeat]) 2026/06/25 00:34:26.785744 0 returning for duty
+(raft) 2026/06/25 00:34:26.785745 exiting full raftState
+(1:leader [heartbeat]) 2026/06/25 00:34:26.785748 1 returning for duty
+(2:server) 2026/06/25 00:34:26.785763 listener closed
+(raft) 2026/06/25 00:34:26.785766 exiting full raftState
+(cluster) 2026/06/25 00:34:26.785780 wg counter returned, sending to done chan
+(2:follower) 2026/06/25 00:34:26.785769 exiting state 
+(1:server) 2026/06/25 00:34:26.785793 listener closed
+(0:follower) 2026/06/25 00:34:26.785772 exiting state 
+  dev::fsm (feat/candidate) | 
+

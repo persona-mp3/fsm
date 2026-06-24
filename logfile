@@ -1,0 +1,2032 @@
+(cluster) 2026/06/25 00:11:49.111094 initialising cluster with totalNodes: 3
+
+(cluster) 2026/06/25 00:11:49.111247 started node with id: 0
+(raft) 2026/06/25 00:11:49.111285 starting raft node:  diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 0, electionTimeout: 479ms }
+(cluster) 2026/06/25 00:11:49.111338 started node with id: 2
+(raft) 2026/06/25 00:11:49.111352 starting raft node:  diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 0, electionTimeout: 303ms }
+(cluster) 2026/06/25 00:11:49.111368 started node with id: 1
+(raft) 2026/06/25 00:11:49.111599 starting raft node:  diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 0, electionTimeout: 180ms }
+(0:server) 2026/06/25 00:11:49.111739 tcp server active at 127.0.0.1:29040
+         (1:server) 2026/06/25 00:11:49.111844 tcp server active at 127.0.0.1:42339
+(2:server) 2026/06/25 00:11:49.111953 tcp server active at 127.0.0.1:55551
+
+(1:follower) 2026/06/25 00:11:49.292315 timeout reached without hearbeat, tranisitioning to Candidate 
+(1:follower) 2026/06/25 00:11:49.292427 exiting state 
+(raft) 2026/06/25 00:11:49.292462 received transition request to Candidate from:  Follower
+(0:server) 2026/06/25 00:11:49.293978 revd requestVoteRPC: {Id:1 Term:1 Reason:I need your vote luh bro}
+(0:follower) 2026/06/25 00:11:49.294019 processing RequestVoteRPC request
+
+(2:server) 2026/06/25 00:11:49.293971 revd requestVoteRPC: {Id:1 Term:1 Reason:I need your vote luh bro}
+(2:follower) 2026/06/25 00:11:49.294033 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:49.294030 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 0, electionTimeout: 479ms }
+
+
+(0:follower) 2026/06/25 00:11:49.294044 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 1, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.294047 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 1, electionTimeout: 479ms
+ }
+
+
+
+(2:follower) 2026/06/25 00:11:49.294042 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 0, electionTimeout: 303ms }
+(2:server) 2026/06/25 00:11:49.294051 sent requestVoteRPCResponse to client
+(2:follower) 2026/06/25 00:11:49.294059 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 1, electionTimeout: 303ms }
+(2:follower) 2026/06/25 00:11:49.294084 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 1, electionTimeout: 303ms
+ }
+(0:server) 2026/06/25 00:11:49.294294 sent requestVoteRPCResponse to client
+(raft) 2026/06/25 00:11:49.294378 [makeRequestVote] recvd vote from 2
+(raft) 2026/06/25 00:11:49.294486 [makeRequestVote] recvd vote from 0
+(1:candidate_) 2026/06/25 00:11:49.294496 all votes have been collected before electionTimer, checking vote count
+(1:candidate_) 2026/06/25 00:11:49.294499 i'm going to be a leader... 3
+
+(raft) 2026/06/25 00:11:49.294507 received transition request to Leader from:  Candidate
+(raft) 2026/06/25 00:11:49.294530 updated state to Leader:  diagnostics: { address: 127.0.0.1:42339, state: Leader, term: 1, electionTimeout: 326ms }
+
+(1:leader) 2026/06/25 00:11:49.294555 started:  diagnostics: { address: 127.0.0.1:42339, state: Leader, term: 1, electionTimeout: 326ms }
+(2:server) 2026/06/25 00:11:49.345079 revd requestVoteRPC: {Id:1 Term:1 Reason:}
+(2:follower) 2026/06/25 00:11:49.345150 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:49.345117 revd requestVoteRPC: {Id:1 Term:1 Reason:}
+(2:follower) 2026/06/25 00:11:49.345161 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 1, electionTimeout: 303ms }
+(2:follower) 2026/06/25 00:11:49.345171 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 1, electionTimeout: 303ms }
+(0:follower) 2026/06/25 00:11:49.345167 processing RequestVoteRPC request
+(2:server) 2026/06/25 00:11:49.345171 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:49.345184 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 1, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.345190 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 1, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.345199 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 1, electionTimeout: 479ms
+ }
+(0:server) 2026/06/25 00:11:49.345214 sent requestVoteRPCResponse to client
+(2:follower) 2026/06/25 00:11:49.345175 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 1, electionTimeout: 303ms
+ }
+(1:leader [heartbeat]) 2026/06/25 00:11:49.345343 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:49.345353 heartbeat sent...
+(2:server) 2026/06/25 00:11:49.395556 revd requestVoteRPC: {Id:1 Term:1 Reason:}
+(2:follower) 2026/06/25 00:11:49.395623 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:49.395614 revd requestVoteRPC: {Id:1 Term:1 Reason:}
+(2:follower) 2026/06/25 00:11:49.395632 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 1, electionTimeout: 303ms }
+(0:follower) 2026/06/25 00:11:49.395646 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:49.395650 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 1, electionTimeout: 303ms }
+(0:follower) 2026/06/25 00:11:49.395654 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 1, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.395660 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 1, electionTimeout: 479ms }
+(2:follower) 2026/06/25 00:11:49.395655 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 1, electionTimeout: 303ms
+ }
+(0:server) 2026/06/25 00:11:49.395660 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:49.395665 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 1, electionTimeout: 479ms
+ }
+(2:server) 2026/06/25 00:11:49.395636 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:49.395821 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:49.395838 heartbeat sent...
+(2:follower) 2026/06/25 00:11:49.414992 timeout reached without hearbeat, tranisitioning to Candidate 
+(2:follower) 2026/06/25 00:11:49.415011 exiting state 
+(raft) 2026/06/25 00:11:49.415022 received transition request to Candidate from:  Follower
+(0:server) 2026/06/25 00:11:49.415769 revd requestVoteRPC: {Id:2 Term:2 Reason:I need your vote luh bro}
+(0:follower) 2026/06/25 00:11:49.415808 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:49.415819 requestVoteRPC had a higher term:2, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 1, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.415824 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 2, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.415828 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 2, electionTimeout: 479ms
+ }
+(0:server) 2026/06/25 00:11:49.415834 sent requestVoteRPCResponse to client
+(raft) 2026/06/25 00:11:49.415993 [makeRequestVote] recvd vote from 0
+(1:server) 2026/06/25 00:11:49.416040 revd requestVoteRPC: {Id:2 Term:2 Reason:I need your vote luh bro}
+(1:leader) 2026/06/25 00:11:49.416073 processing RequestVoteRPC request
+(1:leader) 2026/06/25 00:11:49.416080 stepping down to Follower, recvd a higher RPCTerm: 2, diagnostics: { address: 127.0.0.1:42339, state: Leader, term: 1, electionTim
+eout: 326ms }
+(1:leader) 2026/06/25 00:11:49.416090 sent replyRPC, transitioning to Follower
+(1:server) 2026/06/25 00:11:49.416098 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:49.416104 1 returning for duty
+(1:leader [heartbeat]) 2026/06/25 00:11:49.416110 0 returning for duty
+(raft) 2026/06/25 00:11:49.416102 received transition request to Follower from:  Leader
+(raft) 2026/06/25 00:11:49.416523 [makeRequestVote] recvd vote from 1
+(2:candidate_) 2026/06/25 00:11:49.416567 all votes have been collected before electionTimer, checking vote count
+(2:candidate_) 2026/06/25 00:11:49.416574 i'm going to be a leader... 3
+(raft) 2026/06/25 00:11:49.416593 received transition request to Leader from:  Candidate
+(raft) 2026/06/25 00:11:49.416612 updated state to Leader:  diagnostics: { address: 127.0.0.1:55551, state: Leader, term: 2, electionTimeout: 309ms }
+(2:leader) 2026/06/25 00:11:49.416644 started:  diagnostics: { address: 127.0.0.1:55551, state: Leader, term: 2, electionTimeout: 309ms }
+(1:server) 2026/06/25 00:11:49.467163 revd requestVoteRPC: {Id:2 Term:2 Reason:}
+(1:follower) 2026/06/25 00:11:49.467215 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:49.467224 requestVoteRPC had a higher term:2, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 2, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.467229 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 2, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.467233 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 2, electionTimeout: 387ms
+ }
+(1:server) 2026/06/25 00:11:49.467238 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:49.467171 revd requestVoteRPC: {Id:2 Term:2 Reason:}
+(2:leader [heartbeat]) 2026/06/25 00:11:49.467342 heartbeat sent...
+(0:follower) 2026/06/25 00:11:49.467354 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:49.467391 requestVoteRPC had a higher term:2, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 2, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.467402 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 2, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.467406 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 2, electionTimeout: 479ms
+ }
+(0:server) 2026/06/25 00:11:49.467406 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:49.467467 heartbeat sent...
+(1:server) 2026/06/25 00:11:49.517646 revd requestVoteRPC: {Id:2 Term:2 Reason:}
+(1:follower) 2026/06/25 00:11:49.517689 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:49.517697 requestVoteRPC had a higher term:2, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 2, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.517702 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 2, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.517705 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 2, electionTimeout: 387ms
+ }
+(1:server) 2026/06/25 00:11:49.517709 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:49.517731 revd requestVoteRPC: {Id:2 Term:2 Reason:}
+(0:follower) 2026/06/25 00:11:49.517759 processing RequestVoteRPC request
+(2:leader [heartbeat]) 2026/06/25 00:11:49.517762 heartbeat sent...
+(0:follower) 2026/06/25 00:11:49.517767 requestVoteRPC had a higher term:2, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 2, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.517792 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 2, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.517798 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 2, electionTimeout: 479ms
+ }
+(0:server) 2026/06/25 00:11:49.517770 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:49.518037 heartbeat sent...
+(1:server) 2026/06/25 00:11:49.567426 revd requestVoteRPC: {Id:2 Term:2 Reason:}
+(1:follower) 2026/06/25 00:11:49.567477 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:49.567464 revd requestVoteRPC: {Id:2 Term:2 Reason:}
+(0:follower) 2026/06/25 00:11:49.567493 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:49.567499 requestVoteRPC had a higher term:2, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 2, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.567506 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 2, electionTimeout: 479ms }
+(0:follower) 2026/06/25 00:11:49.567509 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 2, electionTimeout: 479ms
+ }
+(1:follower) 2026/06/25 00:11:49.567496 requestVoteRPC had a higher term:2, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 2, electionTimeout: 387ms }
+(1:server) 2026/06/25 00:11:49.567504 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:49.567522 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:49.567516 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 2, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.567562 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 2, electionTimeout: 387ms
+ }
+(2:leader [heartbeat]) 2026/06/25 00:11:49.567653 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:49.567680 heartbeat sent...
+(0:follower) 2026/06/25 00:11:49.590728 timeout reached without hearbeat, tranisitioning to Candidate 
+(0:follower) 2026/06/25 00:11:49.590748 exiting state 
+(raft) 2026/06/25 00:11:49.590762 received transition request to Candidate from:  Follower
+(2:server) 2026/06/25 00:11:49.591316 revd requestVoteRPC: {Id:0 Term:3 Reason:I need your vote luh bro}
+(2:leader) 2026/06/25 00:11:49.591348 processing RequestVoteRPC request
+(2:leader) 2026/06/25 00:11:49.591354 stepping down to Follower, recvd a higher RPCTerm: 3, diagnostics: { address: 127.0.0.1:55551, state: Leader, term: 2, electionTim
+eout: 309ms }
+(2:leader) 2026/06/25 00:11:49.591359 sent replyRPC, transitioning to Follower
+(raft) 2026/06/25 00:11:49.591369 received transition request to Follower from:  Leader
+(1:server) 2026/06/25 00:11:49.591331 revd requestVoteRPC: {Id:0 Term:3 Reason:I need your vote luh bro}
+(1:follower) 2026/06/25 00:11:49.591380 processing RequestVoteRPC request
+(2:leader [heartbeat]) 2026/06/25 00:11:49.591384 1 returning for duty
+(1:follower) 2026/06/25 00:11:49.591385 requestVoteRPC had a higher term:3, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 2, electionTimeout: 387ms }
+(2:leader [heartbeat]) 2026/06/25 00:11:49.591391 0 returning for duty
+(1:server) 2026/06/25 00:11:49.591388 sent requestVoteRPCResponse to client
+(2:server) 2026/06/25 00:11:49.591393 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:49.591393 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 3, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.591413 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 3, electionTimeout: 387ms
+ }
+(raft) 2026/06/25 00:11:49.591650 [makeRequestVote] recvd vote from 2
+(raft) 2026/06/25 00:11:49.591790 [makeRequestVote] recvd vote from 1
+(0:candidate_) 2026/06/25 00:11:49.591808 all votes have been collected before electionTimer, checking vote count
+(0:candidate_) 2026/06/25 00:11:49.591812 i'm going to be a leader... 3
+(raft) 2026/06/25 00:11:49.591822 received transition request to Leader from:  Candidate
+(raft) 2026/06/25 00:11:49.591831 updated state to Leader:  diagnostics: { address: 127.0.0.1:29040, state: Leader, term: 3, electionTimeout: 418ms }
+(0:leader) 2026/06/25 00:11:49.591849 started:  diagnostics: { address: 127.0.0.1:29040, state: Leader, term: 3, electionTimeout: 418ms }
+(1:server) 2026/06/25 00:11:49.642356 revd requestVoteRPC: {Id:0 Term:3 Reason:}
+(2:server) 2026/06/25 00:11:49.642350 revd requestVoteRPC: {Id:0 Term:3 Reason:}
+(2:follower) 2026/06/25 00:11:49.642403 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:49.642411 requestVoteRPC had a higher term:3, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 3, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.642416 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 3, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.642420 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 3, electionTimeout: 356ms
+ }
+(2:server) 2026/06/25 00:11:49.642421 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:49.642395 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:49.642432 requestVoteRPC had a higher term:3, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 3, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.642436 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 3, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.642439 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 3, electionTimeout: 387ms
+ }
+(1:server) 2026/06/25 00:11:49.642445 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:49.642662 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:49.642689 heartbeat sent...
+(2:server) 2026/06/25 00:11:49.692968 revd requestVoteRPC: {Id:0 Term:3 Reason:}
+(2:follower) 2026/06/25 00:11:49.692998 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:49.693007 requestVoteRPC had a higher term:3, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 3, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.693012 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 3, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.693016 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 3, electionTimeout: 356ms
+ }
+(2:server) 2026/06/25 00:11:49.693021 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:11:49.693021 revd requestVoteRPC: {Id:0 Term:3 Reason:}
+(1:follower) 2026/06/25 00:11:49.693054 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:49.693063 requestVoteRPC had a higher term:3, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 3, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.693067 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 3, electionTimeout: 387ms }
+(0:leader [heartbeat]) 2026/06/25 00:11:49.693067 heartbeat sent...
+(1:follower) 2026/06/25 00:11:49.693071 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 3, electionTimeout: 387ms
+ }
+(1:server) 2026/06/25 00:11:49.693073 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:49.693371 heartbeat sent...
+(2:server) 2026/06/25 00:11:49.742603 revd requestVoteRPC: {Id:0 Term:3 Reason:}
+(2:follower) 2026/06/25 00:11:49.742630 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:49.742637 requestVoteRPC had a higher term:3, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 3, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.742640 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 3, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.742643 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 3, electionTimeout: 356ms
+ }
+(2:server) 2026/06/25 00:11:49.742647 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:11:49.742641 revd requestVoteRPC: {Id:0 Term:3 Reason:}
+(1:follower) 2026/06/25 00:11:49.742666 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:49.742672 requestVoteRPC had a higher term:3, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 3, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.742677 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 3, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.742680 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 3, electionTimeout: 387ms
+ }
+(1:server) 2026/06/25 00:11:49.742684 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:49.742690 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:49.742746 heartbeat sent...
+(2:server) 2026/06/25 00:11:49.792887 revd requestVoteRPC: {Id:0 Term:3 Reason:}
+(2:follower) 2026/06/25 00:11:49.792921 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:49.792901 revd requestVoteRPC: {Id:0 Term:3 Reason:}
+(1:follower) 2026/06/25 00:11:49.792935 processing RequestVoteRPC request
+(2:server) 2026/06/25 00:11:49.792938 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:49.792943 requestVoteRPC had a higher term:3, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 3, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.792948 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 3, electionTimeout: 387ms }
+(1:follower) 2026/06/25 00:11:49.792951 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 3, electionTimeout: 387ms
+ }
+(2:follower) 2026/06/25 00:11:49.792936 requestVoteRPC had a higher term:3, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 3, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.792958 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 3, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.792962 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 3, electionTimeout: 356ms
+ }
+(1:server) 2026/06/25 00:11:49.792955 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:49.792973 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:49.793040 heartbeat sent...
+(1:follower) 2026/06/25 00:11:49.803173 timeout reached without hearbeat, tranisitioning to Candidate 
+(1:follower) 2026/06/25 00:11:49.803193 exiting state 
+(raft) 2026/06/25 00:11:49.803218 received transition request to Candidate from:  Follower
+(2:server) 2026/06/25 00:11:49.803869 revd requestVoteRPC: {Id:1 Term:4 Reason:I need your vote luh bro}
+(0:server) 2026/06/25 00:11:49.803875 revd requestVoteRPC: {Id:1 Term:4 Reason:I need your vote luh bro}
+(0:leader) 2026/06/25 00:11:49.803911 processing RequestVoteRPC request
+(0:leader) 2026/06/25 00:11:49.803919 stepping down to Follower, recvd a higher RPCTerm: 4, diagnostics: { address: 127.0.0.1:29040, state: Leader, term: 3, electionTim
+eout: 418ms }
+(0:leader) 2026/06/25 00:11:49.803923 sent replyRPC, transitioning to Follower
+(raft) 2026/06/25 00:11:49.803932 received transition request to Follower from:  Leader
+(2:follower) 2026/06/25 00:11:49.803900 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:49.803950 requestVoteRPC had a higher term:4, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 3, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.803953 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 4, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.803955 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 4, electionTimeout: 356ms
+ }
+(2:server) 2026/06/25 00:11:49.803959 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:49.803989 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:49.804010 0 returning for duty
+(0:leader [heartbeat]) 2026/06/25 00:11:49.804017 1 returning for duty
+(raft) 2026/06/25 00:11:49.804163 [makeRequestVote] recvd vote from 2
+(raft) 2026/06/25 00:11:49.804243 [makeRequestVote] recvd vote from 0
+(1:candidate_) 2026/06/25 00:11:49.804259 all votes have been collected before electionTimer, checking vote count
+(1:candidate_) 2026/06/25 00:11:49.804261 i'm going to be a leader... 3
+(raft) 2026/06/25 00:11:49.804268 received transition request to Leader from:  Candidate
+(raft) 2026/06/25 00:11:49.804275 updated state to Leader:  diagnostics: { address: 127.0.0.1:42339, state: Leader, term: 4, electionTimeout: 382ms }
+(1:leader) 2026/06/25 00:11:49.804289 started:  diagnostics: { address: 127.0.0.1:42339, state: Leader, term: 4, electionTimeout: 382ms }
+(2:server) 2026/06/25 00:11:49.855335 revd requestVoteRPC: {Id:1 Term:4 Reason:}
+(2:follower) 2026/06/25 00:11:49.855369 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:49.855376 requestVoteRPC had a higher term:4, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 4, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.855401 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 4, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.855403 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 4, electionTimeout: 356ms
+ }
+(2:server) 2026/06/25 00:11:49.855408 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:49.855458 heartbeat sent...
+(0:server) 2026/06/25 00:11:49.855467 revd requestVoteRPC: {Id:1 Term:4 Reason:}
+(0:follower) 2026/06/25 00:11:49.855493 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:49.855502 requestVoteRPC had a higher term:4, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 4, electionTimeout: 219ms }
+(0:follower) 2026/06/25 00:11:49.855506 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 4, electionTimeout: 219ms }
+(0:server) 2026/06/25 00:11:49.855508 sent requestVoteRPCResponse to client
+(2:server) 2026/06/25 00:11:49.855492 revd requestVoteRPC: {Id:1 Term:4 Reason:}
+(2:follower) 2026/06/25 00:11:49.855522 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:49.855533 requestVoteRPC had a higher term:4, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 4, electionTimeout: 356ms }
+(0:follower) 2026/06/25 00:11:49.855509 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 4, electionTimeout: 219ms
+ }
+(2:server) 2026/06/25 00:11:49.855541 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:49.855548 heartbeat sent...
+(2:follower) 2026/06/25 00:11:49.855538 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 4, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.855564 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 4, electionTimeout: 356ms
+ }
+(0:server) 2026/06/25 00:11:49.855683 revd requestVoteRPC: {Id:1 Term:4 Reason:}
+(0:follower) 2026/06/25 00:11:49.855717 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:49.855725 requestVoteRPC had a higher term:4, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 4, electionTimeout: 219ms }
+(0:follower) 2026/06/25 00:11:49.855730 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 4, electionTimeout: 219ms }
+(0:follower) 2026/06/25 00:11:49.855734 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 4, electionTimeout: 219ms
+ }
+(0:server) 2026/06/25 00:11:49.855740 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:49.855763 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:49.855925 heartbeat sent...
+(0:server) 2026/06/25 00:11:49.905535 revd requestVoteRPC: {Id:1 Term:4 Reason:}
+(2:server) 2026/06/25 00:11:49.905543 revd requestVoteRPC: {Id:1 Term:4 Reason:}
+(2:follower) 2026/06/25 00:11:49.905589 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:49.905567 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:49.905587 revd requestVoteRPC: {Id:1 Term:4 Reason:}
+(0:follower) 2026/06/25 00:11:49.905622 requestVoteRPC had a higher term:4, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 4, electionTimeout: 219ms }
+(0:follower) 2026/06/25 00:11:49.905630 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 4, electionTimeout: 219ms }
+(0:server) 2026/06/25 00:11:49.905631 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:49.905634 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 4, electionTimeout: 219ms
+ }
+(0:follower) 2026/06/25 00:11:49.905662 processing RequestVoteRPC request
+(2:server) 2026/06/25 00:11:49.905606 revd requestVoteRPC: {Id:1 Term:4 Reason:}
+(2:server) 2026/06/25 00:11:49.905627 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:49.905670 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:49.905705 heartbeat sent...
+(0:follower) 2026/06/25 00:11:49.905668 requestVoteRPC had a higher term:4, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 4, electionTimeout: 219ms }
+(0:follower) 2026/06/25 00:11:49.905727 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 4, electionTimeout: 219ms }
+(2:follower) 2026/06/25 00:11:49.905618 requestVoteRPC had a higher term:4, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 4, electionTimeout: 356ms }
+(0:follower) 2026/06/25 00:11:49.905733 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 4, electionTimeout: 219ms
+ }
+(2:follower) 2026/06/25 00:11:49.905739 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 4, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.905744 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 4, electionTimeout: 356ms
+ }
+(2:follower) 2026/06/25 00:11:49.905747 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:49.905752 requestVoteRPC had a higher term:4, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 4, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.905756 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 4, electionTimeout: 356ms }
+(2:follower) 2026/06/25 00:11:49.905761 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 4, electionTimeout: 356ms
+ }
+(1:leader [heartbeat]) 2026/06/25 00:11:49.905752 heartbeat sent...
+(2:server) 2026/06/25 00:11:49.905756 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:49.905753 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:49.905871 heartbeat sent...
+(raft) 2026/06/25 00:11:49.948101 received transition request to Candidate from:  Follower
+(2:follower) 2026/06/25 00:11:49.948091 timeout reached without hearbeat, tranisitioning to Candidate 
+(2:follower) 2026/06/25 00:11:49.948178 exiting state 
+(0:server) 2026/06/25 00:11:49.948830 revd requestVoteRPC: {Id:2 Term:5 Reason:I need your vote luh bro}
+(0:follower) 2026/06/25 00:11:49.948867 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:49.948875 requestVoteRPC had a higher term:5, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 4, electionTimeout: 219ms }
+(0:follower) 2026/06/25 00:11:49.948879 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 5, electionTimeout: 219ms }
+(0:follower) 2026/06/25 00:11:49.948882 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 5, electionTimeout: 219ms
+ }
+(0:server) 2026/06/25 00:11:49.948887 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:11:49.948884 revd requestVoteRPC: {Id:2 Term:5 Reason:I need your vote luh bro}
+(1:leader) 2026/06/25 00:11:49.948912 processing RequestVoteRPC request
+(1:leader) 2026/06/25 00:11:49.948919 stepping down to Follower, recvd a higher RPCTerm: 5, diagnostics: { address: 127.0.0.1:42339, state: Leader, term: 4, electionTim
+eout: 382ms }
+(1:leader) 2026/06/25 00:11:49.948925 sent replyRPC, transitioning to Follower
+(raft) 2026/06/25 00:11:49.948937 received transition request to Follower from:  Leader
+(1:server) 2026/06/25 00:11:49.948953 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:49.948964 2 returning for duty
+(1:leader [heartbeat]) 2026/06/25 00:11:49.948962 1 returning for duty
+(1:leader [heartbeat]) 2026/06/25 00:11:49.948973 0 returning for duty
+(1:leader [heartbeat]) 2026/06/25 00:11:49.948970 3 returning for duty
+(raft) 2026/06/25 00:11:49.949113 [makeRequestVote] recvd vote from 0
+(raft) 2026/06/25 00:11:49.949146 [makeRequestVote] recvd vote from 1
+(2:candidate_) 2026/06/25 00:11:49.949167 all votes have been collected before electionTimer, checking vote count
+(2:candidate_) 2026/06/25 00:11:49.949175 i'm going to be a leader... 3
+(raft) 2026/06/25 00:11:49.949183 received transition request to Leader from:  Candidate
+(raft) 2026/06/25 00:11:49.949195 updated state to Leader:  diagnostics: { address: 127.0.0.1:55551, state: Leader, term: 5, electionTimeout: 341ms }
+(2:leader) 2026/06/25 00:11:49.949232 started:  diagnostics: { address: 127.0.0.1:55551, state: Leader, term: 5, electionTimeout: 341ms }
+(0:server) 2026/06/25 00:11:49.999680 revd requestVoteRPC: {Id:2 Term:5 Reason:}
+(0:follower) 2026/06/25 00:11:49.999713 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:49.999722 requestVoteRPC had a higher term:5, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 5, electionTimeout: 219ms }
+(0:follower) 2026/06/25 00:11:49.999726 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 5, electionTimeout: 219ms }
+(0:follower) 2026/06/25 00:11:49.999729 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 5, electionTimeout: 219ms
+ }
+(1:server) 2026/06/25 00:11:49.999718 revd requestVoteRPC: {Id:2 Term:5 Reason:}
+(1:follower) 2026/06/25 00:11:49.999747 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:49.999754 requestVoteRPC had a higher term:5, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 5, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:49.999759 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 5, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:49.999763 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 5, electionTimeout: 358ms
+ }
+(1:server) 2026/06/25 00:11:49.999763 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:49.999735 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:11:49.999758 revd requestVoteRPC: {Id:2 Term:5 Reason:}
+(1:follower) 2026/06/25 00:11:49.999802 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:49.999808 requestVoteRPC had a higher term:5, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 5, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:49.999812 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 5, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:49.999815 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 5, electionTimeout: 358ms
+ }
+(0:server) 2026/06/25 00:11:49.999733 revd requestVoteRPC: {Id:2 Term:5 Reason:}
+(1:server) 2026/06/25 00:11:49.999820 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:49.999824 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:49.999854 requestVoteRPC had a higher term:5, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 5, electionTimeout: 219ms }
+(2:leader [heartbeat]) 2026/06/25 00:11:49.999857 heartbeat sent...
+(0:follower) 2026/06/25 00:11:49.999861 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 5, electionTimeout: 219ms }
+(0:server) 2026/06/25 00:11:49.999863 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:49.999859 heartbeat sent...
+(0:follower) 2026/06/25 00:11:49.999885 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 5, electionTimeout: 219ms
+ }
+(2:leader [heartbeat]) 2026/06/25 00:11:49.999922 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.000028 heartbeat sent...
+(0:follower) 2026/06/25 00:11:50.023462 timeout reached without hearbeat, tranisitioning to Candidate 
+(0:follower) 2026/06/25 00:11:50.023485 exiting state 
+(raft) 2026/06/25 00:11:50.023498 received transition request to Candidate from:  Follower
+(1:server) 2026/06/25 00:11:50.024595 revd requestVoteRPC: {Id:0 Term:6 Reason:I need your vote luh bro}
+(1:follower) 2026/06/25 00:11:50.024639 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.024648 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 5, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.024654 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.024658 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(1:server) 2026/06/25 00:11:50.024664 sent requestVoteRPCResponse to client
+(2:server) 2026/06/25 00:11:50.024712 revd requestVoteRPC: {Id:0 Term:6 Reason:I need your vote luh bro}
+(2:leader) 2026/06/25 00:11:50.024820 processing RequestVoteRPC request
+(2:leader) 2026/06/25 00:11:50.024837 stepping down to Follower, recvd a higher RPCTerm: 6, diagnostics: { address: 127.0.0.1:55551, state: Leader, term: 5, electionTim
+eout: 341ms }
+(2:leader) 2026/06/25 00:11:50.024847 sent replyRPC, transitioning to Follower
+(raft) 2026/06/25 00:11:50.024870 received transition request to Follower from:  Leader
+(2:server) 2026/06/25 00:11:50.024919 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:50.024968 0 returning for duty
+(raft) 2026/06/25 00:11:50.024984 [makeRequestVote] recvd vote from 1
+(2:leader [heartbeat]) 2026/06/25 00:11:50.024997 1 returning for duty
+(2:leader [heartbeat]) 2026/06/25 00:11:50.024999 2 returning for duty
+(2:leader [heartbeat]) 2026/06/25 00:11:50.025006 3 returning for duty
+(raft) 2026/06/25 00:11:50.025275 [makeRequestVote] recvd vote from 2
+(0:candidate_) 2026/06/25 00:11:50.025300 all votes have been collected before electionTimer, checking vote count
+(0:candidate_) 2026/06/25 00:11:50.025305 i'm going to be a leader... 3
+(raft) 2026/06/25 00:11:50.025315 received transition request to Leader from:  Candidate
+(raft) 2026/06/25 00:11:50.025325 updated state to Leader:  diagnostics: { address: 127.0.0.1:29040, state: Leader, term: 6, electionTimeout: 137ms }
+(0:leader) 2026/06/25 00:11:50.025341 started:  diagnostics: { address: 127.0.0.1:29040, state: Leader, term: 6, electionTimeout: 137ms }
+(2:server) 2026/06/25 00:11:50.075686 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:follower) 2026/06/25 00:11:50.075739 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:50.075731 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:follower) 2026/06/25 00:11:50.075757 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.075763 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms }
+(1:follower) 2026/06/25 00:11:50.075765 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.075768 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms
+ }
+(2:server) 2026/06/25 00:11:50.075778 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.075780 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.075787 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.075793 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(1:server) 2026/06/25 00:11:50.075800 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:50.075878 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:50.075884 heartbeat sent...
+(2:server) 2026/06/25 00:11:50.075875 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:follower) 2026/06/25 00:11:50.075952 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.075965 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.075973 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms }
+(1:server) 2026/06/25 00:11:50.075930 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:follower) 2026/06/25 00:11:50.075979 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms
+ }
+(2:server) 2026/06/25 00:11:50.075980 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.076025 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.076126 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.076137 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.076143 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(1:server) 2026/06/25 00:11:50.076154 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:50.076178 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:50.076356 heartbeat sent...
+(2:server) 2026/06/25 00:11:50.125827 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:follower) 2026/06/25 00:11:50.125875 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:50.125850 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:server) 2026/06/25 00:11:50.125827 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:server) 2026/06/25 00:11:50.125890 sent requestVoteRPCResponse to client
+(2:follower) 2026/06/25 00:11:50.125887 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(1:server) 2026/06/25 00:11:50.125889 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(1:follower) 2026/06/25 00:11:50.125899 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.125992 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.126013 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.126021 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(1:server) 2026/06/25 00:11:50.126005 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.126030 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.126088 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.126101 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.126110 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(2:follower) 2026/06/25 00:11:50.125936 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms }
+(1:server) 2026/06/25 00:11:50.126128 sent requestVoteRPCResponse to client
+(2:follower) 2026/06/25 00:11:50.126133 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms
+ }
+(0:leader [heartbeat]) 2026/06/25 00:11:50.126169 heartbeat sent...
+(2:follower) 2026/06/25 00:11:50.126177 processing RequestVoteRPC request
+(0:leader [heartbeat]) 2026/06/25 00:11:50.126175 heartbeat sent...
+(2:follower) 2026/06/25 00:11:50.126197 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.126215 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.126219 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms
+ }
+(2:server) 2026/06/25 00:11:50.126227 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:50.126245 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:50.126453 heartbeat sent...
+(1:server) 2026/06/25 00:11:50.175738 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(1:follower) 2026/06/25 00:11:50.175775 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.175783 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.175787 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.175790 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(1:server) 2026/06/25 00:11:50.175795 sent requestVoteRPCResponse to client
+(2:server) 2026/06/25 00:11:50.175805 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:follower) 2026/06/25 00:11:50.175831 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.175838 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.175842 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.175844 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms
+ }
+(2:server) 2026/06/25 00:11:50.175848 sent requestVoteRPCResponse to client
+(2:server) 2026/06/25 00:11:50.175853 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:follower) 2026/06/25 00:11:50.175864 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.175867 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.175872 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.175875 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms
+ }
+(0:leader [heartbeat]) 2026/06/25 00:11:50.175824 heartbeat sent...
+(2:server) 2026/06/25 00:11:50.175882 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:50.175893 heartbeat sent...
+(1:server) 2026/06/25 00:11:50.175891 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(1:follower) 2026/06/25 00:11:50.175914 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.175923 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.175928 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.175931 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(1:server) 2026/06/25 00:11:50.175935 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:50.175901 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:50.176175 heartbeat sent...
+(2:server) 2026/06/25 00:11:50.226464 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:follower) 2026/06/25 00:11:50.226505 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.226516 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.226521 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.226524 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms
+ }
+(2:server) 2026/06/25 00:11:50.226529 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:50.226580 heartbeat sent...
+(1:server) 2026/06/25 00:11:50.226566 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(1:follower) 2026/06/25 00:11:50.226646 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:50.226625 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(1:follower) 2026/06/25 00:11:50.226678 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 6, electionTimeout: 358ms }
+(1:server) 2026/06/25 00:11:50.226687 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.226690 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.226749 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(1:follower) 2026/06/25 00:11:50.226759 processing RequestVoteRPC request
+(2:server) 2026/06/25 00:11:50.226740 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(1:follower) 2026/06/25 00:11:50.226766 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 6, electionTimeout: 358ms }
+(2:follower) 2026/06/25 00:11:50.226798 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.226803 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.226808 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(2:server) 2026/06/25 00:11:50.226811 sent requestVoteRPCResponse to client
+(2:follower) 2026/06/25 00:11:50.226808 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.226818 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.226821 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms
+ }
+(1:server) 2026/06/25 00:11:50.226768 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:50.226751 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:50.226985 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:50.227007 heartbeat sent...
+(2:server) 2026/06/25 00:11:50.276168 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:follower) 2026/06/25 00:11:50.276200 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.276214 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.276218 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.276220 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms
+ }
+(2:server) 2026/06/25 00:11:50.276224 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:50.276252 heartbeat sent...
+(1:server) 2026/06/25 00:11:50.276271 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(1:server) 2026/06/25 00:11:50.276271 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(1:follower) 2026/06/25 00:11:50.276305 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.276334 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 6, electionTimeout: 358ms }
+(1:server) 2026/06/25 00:11:50.276340 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.276340 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(2:server) 2026/06/25 00:11:50.276345 revd requestVoteRPC: {Id:0 Term:6 Reason:}
+(2:follower) 2026/06/25 00:11:50.276373 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.276380 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.276384 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.276387 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 6, electionTimeout: 451ms
+ }
+(2:server) 2026/06/25 00:11:50.276392 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.276363 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(1:follower) 2026/06/25 00:11:50.276444 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.276450 requestVoteRPC had a higher term:6, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.276457 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms }
+(1:follower) 2026/06/25 00:11:50.276460 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 6, electionTimeout: 358ms
+ }
+(1:server) 2026/06/25 00:11:50.276468 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:50.276492 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:50.276503 heartbeat sent...
+(0:leader [heartbeat]) 2026/06/25 00:11:50.276513 heartbeat sent...
+(1:follower) 2026/06/25 00:11:50.307606 timeout reached without hearbeat, tranisitioning to Candidate 
+(1:follower) 2026/06/25 00:11:50.307625 exiting state 
+(raft) 2026/06/25 00:11:50.307638 received transition request to Candidate from:  Follower
+(0:server) 2026/06/25 00:11:50.308277 revd requestVoteRPC: {Id:1 Term:7 Reason:I need your vote luh bro}
+(0:leader) 2026/06/25 00:11:50.308296 processing RequestVoteRPC request
+(0:leader) 2026/06/25 00:11:50.308301 stepping down to Follower, recvd a higher RPCTerm: 7, diagnostics: { address: 127.0.0.1:29040, state: Leader, term: 6, electionTim
+eout: 137ms }
+(0:leader) 2026/06/25 00:11:50.308307 sent replyRPC, transitioning to Follower
+(raft) 2026/06/25 00:11:50.308315 received transition request to Follower from:  Leader
+(0:server) 2026/06/25 00:11:50.308328 sent requestVoteRPCResponse to client
+(0:leader [heartbeat]) 2026/06/25 00:11:50.308356 1 returning for duty
+(0:leader [heartbeat]) 2026/06/25 00:11:50.308359 2 returning for duty
+(0:leader [heartbeat]) 2026/06/25 00:11:50.308361 0 returning for duty
+(0:leader [heartbeat]) 2026/06/25 00:11:50.308363 3 returning for duty
+(2:server) 2026/06/25 00:11:50.308373 revd requestVoteRPC: {Id:1 Term:7 Reason:I need your vote luh bro}
+(2:follower) 2026/06/25 00:11:50.308411 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.308420 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 6, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.308426 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.308431 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms
+ }
+(2:server) 2026/06/25 00:11:50.308437 sent requestVoteRPCResponse to client
+(raft) 2026/06/25 00:11:50.308561 [makeRequestVote] recvd vote from 0
+(raft) 2026/06/25 00:11:50.308667 [makeRequestVote] recvd vote from 2
+(1:candidate_) 2026/06/25 00:11:50.308682 all votes have been collected before electionTimer, checking vote count
+(1:candidate_) 2026/06/25 00:11:50.308689 i'm going to be a leader... 3
+(raft) 2026/06/25 00:11:50.308699 received transition request to Leader from:  Candidate
+(raft) 2026/06/25 00:11:50.308708 updated state to Leader:  diagnostics: { address: 127.0.0.1:42339, state: Leader, term: 7, electionTimeout: 442ms }
+(1:leader) 2026/06/25 00:11:50.308728 started:  diagnostics: { address: 127.0.0.1:42339, state: Leader, term: 7, electionTimeout: 442ms }
+(2:server) 2026/06/25 00:11:50.360030 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:follower) 2026/06/25 00:11:50.360095 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.360109 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.360114 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.360117 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms
+ }
+(2:server) 2026/06/25 00:11:50.360124 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:50.360029 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:server) 2026/06/25 00:11:50.360160 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:follower) 2026/06/25 00:11:50.360198 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:50.360142 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:follower) 2026/06/25 00:11:50.360223 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.360229 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms }
+(0:follower) 2026/06/25 00:11:50.360186 processing RequestVoteRPC request
+(2:server) 2026/06/25 00:11:50.360229 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:50.360234 heartbeat sent...
+(2:follower) 2026/06/25 00:11:50.360233 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms
+ }
+(0:follower) 2026/06/25 00:11:50.360241 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 7, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.360256 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.360264 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms
+ }
+(0:follower) 2026/06/25 00:11:50.360272 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:50.360242 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:50.360279 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.360277 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 7, electionTimeout: 371ms }
+(2:server) 2026/06/25 00:11:50.360301 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(1:leader [heartbeat]) 2026/06/25 00:11:50.360326 heartbeat sent...
+(2:follower) 2026/06/25 00:11:50.360332 processing RequestVoteRPC request
+(1:leader [heartbeat]) 2026/06/25 00:11:50.360336 heartbeat sent...
+(2:follower) 2026/06/25 00:11:50.360340 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 7, electionTimeout: 451ms }
+(0:follower) 2026/06/25 00:11:50.360317 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms }
+(2:server) 2026/06/25 00:11:50.360347 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.360351 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms
+ }
+(0:server) 2026/06/25 00:11:50.360249 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:follower) 2026/06/25 00:11:50.360345 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms }
+(0:follower) 2026/06/25 00:11:50.360364 processing RequestVoteRPC request
+(1:leader [heartbeat]) 2026/06/25 00:11:50.360352 heartbeat sent...
+(0:follower) 2026/06/25 00:11:50.360371 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 7, electionTimeout: 371ms }
+(2:follower) 2026/06/25 00:11:50.360366 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms
+ }
+(0:server) 2026/06/25 00:11:50.360378 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.360376 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.360394 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms
+ }
+(1:leader [heartbeat]) 2026/06/25 00:11:50.360460 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:50.360511 heartbeat sent...
+(2:server) 2026/06/25 00:11:50.409695 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:follower) 2026/06/25 00:11:50.409785 processing RequestVoteRPC request
+(2:server) 2026/06/25 00:11:50.409779 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:server) 2026/06/25 00:11:50.409728 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(0:server) 2026/06/25 00:11:50.409784 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(0:follower) 2026/06/25 00:11:50.409811 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.409804 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 7, electionTimeout: 451ms }
+(0:follower) 2026/06/25 00:11:50.409819 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 7, electionTimeout: 371ms }
+(2:follower) 2026/06/25 00:11:50.409823 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.409835 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms
+ }
+(2:follower) 2026/06/25 00:11:50.409841 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:50.409824 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.409859 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms
+ }
+(2:server) 2026/06/25 00:11:50.409838 sent requestVoteRPCResponse to client
+(2:follower) 2026/06/25 00:11:50.409846 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.409880 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms }
+(2:server) 2026/06/25 00:11:50.409847 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:50.409826 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:50.409891 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:follower) 2026/06/25 00:11:50.409883 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms
+ }
+(2:follower) 2026/06/25 00:11:50.409928 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.409938 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.409944 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.409949 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms
+ }
+(0:follower) 2026/06/25 00:11:50.409922 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:50.409965 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 7, electionTimeout: 371ms }
+(0:server) 2026/06/25 00:11:50.409838 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(0:server) 2026/06/25 00:11:50.409973 sent requestVoteRPCResponse to client
+(2:server) 2026/06/25 00:11:50.409956 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.409971 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.410045 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms
+ }
+(0:follower) 2026/06/25 00:11:50.410051 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:50.410055 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 7, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.410061 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms }
+(0:server) 2026/06/25 00:11:50.410063 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:50.410057 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:50.410065 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:50.410071 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:50.410078 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:50.410077 heartbeat sent...
+(0:follower) 2026/06/25 00:11:50.410065 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms
+ }
+(1:leader [heartbeat]) 2026/06/25 00:11:50.410096 heartbeat sent...
+(2:server) 2026/06/25 00:11:50.459689 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:follower) 2026/06/25 00:11:50.459742 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:50.459689 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:follower) 2026/06/25 00:11:50.459753 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.459766 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms }
+(0:follower) 2026/06/25 00:11:50.459766 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:50.459692 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:server) 2026/06/25 00:11:50.459756 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.459778 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 7, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.459784 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.459788 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms
+ }
+(0:follower) 2026/06/25 00:11:50.459798 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.459769 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms
+ }
+(2:server) 2026/06/25 00:11:50.459780 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:follower) 2026/06/25 00:11:50.459849 processing RequestVoteRPC request
+(1:leader [heartbeat]) 2026/06/25 00:11:50.459856 heartbeat sent...
+(2:server) 2026/06/25 00:11:50.459855 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(0:server) 2026/06/25 00:11:50.459782 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.459807 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 7, electionTimeout: 371ms }
+(2:follower) 2026/06/25 00:11:50.459883 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 7, electionTimeout: 451ms }
+(0:follower) 2026/06/25 00:11:50.459895 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms }
+(2:follower) 2026/06/25 00:11:50.459899 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms }
+(0:follower) 2026/06/25 00:11:50.459902 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms
+ }
+(2:server) 2026/06/25 00:11:50.459881 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:50.459809 sent requestVoteRPCResponse to client
+(2:follower) 2026/06/25 00:11:50.459904 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms
+ }
+(2:follower) 2026/06/25 00:11:50.459940 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:50.459856 revd requestVoteRPC: {Id:1 Term:7 Reason:}
+(2:follower) 2026/06/25 00:11:50.459947 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, ter
+m: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.459951 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms }
+(2:follower) 2026/06/25 00:11:50.459953 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 7, electionTimeout: 451ms
+ }
+(0:follower) 2026/06/25 00:11:50.459952 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:50.459966 requestVoteRPC had a higher term:7, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 7, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.459969 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms }
+(1:leader [heartbeat]) 2026/06/25 00:11:50.459926 heartbeat sent...
+(0:server) 2026/06/25 00:11:50.459969 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:50.459992 heartbeat sent...
+(2:server) 2026/06/25 00:11:50.459966 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.459975 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 7, electionTimeout: 371ms
+ }
+(1:leader [heartbeat]) 2026/06/25 00:11:50.459980 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:50.460109 heartbeat sent...
+(1:leader [heartbeat]) 2026/06/25 00:11:50.460177 heartbeat sent...
+(2:follower) 2026/06/25 00:11:50.476375 timeout reached without hearbeat, tranisitioning to Candidate 
+(2:follower) 2026/06/25 00:11:50.476437 exiting state 
+(raft) 2026/06/25 00:11:50.476470 received transition request to Candidate from:  Follower
+(1:server) 2026/06/25 00:11:50.477840 revd requestVoteRPC: {Id:2 Term:8 Reason:I need your vote luh bro}
+(1:leader) 2026/06/25 00:11:50.477888 processing RequestVoteRPC request
+(1:leader) 2026/06/25 00:11:50.477899 stepping down to Follower, recvd a higher RPCTerm: 8, diagnostics: { address: 127.0.0.1:42339, state: Leader, term: 7, electionTim
+eout: 442ms }
+(1:leader) 2026/06/25 00:11:50.477906 sent replyRPC, transitioning to Follower
+(raft) 2026/06/25 00:11:50.477922 received transition request to Follower from:  Leader
+(0:server) 2026/06/25 00:11:50.477913 revd requestVoteRPC: {Id:2 Term:8 Reason:I need your vote luh bro}
+(0:follower) 2026/06/25 00:11:50.477943 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:50.477949 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:50.477960 2 returning for duty
+(1:leader [heartbeat]) 2026/06/25 00:11:50.477952 0 returning for duty
+(1:leader [heartbeat]) 2026/06/25 00:11:50.477956 1 returning for duty
+(0:follower) 2026/06/25 00:11:50.477956 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 7, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.477981 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.477987 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(1:leader [heartbeat]) 2026/06/25 00:11:50.477966 5 returning for duty
+(0:server) 2026/06/25 00:11:50.477959 sent requestVoteRPCResponse to client
+(1:leader [heartbeat]) 2026/06/25 00:11:50.477944 4 returning for duty
+(1:leader [heartbeat]) 2026/06/25 00:11:50.477937 3 returning for duty
+(raft) 2026/06/25 00:11:50.478185 [makeRequestVote] recvd vote from 0
+(raft) 2026/06/25 00:11:50.478189 [makeRequestVote] recvd vote from 1
+(2:candidate_) 2026/06/25 00:11:50.478231 all votes have been collected before electionTimer, checking vote count
+(2:candidate_) 2026/06/25 00:11:50.478236 i'm going to be a leader... 3
+(raft) 2026/06/25 00:11:50.478244 received transition request to Leader from:  Candidate
+(raft) 2026/06/25 00:11:50.478252 updated state to Leader:  diagnostics: { address: 127.0.0.1:55551, state: Leader, term: 8, electionTimeout: 447ms }
+(2:leader) 2026/06/25 00:11:50.478270 started:  diagnostics: { address: 127.0.0.1:55551, state: Leader, term: 8, electionTimeout: 447ms }
+(1:server) 2026/06/25 00:11:50.528550 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:follower) 2026/06/25 00:11:50.528584 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.528593 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.528598 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.528602 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(1:server) 2026/06/25 00:11:50.528608 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:50.528585 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:follower) 2026/06/25 00:11:50.528625 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:50.528622 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:follower) 2026/06/25 00:11:50.528653 processing RequestVoteRPC request
+(2:leader [heartbeat]) 2026/06/25 00:11:50.528660 heartbeat sent...
+(1:follower) 2026/06/25 00:11:50.528662 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.528673 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.528679 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(1:server) 2026/06/25 00:11:50.528645 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:follower) 2026/06/25 00:11:50.528698 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:50.528622 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:follower) 2026/06/25 00:11:50.528633 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.528736 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.528741 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(0:follower) 2026/06/25 00:11:50.528747 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:50.528668 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.528752 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 8, electionTimeout: 371ms }
+(1:follower) 2026/06/25 00:11:50.528712 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.528772 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(0:follower) 2026/06/25 00:11:50.528758 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(0:server) 2026/06/25 00:11:50.528648 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.528781 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(0:follower) 2026/06/25 00:11:50.528785 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(1:server) 2026/06/25 00:11:50.528715 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:50.528638 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:follower) 2026/06/25 00:11:50.528825 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:50.528830 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 8, electionTimeout: 371ms }
+(0:server) 2026/06/25 00:11:50.528834 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:50.528760 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.528835 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.528856 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(2:leader [heartbeat]) 2026/06/25 00:11:50.528903 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.528913 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.528925 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.528983 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.529126 heartbeat sent...
+(0:server) 2026/06/25 00:11:50.579541 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:follower) 2026/06/25 00:11:50.579615 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:50.579541 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:server) 2026/06/25 00:11:50.579634 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.579644 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:50.579526 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:follower) 2026/06/25 00:11:50.579665 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.579682 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.579687 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(1:follower) 2026/06/25 00:11:50.579693 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.579698 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(0:follower) 2026/06/25 00:11:50.579630 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.579714 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(1:follower) 2026/06/25 00:11:50.579703 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(0:follower) 2026/06/25 00:11:50.579724 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(1:server) 2026/06/25 00:11:50.579571 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:server) 2026/06/25 00:11:50.579675 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.579728 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(2:leader [heartbeat]) 2026/06/25 00:11:50.579778 heartbeat sent...
+(1:follower) 2026/06/25 00:11:50.579780 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:50.579779 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:follower) 2026/06/25 00:11:50.579797 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(2:leader [heartbeat]) 2026/06/25 00:11:50.579800 heartbeat sent...
+(0:follower) 2026/06/25 00:11:50.579800 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:50.579713 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.579806 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.579848 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(0:follower) 2026/06/25 00:11:50.579822 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 8, electionTimeout: 371ms }
+(0:server) 2026/06/25 00:11:50.579794 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:server) 2026/06/25 00:11:50.579824 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.579862 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.579913 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(0:follower) 2026/06/25 00:11:50.579920 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:50.579927 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.579931 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.579935 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(0:server) 2026/06/25 00:11:50.579941 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:11:50.579808 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:50.580024 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.580024 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.580030 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.580045 heartbeat sent...
+(1:server) 2026/06/25 00:11:50.629655 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:follower) 2026/06/25 00:11:50.629711 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:50.629700 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:server) 2026/06/25 00:11:50.629655 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:follower) 2026/06/25 00:11:50.629735 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.629723 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(0:follower) 2026/06/25 00:11:50.629747 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.629753 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(1:server) 2026/06/25 00:11:50.629726 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.629756 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(1:follower) 2026/06/25 00:11:50.629756 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.629796 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(1:server) 2026/06/25 00:11:50.629728 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:follower) 2026/06/25 00:11:50.629800 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:11:50.629759 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.629819 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.629845 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.629850 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(1:server) 2026/06/25 00:11:50.629848 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.629855 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.629887 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.629891 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.629895 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(1:server) 2026/06/25 00:11:50.629902 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:50.629751 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:follower) 2026/06/25 00:11:50.629929 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:50.629941 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.629947 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.629952 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(2:leader [heartbeat]) 2026/06/25 00:11:50.629959 heartbeat sent...
+(0:server) 2026/06/25 00:11:50.629763 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(2:leader [heartbeat]) 2026/06/25 00:11:50.629967 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.629974 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.629959 heartbeat sent...
+(0:server) 2026/06/25 00:11:50.629966 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:11:50.629974 processing RequestVoteRPC request
+(2:leader [heartbeat]) 2026/06/25 00:11:50.630067 heartbeat sent...
+(0:follower) 2026/06/25 00:11:50.630065 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.630099 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(0:follower) 2026/06/25 00:11:50.630113 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(0:server) 2026/06/25 00:11:50.630072 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:50.630187 heartbeat sent...
+(0:server) 2026/06/25 00:11:50.679557 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:follower) 2026/06/25 00:11:50.679631 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:11:50.679645 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:29040, state: Follower, ter
+m: 8, electionTimeout: 371ms }
+(1:server) 2026/06/25 00:11:50.679552 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:server) 2026/06/25 00:11:50.679652 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.679659 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:50.679668 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.679672 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.679676 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(0:server) 2026/06/25 00:11:50.679639 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:server) 2026/06/25 00:11:50.679682 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:50.679716 heartbeat sent...
+(1:server) 2026/06/25 00:11:50.679633 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(1:follower) 2026/06/25 00:11:50.679747 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:11:50.679667 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:follower) 2026/06/25 00:11:50.679650 updated term diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms }
+(1:server) 2026/06/25 00:11:50.679755 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:11:50.679754 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.679778 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.679781 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(0:follower) 2026/06/25 00:11:50.679772 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:29040, state: Follower, term: 8, electionTimeout: 371ms
+ }
+(0:server) 2026/06/25 00:11:50.679764 revd requestVoteRPC: {Id:2 Term:8 Reason:}
+(0:follower) 2026/06/25 00:11:50.679793 timeout reached without hearbeat, tranisitioning to Candidate 
+(0:follower) 2026/06/25 00:11:50.679799 exiting state 
+(1:follower) 2026/06/25 00:11:50.679787 processing RequestVoteRPC request
+(raft) 2026/06/25 00:11:50.679812 received transition request to Candidate from:  Follower
+(1:follower) 2026/06/25 00:11:50.679813 requestVoteRPC had a higher term:8, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.679830 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.679833 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 8, electionTimeout: 483ms
+ }
+(1:server) 2026/06/25 00:11:50.679815 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:50.679956 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.679966 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:11:50.679980 heartbeat sent...
+(0:candidate_) 2026/06/25 00:11:50.680146 processing RequestVoteRPC request
+(0:candidate_) 2026/06/25 00:11:50.680174 requestVoteRPC had a lower term, rejecting it diagnostics: { address: 127.0.0.1:29040, state: Candidate, term: 9, electionTime
+out: 371ms }
+(0:server) 2026/06/25 00:11:50.680181 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:50.680261 heartbeat sent...
+(2:server) 2026/06/25 00:11:50.680347 revd requestVoteRPC: {Id:0 Term:9 Reason:I need your vote luh bro}
+(2:leader) 2026/06/25 00:11:50.680364 processing RequestVoteRPC request
+(2:leader) 2026/06/25 00:11:50.680370 stepping down to Follower, recvd a higher RPCTerm: 9, diagnostics: { address: 127.0.0.1:55551, state: Leader, term: 8, electionTim
+eout: 447ms }
+(2:leader) 2026/06/25 00:11:50.680375 sent replyRPC, transitioning to Follower
+(raft) 2026/06/25 00:11:50.680389 received transition request to Follower from:  Leader
+(1:server) 2026/06/25 00:11:50.680390 revd requestVoteRPC: {Id:0 Term:9 Reason:I need your vote luh bro}
+(2:leader [heartbeat]) 2026/06/25 00:11:50.680410 3 returning for duty
+(1:follower) 2026/06/25 00:11:50.680411 processing RequestVoteRPC request
+(2:server) 2026/06/25 00:11:50.680414 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:50.680406 0 returning for duty
+(2:leader [heartbeat]) 2026/06/25 00:11:50.680419 2 returning for duty
+(1:follower) 2026/06/25 00:11:50.680419 requestVoteRPC had a higher term:9, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, ter
+m: 8, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.680445 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 9, electionTimeout: 483ms }
+(1:follower) 2026/06/25 00:11:50.680449 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 9, electionTimeout: 483ms
+ }
+(1:server) 2026/06/25 00:11:50.680421 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:11:50.680415 5 returning for duty
+(2:leader [heartbeat]) 2026/06/25 00:11:50.680419 1 returning for duty
+(raft) 2026/06/25 00:11:50.680758 [makeRequestVote] recvd vote from 2
+(raft) 2026/06/25 00:11:50.680843 [makeRequestVote] recvd vote from 1
+(1:follower) 2026/06/25 00:11:50.962066 timeout reached without hearbeat, tranisitioning to Candidate 
+(1:follower) 2026/06/25 00:11:50.962128 exiting state 
+(raft) 2026/06/25 00:11:50.962160 received transition request to Candidate from:  Follower
+(2:server) 2026/06/25 00:11:50.963306 revd requestVoteRPC: {Id:1 Term:10 Reason:I need your vote luh bro}
+(2:follower) 2026/06/25 00:11:50.963348 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:50.963359 requestVoteRPC had a higher term:10, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, te
+rm: 9, electionTimeout: 395ms }
+(2:follower) 2026/06/25 00:11:50.963364 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 10, electionTimeout: 395ms }
+(2:follower) 2026/06/25 00:11:50.963368 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 10, electionTimeout: 395m
+s }
+(2:server) 2026/06/25 00:11:50.963373 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:50.963306 revd requestVoteRPC: {Id:1 Term:10 Reason:I need your vote luh bro}
+(raft) 2026/06/25 00:11:50.963589 [makeRequestVote] recvd vote from 2
+(2:follower) 2026/06/25 00:11:51.075972 timeout reached without hearbeat, tranisitioning to Candidate 
+(2:follower) 2026/06/25 00:11:51.075992 exiting state 
+(raft) 2026/06/25 00:11:51.076006 received transition request to Candidate from:  Follower
+(1:server) 2026/06/25 00:11:51.076660 revd requestVoteRPC: {Id:2 Term:11 Reason:I need your vote luh bro}
+(1:candidate_) 2026/06/25 00:11:51.076689 processing RequestVoteRPC request
+(1:candidate_) 2026/06/25 00:11:51.076697 requestVoteRPC had a higher term:11, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Candidate,
+ term: 10, electionTimeout: 483ms }
+(1:candidate_) 2026/06/25 00:11:51.076702 updated term diagnostics: { address: 127.0.0.1:42339, state: Candidate, term: 11, electionTimeout: 483ms }
+(1:candidate_) 2026/06/25 00:11:51.076705 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Candidate, term: 11, electionTimeout: 4
+83ms }
+(raft) 2026/06/25 00:11:51.076714 received transition request to Follower from:  Candidate
+(1:server) 2026/06/25 00:11:51.076725 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:51.076730 revd requestVoteRPC: {Id:2 Term:11 Reason:I need your vote luh bro}
+(raft) 2026/06/25 00:11:51.076861 [makeRequestVote] recvd vote from 1
+(1:follower) 2026/06/25 00:11:51.317109 timeout reached without hearbeat, tranisitioning to Candidate 
+(1:follower) 2026/06/25 00:11:51.317163 exiting state 
+(raft) 2026/06/25 00:11:51.317193 received transition request to Candidate from:  Follower
+(0:server) 2026/06/25 00:11:51.318482 revd requestVoteRPC: {Id:1 Term:12 Reason:I need your vote luh bro}
+(2:server) 2026/06/25 00:11:51.318534 revd requestVoteRPC: {Id:1 Term:12 Reason:I need your vote luh bro}
+(2:candidate_) 2026/06/25 00:11:51.318606 processing RequestVoteRPC request
+(2:candidate_) 2026/06/25 00:11:51.318625 requestVoteRPC had a higher term:12, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Candidate,
+ term: 11, electionTimeout: 395ms }
+(2:candidate_) 2026/06/25 00:11:51.318641 updated term diagnostics: { address: 127.0.0.1:55551, state: Candidate, term: 12, electionTimeout: 395ms }
+(2:candidate_) 2026/06/25 00:11:51.318649 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Candidate, term: 12, electionTimeout: 3
+95ms }
+(raft) 2026/06/25 00:11:51.318681 received transition request to Follower from:  Candidate
+(2:server) 2026/06/25 00:11:51.318706 sent requestVoteRPCResponse to client
+(raft) 2026/06/25 00:11:51.319125 [makeRequestVote] recvd vote from 2
+(1:candidate_) 2026/06/25 00:11:51.600307 electionTimer fired before could make all votes, dropping to follower and waiting...
+(raft) 2026/06/25 00:11:51.600353 received transition request to Follower from:  Candidate
+(2:follower) 2026/06/25 00:11:51.654688 timeout reached without hearbeat, tranisitioning to Candidate 
+(2:follower) 2026/06/25 00:11:51.654709 exiting state 
+(raft) 2026/06/25 00:11:51.654724 received transition request to Candidate from:  Follower
+(1:server) 2026/06/25 00:11:51.655475 revd requestVoteRPC: {Id:2 Term:13 Reason:I need your vote luh bro}
+(1:follower) 2026/06/25 00:11:51.655516 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:11:51.655527 requestVoteRPC had a higher term:13, updating term to match theirs: diagnostics: { address: 127.0.0.1:42339, state: Follower, te
+rm: 12, electionTimeout: 330ms }
+(1:follower) 2026/06/25 00:11:51.655531 updated term diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 13, electionTimeout: 330ms }
+(1:follower) 2026/06/25 00:11:51.655535 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:42339, state: Follower, term: 13, electionTimeout: 330m
+s }
+(1:server) 2026/06/25 00:11:51.655540 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:11:51.655566 revd requestVoteRPC: {Id:2 Term:13 Reason:I need your vote luh bro}
+(raft) 2026/06/25 00:11:51.655804 [makeRequestVote] recvd vote from 1
+(2:candidate_) 2026/06/25 00:11:51.879285 electionTimer fired before could make all votes, dropping to follower and waiting...
+(raft) 2026/06/25 00:11:51.879311 received transition request to Follower from:  Candidate
+(1:follower) 2026/06/25 00:11:51.930766 timeout reached without hearbeat, tranisitioning to Candidate 
+(1:follower) 2026/06/25 00:11:51.930785 exiting state 
+(raft) 2026/06/25 00:11:51.930798 received transition request to Candidate from:  Follower
+(0:server) 2026/06/25 00:11:51.931708 revd requestVoteRPC: {Id:1 Term:14 Reason:I need your vote luh bro}
+(2:server) 2026/06/25 00:11:51.935784 revd requestVoteRPC: {Id:1 Term:14 Reason:I need your vote luh bro}
+(2:follower) 2026/06/25 00:11:51.935826 processing RequestVoteRPC request
+(2:follower) 2026/06/25 00:11:51.935836 requestVoteRPC had a higher term:14, updating term to match theirs: diagnostics: { address: 127.0.0.1:55551, state: Follower, te
+rm: 13, electionTimeout: 374ms }
+(2:follower) 2026/06/25 00:11:51.935841 updated term diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 14, electionTimeout: 374ms }
+(2:follower) 2026/06/25 00:11:51.935845 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:55551, state: Follower, term: 14, electionTimeout: 374m
+s }
+(2:server) 2026/06/25 00:11:51.935852 sent requestVoteRPCResponse to client
+(raft) 2026/06/25 00:11:51.936091 [makeRequestVote] recvd vote from 2
+(2:follower) 2026/06/25 00:11:52.254359 timeout reached without hearbeat, tranisitioning to Candidate 
+(2:follower) 2026/06/25 00:11:52.254415 exiting state 
+(raft) 2026/06/25 00:11:52.254454 received transition request to Candidate from:  Follower
+(0:server) 2026/06/25 00:11:52.255515 revd requestVoteRPC: {Id:2 Term:15 Reason:I need your vote luh bro}
+(1:server) 2026/06/25 00:11:52.255933 revd requestVoteRPC: {Id:2 Term:15 Reason:I need your vote luh bro}
+(1:candidate_) 2026/06/25 00:11:52.256000 processing RequestVoteRPC request
+  dev::fsm (feat/candidate) | go run .
+(cluster) 2026/06/25 00:22:12.539781 initialising cluster with totalNodes: 3
+(cluster) 2026/06/25 00:22:12.539962 started node with id: 0
+(raft) 2026/06/25 00:22:12.540017 starting raft node:  diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 0, electionTimeout: 4m7s }
+(cluster) 2026/06/25 00:22:12.540082 started node with id: 2
+(raft) 2026/06/25 00:22:12.540113 starting raft node:  diagnostics: { address: 127.0.0.1:50683, state: Follower, term: 0, electionTimeout: 2m24s }
+(cluster) 2026/06/25 00:22:12.540168 started node with id: 1
+(raft) 2026/06/25 00:22:12.540271 starting raft node:  diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 0, electionTimeout: 2m51s }
+(0:server) 2026/06/25 00:22:12.540583 tcp server active at 127.0.0.1:9670
+(2:server) 2026/06/25 00:22:12.540659 tcp server active at 127.0.0.1:50683
+(1:server) 2026/06/25 00:22:12.540856 tcp server active at 127.0.0.1:44355
+(2:follower) 2026/06/25 00:24:36.540597 timeout reached without hearbeat, tranisitioning to Candidate 
+(2:follower) 2026/06/25 00:24:36.540755 exiting state 
+(raft) 2026/06/25 00:24:36.540744 received transition request to Candidate from:  Follower
+(0:server) 2026/06/25 00:24:36.542823 revd requestVoteRPC: {Id:2 Term:1 Reason:I need your vote luh bro}
+(0:follower) 2026/06/25 00:24:36.542906 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:36.542922 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 0, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.542932 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.542939 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:36.542929 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:24:36.542826 revd requestVoteRPC: {Id:2 Term:1 Reason:I need your vote luh bro}
+(1:follower) 2026/06/25 00:24:36.542983 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:36.542995 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 0, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.543005 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.543010 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:36.543024 sent requestVoteRPCResponse to client
+(raft) 2026/06/25 00:24:36.543352 [makeRequestVote] recvd vote from 1
+(raft) 2026/06/25 00:24:36.543380 [makeRequestVote] recvd vote from 0
+(2:candidate_) 2026/06/25 00:24:36.543399 all votes have been collected before electionTimer, checking vote count
+(2:candidate_) 2026/06/25 00:24:36.543404 i'm going to be a leader... 3
+(raft) 2026/06/25 00:24:36.543420 received transition request to Leader from:  Candidate
+(raft) 2026/06/25 00:24:36.543448 updated state to Leader:  diagnostics: { address: 127.0.0.1:50683, state: Leader, term: 1, electionTimeout: 5m45s }
+(2:leader) 2026/06/25 00:24:36.543494 started:  diagnostics: { address: 127.0.0.1:50683, state: Leader, term: 1, electionTimeout: 5m45s }
+(0:server) 2026/06/25 00:24:36.594781 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:36.594873 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:24:36.594832 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:36.594890 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:36.594899 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(1:server) 2026/06/25 00:24:36.594904 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:24:36.594908 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.594913 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:follower) 2026/06/25 00:24:36.594900 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.594927 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.594932 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(0:server) 2026/06/25 00:24:36.594941 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:36.595008 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:36.595225 heartbeat sent...
+(1:server) 2026/06/25 00:24:36.644393 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:36.644483 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:24:36.644394 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:36.644525 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:36.644541 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.644563 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.644572 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:follower) 2026/06/25 00:24:36.644499 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.644604 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.644613 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:36.644502 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:24:36.644587 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:36.644824 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:36.644876 heartbeat sent...
+(0:server) 2026/06/25 00:24:36.694669 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:36.694749 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:24:36.694645 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:36.694765 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(1:follower) 2026/06/25 00:24:36.694768 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:36.694771 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.694776 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:follower) 2026/06/25 00:24:36.694778 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.694784 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.694789 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(0:server) 2026/06/25 00:24:36.694785 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:24:36.694788 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:36.694998 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:36.695030 heartbeat sent...
+(0:server) 2026/06/25 00:24:36.744765 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:36.744861 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:24:36.744823 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:server) 2026/06/25 00:24:36.744892 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:24:36.744911 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:36.744885 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(1:follower) 2026/06/25 00:24:36.744938 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(0:follower) 2026/06/25 00:24:36.745007 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:follower) 2026/06/25 00:24:36.745021 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.745030 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:36.744945 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:36.745048 heartbeat sent...
+(0:follower) 2026/06/25 00:24:36.745023 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(2:leader [heartbeat]) 2026/06/25 00:24:36.745276 heartbeat sent...
+(0:server) 2026/06/25 00:24:36.794937 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:36.795039 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:36.795063 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.795073 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.795079 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:36.795091 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:36.795328 heartbeat sent...
+(1:server) 2026/06/25 00:24:36.795395 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:36.795444 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:36.795461 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.795468 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.795472 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:36.795477 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:36.795638 heartbeat sent...
+(1:server) 2026/06/25 00:24:36.844488 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:server) 2026/06/25 00:24:36.844540 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:36.844662 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:36.844705 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.844716 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.844723 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:36.844734 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:24:36.844660 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:36.844847 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.844866 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.844871 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:36.844891 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:36.845036 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:36.845189 heartbeat sent...
+(0:server) 2026/06/25 00:24:36.894948 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:36.895080 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:24:36.895143 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:24:36.895144 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.895292 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.895299 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:server) 2026/06/25 00:24:36.895292 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:36.895361 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:36.895369 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.895373 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.895376 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:36.895380 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:36.895378 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:36.895619 heartbeat sent...
+(0:server) 2026/06/25 00:24:36.943986 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:36.944058 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:36.944074 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.944082 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.944086 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:server) 2026/06/25 00:24:36.943994 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:36.944110 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:36.944123 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.944128 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.944132 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(0:server) 2026/06/25 00:24:36.944083 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:24:36.944139 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:36.944367 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:36.944391 heartbeat sent...
+(1:server) 2026/06/25 00:24:36.993959 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:36.994018 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:24:36.993959 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:36.994031 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:36.994036 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(0:follower) 2026/06/25 00:24:36.994037 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:24:36.994041 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:24:36.994048 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.994053 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:36.994056 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:36.994061 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:24:36.994039 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:24:36.994246 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:36.994271 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.043882 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.043940 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.043952 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.043956 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.043959 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.043964 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:24:37.043892 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.044006 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.044018 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.044022 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.044029 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.044033 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.044133 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.044138 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.094676 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.094736 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:24:37.094691 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.094748 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.094753 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.094757 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.094757 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:24:37.094753 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.094767 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.094771 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.094774 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.094777 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.094941 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.094948 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.144679 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.144740 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.144752 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.144757 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.144760 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.144766 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.144840 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.144826 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.144868 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.144876 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.144883 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.144888 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.144892 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.145166 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.194683 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:server) 2026/06/25 00:24:37.194714 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.194756 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.194744 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.194769 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(0:server) 2026/06/25 00:24:37.194773 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:24:37.194771 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.194784 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.194788 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:server) 2026/06/25 00:24:37.194797 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:24:37.194776 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.194817 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:24:37.194918 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.194918 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.244527 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.244587 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:24:37.244527 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.244617 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.244630 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.244635 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.244638 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.244644 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:24:37.244599 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.244730 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.244736 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.244601 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.244863 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.244862 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.294469 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.294528 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.294540 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.294545 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.294549 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:server) 2026/06/25 00:24:37.294469 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.294572 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.294581 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(0:server) 2026/06/25 00:24:37.294546 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:24:37.294591 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.294635 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.294593 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.294884 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.294916 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.344517 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.344561 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.344570 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.344575 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.344579 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.344584 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:24:37.344605 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.344640 processing RequestVoteRPC request
+(2:leader [heartbeat]) 2026/06/25 00:24:37.344627 heartbeat sent...
+(0:follower) 2026/06/25 00:24:37.344648 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.344705 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.344713 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.344653 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.344771 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.394266 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.394322 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.394334 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.394339 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.394342 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.394348 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.394474 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.394432 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.394507 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.394514 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.394518 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.394521 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.394526 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.394853 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.444626 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.444699 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.444714 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.444721 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.444725 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.444755 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:24:37.444818 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.444902 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.444921 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.444929 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.444934 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.444942 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.445147 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.445263 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.495004 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.495117 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.495142 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.495152 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.495159 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.495173 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:24:37.495460 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.495517 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.495535 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.495547 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.495564 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:24:37.495532 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.495595 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.495860 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.544516 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.544609 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:24:37.544528 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.544628 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.544635 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(0:follower) 2026/06/25 00:24:37.544636 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.544641 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(0:follower) 2026/06/25 00:24:37.544649 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.544653 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:24:37.544655 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.544757 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:server) 2026/06/25 00:24:37.544635 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.544875 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.544902 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.594502 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.594604 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.594629 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.594638 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.594644 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.594658 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:24:37.594674 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.594750 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.594765 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.594770 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.594773 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.594781 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.594921 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.594964 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.644617 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.644694 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.644709 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.644715 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.644718 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.644725 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.644851 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.644843 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.644946 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.644976 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.644984 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.644989 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.645000 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.645280 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.694977 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.695084 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.695114 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.695126 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.695135 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.695147 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:24:37.695194 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.695328 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.695343 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.695347 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.695351 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.695357 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.695360 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.695618 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.743976 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.744047 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:24:37.743976 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.744077 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.744086 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(1:follower) 2026/06/25 00:24:37.744061 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(0:server) 2026/06/25 00:24:37.744093 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:24:37.744091 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.744102 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:server) 2026/06/25 00:24:37.744064 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:24:37.744095 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.744144 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:24:37.744312 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.744339 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.794639 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.794695 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.794707 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.794711 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.794714 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.794720 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:24:37.794656 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.794753 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.794757 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.794760 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.794762 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.794767 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.794986 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.794988 heartbeat sent...
+(0:server) 2026/06/25 00:24:37.844512 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.844565 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:24:37.844549 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.844577 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.844582 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:follower) 2026/06/25 00:24:37.844582 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:24:37.844589 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:24:37.844594 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.844598 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(0:follower) 2026/06/25 00:24:37.844586 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(1:follower) 2026/06/25 00:24:37.844601 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.844602 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:24:37.844734 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:24:37.844749 heartbeat sent...
+(1:server) 2026/06/25 00:24:37.894346 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:24:37.894403 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:24:37.894414 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:44355, state: Follower, ter
+m: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.894419 updated term diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s }
+(1:follower) 2026/06/25 00:24:37.894422 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:44355, state: Follower, term: 1, electionTimeout: 2m51s
+ }
+(1:server) 2026/06/25 00:24:37.894427 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:24:37.894346 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:24:37.894482 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:24:37.894500 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:9670, state: Follower, term
+: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.894506 updated term diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:follower) 2026/06/25 00:24:37.894511 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:9670, state: Follower, term: 1, electionTimeout: 4m7s }
+(0:server) 2026/06/25 00:24:37.894517 sent requestVoteRPCResponse to client
+  dev::fsm (feat/candidate) | go run .
+(cluster) 2026/06/25 00:27:09.874352 initialising cluster with totalNodes: 3
+(cluster) 2026/06/25 00:27:09.874495 started node with id: 0
+(raft) 2026/06/25 00:27:09.874542 starting raft node:  diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 0, electionTimeout: 4m36s }
+(cluster) 2026/06/25 00:27:09.874593 started node with id: 2
+(raft) 2026/06/25 00:27:09.874607 starting raft node:  diagnostics: { address: 127.0.0.1:21721, state: Follower, term: 0, electionTimeout: 2m0s }
+(cluster) 2026/06/25 00:27:09.874592 started node with id: 1
+(raft) 2026/06/25 00:27:09.874735 starting raft node:  diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 0, electionTimeout: 4m19s }
+(0:server) 2026/06/25 00:27:09.875092 tcp server active at 127.0.0.1:63064
+(2:server) 2026/06/25 00:27:09.875114 tcp server active at 127.0.0.1:21721
+(1:server) 2026/06/25 00:27:09.875191 tcp server active at 127.0.0.1:11118
+(2:follower) 2026/06/25 00:29:09.875371 timeout reached without hearbeat, tranisitioning to Candidate 
+(2:follower) 2026/06/25 00:29:09.875536 exiting state 
+(raft) 2026/06/25 00:29:09.875529 received transition request to Candidate from:  Follower
+(0:server) 2026/06/25 00:29:09.877554 revd requestVoteRPC: {Id:2 Term:1 Reason:I need your vote luh bro}
+(0:follower) 2026/06/25 00:29:09.877630 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:09.877648 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 0, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:09.877657 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:09.877663 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:09.877673 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:29:09.877724 revd requestVoteRPC: {Id:2 Term:1 Reason:I need your vote luh bro}
+(1:follower) 2026/06/25 00:29:09.877817 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:09.877834 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 0, electionTimeout: 4m19s }
+(1:server) 2026/06/25 00:29:09.877872 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:29:09.877877 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:09.877907 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(raft) 2026/06/25 00:29:09.878141 [makeRequestVote] recvd vote from 0
+(raft) 2026/06/25 00:29:09.878143 [makeRequestVote] recvd vote from 1
+(2:candidate_) 2026/06/25 00:29:09.878228 all votes have been collected before electionTimer, checking vote count
+(2:candidate_) 2026/06/25 00:29:09.878236 i'm going to be a leader... 3
+(raft) 2026/06/25 00:29:09.878254 received transition request to Leader from:  Candidate
+(raft) 2026/06/25 00:29:09.878282 updated state to Leader:  diagnostics: { address: 127.0.0.1:21721, state: Leader, term: 1, electionTimeout: 2m7s }
+(2:leader) 2026/06/25 00:29:09.878318 started:  diagnostics: { address: 127.0.0.1:21721, state: Leader, term: 1, electionTimeout: 2m7s }
+(1:server) 2026/06/25 00:29:09.929874 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:server) 2026/06/25 00:29:09.929918 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:09.930010 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:09.929969 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:09.930049 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:09.930057 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(0:follower) 2026/06/25 00:29:09.930042 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(1:server) 2026/06/25 00:29:09.930067 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:29:09.930064 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(0:server) 2026/06/25 00:29:09.930083 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:29:09.930071 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:09.930196 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:29:09.930261 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:09.930530 heartbeat sent...
+(1:server) 2026/06/25 00:29:09.979321 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:09.979402 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:09.979421 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:09.979428 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:09.979433 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(1:server) 2026/06/25 00:29:09.979441 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:29:09.979423 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:09.979502 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:29:09.979547 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:29:09.979518 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:09.979595 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(2:leader [heartbeat]) 2026/06/25 00:29:09.979594 heartbeat sent...
+(0:follower) 2026/06/25 00:29:09.979600 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:29:09.979640 heartbeat sent...
+(1:server) 2026/06/25 00:29:10.029439 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.029514 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.029529 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.029534 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.029538 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(1:server) 2026/06/25 00:29:10.029545 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:29:10.029538 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:10.029641 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:10.029654 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.029660 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.029664 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.029670 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:29:10.029701 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.029769 heartbeat sent...
+(1:server) 2026/06/25 00:29:10.079747 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.079853 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:29:10.079787 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:server) 2026/06/25 00:29:10.079878 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:29:10.079892 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:10.079920 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.079929 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.079935 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.079945 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:29:10.079874 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.079962 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.079971 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:29:10.080109 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.080108 heartbeat sent...
+(1:server) 2026/06/25 00:29:10.128913 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.128999 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:29:10.129004 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.129016 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(0:follower) 2026/06/25 00:29:10.129042 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:29:10.129048 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:29:10.129062 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.129068 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.129072 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.129079 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:29:10.129043 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.129165 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:29:10.129247 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.129263 heartbeat sent...
+(0:server) 2026/06/25 00:29:10.178846 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:10.178954 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:10.178976 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.178986 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.178992 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.179006 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:29:10.179087 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.179192 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.179249 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.179260 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.179265 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(1:server) 2026/06/25 00:29:10.179272 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:29:10.179288 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.179383 heartbeat sent...
+(1:server) 2026/06/25 00:29:10.229089 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.229190 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:29:10.229130 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.229229 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(0:follower) 2026/06/25 00:29:10.229234 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.229244 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(0:follower) 2026/06/25 00:29:10.229251 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(1:server) 2026/06/25 00:29:10.229258 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:29:10.229266 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:29:10.229262 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(1:follower) 2026/06/25 00:29:10.229254 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(0:follower) 2026/06/25 00:29:10.229415 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:29:10.229612 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.229655 heartbeat sent...
+(0:server) 2026/06/25 00:29:10.279419 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:10.279494 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:29:10.279419 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.279526 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:10.279510 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.279538 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.279542 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(1:server) 2026/06/25 00:29:10.279546 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:29:10.279542 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.279574 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.279577 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(0:server) 2026/06/25 00:29:10.279513 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:29:10.279740 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.279765 heartbeat sent...
+(1:server) 2026/06/25 00:29:10.329486 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.329572 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:29:10.329486 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.329590 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.329597 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.329602 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(0:follower) 2026/06/25 00:29:10.329604 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:29:10.329613 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:29:10.329625 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:29:10.329622 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.329713 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.329719 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:29:10.329860 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.329876 heartbeat sent...
+(0:server) 2026/06/25 00:29:10.379730 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:10.379850 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:10.379875 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.379886 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.379902 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.379917 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:29:10.380008 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.380123 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.380142 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.380150 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.380156 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(1:server) 2026/06/25 00:29:10.380165 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:29:10.380168 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.380590 heartbeat sent...
+(1:server) 2026/06/25 00:29:10.429351 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.429424 processing RequestVoteRPC request
+(0:server) 2026/06/25 00:29:10.429351 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.429435 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.429474 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.429480 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(0:follower) 2026/06/25 00:29:10.429457 processing RequestVoteRPC request
+(1:server) 2026/06/25 00:29:10.429438 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:29:10.429491 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.429495 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.429498 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.429502 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:29:10.429647 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.429668 heartbeat sent...
+(1:server) 2026/06/25 00:29:10.478980 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.479038 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.479051 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.479057 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.479062 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(1:server) 2026/06/25 00:29:10.479063 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:29:10.479036 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:10.479099 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:10.479104 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.479109 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.479112 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.479106 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:29:10.479252 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.479252 heartbeat sent...
+(0:server) 2026/06/25 00:29:10.528711 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:server) 2026/06/25 00:29:10.528736 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.528789 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.528806 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.528813 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.528819 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(1:server) 2026/06/25 00:29:10.528829 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:29:10.528767 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:10.528948 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.528957 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.528961 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.528970 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:29:10.528975 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.529183 heartbeat sent...
+(1:server) 2026/06/25 00:29:10.579296 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.579356 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.579368 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.579375 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:server) 2026/06/25 00:29:10.579375 sent requestVoteRPCResponse to client
+(1:follower) 2026/06/25 00:29:10.579378 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(0:server) 2026/06/25 00:29:10.579297 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:10.579458 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:10.579474 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.579482 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:server) 2026/06/25 00:29:10.579485 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:29:10.579579 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.579580 heartbeat sent...
+(0:follower) 2026/06/25 00:29:10.579489 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.628922 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:10.629005 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:10.629018 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.629024 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.629027 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.629038 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:29:10.629055 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.629096 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.629106 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.629113 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.629118 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(1:server) 2026/06/25 00:29:10.629125 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:29:10.629256 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.629293 heartbeat sent...
+(1:server) 2026/06/25 00:29:10.678790 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:server) 2026/06/25 00:29:10.678790 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:10.678871 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.678855 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.678919 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(0:follower) 2026/06/25 00:29:10.678886 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(1:server) 2026/06/25 00:29:10.678939 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:29:10.678891 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:29:10.678942 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.679027 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(1:follower) 2026/06/25 00:29:10.678933 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.679040 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:29:10.679181 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.679182 heartbeat sent...
+(0:server) 2026/06/25 00:29:10.728673 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:10.728733 processing RequestVoteRPC request
+(0:follower) 2026/06/25 00:29:10.728745 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.728749 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.728752 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(0:server) 2026/06/25 00:29:10.728759 sent requestVoteRPCResponse to client
+(1:server) 2026/06/25 00:29:10.728755 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(1:follower) 2026/06/25 00:29:10.728805 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.728819 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.728824 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.728828 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(1:server) 2026/06/25 00:29:10.728841 sent requestVoteRPCResponse to client
+(2:leader [heartbeat]) 2026/06/25 00:29:10.728930 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.728934 heartbeat sent...
+(1:server) 2026/06/25 00:29:10.779601 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:server) 2026/06/25 00:29:10.779631 revd requestVoteRPC: {Id:2 Term:1 Reason:}
+(0:follower) 2026/06/25 00:29:10.779692 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.779661 processing RequestVoteRPC request
+(1:follower) 2026/06/25 00:29:10.779709 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:11118, state: Follower, ter
+m: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.779715 updated term diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s }
+(1:follower) 2026/06/25 00:29:10.779720 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:11118, state: Follower, term: 1, electionTimeout: 4m19s
+ }
+(1:server) 2026/06/25 00:29:10.779719 sent requestVoteRPCResponse to client
+(0:server) 2026/06/25 00:29:10.779714 sent requestVoteRPCResponse to client
+(0:follower) 2026/06/25 00:29:10.779710 requestVoteRPC had a higher term:1, updating term to match theirs: diagnostics: { address: 127.0.0.1:63064, state: Follower, ter
+m: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.779769 updated term diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s }
+(0:follower) 2026/06/25 00:29:10.779774 term updated transitioning to Follower diagnostics: { address: 127.0.0.1:63064, state: Follower, term: 1, electionTimeout: 4m36s
+ }
+(2:leader [heartbeat]) 2026/06/25 00:29:10.779973 heartbeat sent...
+(2:leader [heartbeat]) 2026/06/25 00:29:10.779980 heartbeat sent...
+^C(raft) 2026/06/25 00:29:10.784025 exiting full raftState
+(cluster) 2026/06/25 00:29:10.784051 parentCtx cancelled first, killing all rafts
+(raft) 2026/06/25 00:29:10.784111 exiting full raftState
+(raft) 2026/06/25 00:29:10.784117 exiting full raftState
+(cluster) 2026/06/25 00:29:10.784122 wg counter returned, sending to done chan
+(2:server) 2026/06/25 00:29:10.784142 listener closed
+(2:leader:heartbeat) 2026/06/25 00:29:10.784150 mainLeaderLoop exited, sendHeartBeats control is about to do so
+(1:follower) 2026/06/25 00:29:10.784167 exiting state 
+(1:server) 2026/06/25 00:29:10.784183 listener closed
+(2:leader [heartbeat]) 2026/06/25 00:29:10.784193 0 returning for duty
+(0:follower) 2026/06/25 00:29:10.784190 exiting state 
+(2:leader [heartbeat]) 2026/06/25 00:29:10.784200 1 returning for duty
+(0:server) 2026/06/25 00:29:10.784246 listener closed
+  dev::fsm (feat/candidate) | 

@@ -28,7 +28,7 @@ const (
 )
 
 const (
-	heartbeatInterval = time.Millisecond * 50
+	heartbeatInterval = time.Millisecond * 10
 )
 
 // RPCKind tells what kind of payload we received and helps to determine what

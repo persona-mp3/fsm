@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/rpc"
 	"os"
 	"time"
 )
@@ -30,20 +32,17 @@ func (r *Raft) runLeader(opts *Opts) {
 	}
 
 	o.log.SetPrefix(fmt.Sprintf("(%s:leader) ", r.id))
-
 	o.log.Println("started: ", r.Diagnostics())
-	// TODO: this should be changed later, it's a second for easy debugging
-	const dur = 50 * time.Millisecond
-	ticker := time.NewTicker(dur)
-	defer ticker.Stop()
+
+	ctx, cancel := context.WithCancel(r.stateCtx)
+	defer cancel()
+
+	go r.sendHeartbeats(ctx, heartbeatInterval, nil)
 
 	for {
 		select {
 		case <-r.stateCtx.Done():
 			return
-		// TODO: when this is fully implemented, seperate this into it's own routine
-		case <-ticker.C:
-			o.log.Println("sending heartbeat to peers...")
 		case rpcReq := <-r.incoming:
 			switch rpcReq.kind {
 			case AppendEntry:
@@ -92,7 +91,7 @@ func (r *Raft) runLeader(opts *Opts) {
 							Reason: fmt.Sprintf("%s: an internal error occured", r.getCurrentState()),
 						},
 					}
-					// TODO: PANIC : SPLIT_VOTE 
+					// TODO: PANIC : SPLIT_VOTE
 					o.log.Printf(`
 					we have a split brain scenario. This node who is a leader, also 
 					recvd an RequestVoteRPC from a node of the same term. 
@@ -191,4 +190,85 @@ func (r *Raft) handleAppendEntryRPC(o *Opts, req AppendEntryReq, reply chan RPCR
 	}
 
 	return true
+}
+
+func (r *Raft) sendHeartbeats(parentCtx context.Context, heartbeat time.Duration, opts *Opts) {
+	var o *Opts
+	if opts == nil {
+		o = defaultOpts()
+	} else {
+		o = opts
+	}
+
+	o.log.SetPrefix(fmt.Sprintf("(%s:leader:heartbeat) ", r.id))
+	ticker := time.NewTicker(heartbeat)
+	defer ticker.Stop()
+
+	if len(r.rpcPeers) == 0 || r.rpcPeers == nil {
+		o.log.Panicf(` 
+			checked the number or rpcPeers available and none exists.Cannot continue Raft state 
+			rpcPeers: %+v, peers: %+v
+			Diagnostics: %s`, r.rpcPeers, r.peers, r.Diagnostics())
+	}
+
+	ctx, cancel := context.WithCancel(parentCtx)
+	defer cancel()
+
+	for id, dial := range r.rpcPeers {
+		go r.hearbeatPump(ctx, heartbeatInterval, dial, id, nil)
+	}
+
+	<-parentCtx.Done()
+	o.log.Println("mainLeaderLoop exited, sendHeartBeats control is about to do so")
+	
+
+	// for {
+	// 	select {
+	// 	case <-parentCtx.Done():
+	// 		return
+	// 	case
+	// }
+
+}
+
+// req := AppendEntryReq{
+// 	Id:   r.id,
+// 	Term: r.term.Load(),
+// 	Data: "this is a heartbeat message",
+// }
+// reply := &AppendEntryRes{}
+// dial.Call("Server.AppendEntry", req, reply)
+
+// Im thinking, what if I had len(rpc.rpcPeers) goroutines running? where
+// they each have a ticker and send dial their own client?
+func (r *Raft) hearbeatPump(ctx context.Context, interval time.Duration, dial *rpc.Client, id int, opts *Opts) {
+	var o *Opts
+	if opts == nil {
+		o = defaultOpts()
+	} else {
+		o = opts
+	}
+
+	o.log.SetPrefix(fmt.Sprintf("(%s:leader [heartbeat]) ", r.id))
+	ticker := time.NewTicker(interval)
+	defer func() {
+		ticker.Stop()
+		o.log.Printf("%d returning for duty\n", id)
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			req := AppendEntryReq{Id: r.id, Term: r.term.Load(), Data: "this is a heartbeat rpc"}
+			res := &AppendEntryRes{}
+			if err := dial.Call("Server.AppendEntryRPC", req, res); err != nil {
+				o.log.Println("could not send HeartBeat to client. Reason: ", err)
+				return
+			}
+
+			o.log.Println("heartbeat sent...")
+		}
+	}
 }
