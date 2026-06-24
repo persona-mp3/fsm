@@ -15,12 +15,25 @@ type TestReq struct {
 }
 
 type Server struct {
+	id       string
 	incoming chan RPC
+	log      *log.Logger
 }
 
-func NewServer(in chan RPC, out chan any) *Server {
+func NewServer(id string, incoming chan RPC, opts *Opts) *Server {
+	var o *Opts
+	if opts == nil {
+		o = defaultOpts()
+	} else {
+		o = opts
+	}
+
+	o.log.SetPrefix(fmt.Sprintf("(%s:server) ", id))
+
 	return &Server{
-		incoming: in,
+		id:       id,
+		incoming: incoming,
+		log:      &o.log,
 	}
 }
 
@@ -40,15 +53,15 @@ func (s *Server) Listen(ctx context.Context, addr string) error {
 		ln.Close()
 	}()
 
-	log.Println("tcp server active at", addr)
+	s.log.Println("tcp server active at", addr)
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
-				log.Println("listener closed")
+				s.log.Println("listener closed")
 				return nil
 			}
-			log.Println("could not accept connection: ", err)
+			s.log.Println("could not accept connection: ", err)
 			continue
 		}
 

@@ -44,23 +44,82 @@ func (r *Raft) runLeader(opts *Opts) {
 		// TODO: when this is fully implemented, seperate this into it's own routine
 		case <-ticker.C:
 			o.log.Println("sending heartbeat to peers...")
-		case rpc := <-r.incoming:
-			switch rpc.kind {
+		case rpcReq := <-r.incoming:
+			switch rpcReq.kind {
 			case AppendEntry:
-				payload, ok := rpc.payload.(AppendEntryReq)
+				payload, ok := rpcReq.payload.(AppendEntryReq)
 				if !ok {
 					o.log.Panicf("expected appendEntry from payload, recvd: %+v\n", payload)
 				}
 
-				if transit := r.handleAppendEntryRPC(o, payload, rpc.reply); transit {
+				if transit := r.handleAppendEntryRPC(o, payload, rpcReq.reply); transit {
 					o.log.Println("sending transition request to manager")
 					r.transition <- Follower
 					o.log.Println("sent transition request successfully")
 					return
 				}
+			case RequestVote:
+				o.log.Println("processing RequestVoteRPC request")
+				req, ok := rpcReq.payload.(RequestVoteReq)
+				if !ok {
+					rpcReq.reply <- RPCReply{kind: RequestVote, payload: &RequestVoteRes{
+						err:  fmt.Errorf("%s internal error occured", r.getCurrentState().String()),
+						Id:   r.id,
+						Term: r.term.Load(),
+					}}
+					o.log.Panicf(`expected RequestVoteRPC request from got : %+v\n`, rpcReq)
+				}
+
+				// rpcReq came from an outdated candidate or leader. ignore them
+				if req.Term < r.term.Load() {
+					rpcReq.reply <- RPCReply{
+						kind: RequestVote,
+						payload: &RequestVoteRes{
+							Id:     r.id,
+							Acked:  false,
+							Term:   r.term.Load(),
+							Reason: fmt.Sprintf("%s: term higher", r.getCurrentState().String()),
+						},
+					}
+					o.log.Println("requestVoteRPC had a lower term, rejecting it", r.Diagnostics())
+					continue
+				} else if req.Term == r.term.Load() {
+					rpcReq.reply <- RPCReply{
+						kind: RequestVote,
+						payload: &RequestVoteRes{
+							Id:     r.id,
+							Term:   r.term.Load(),
+							Reason: fmt.Sprintf("%s: an internal error occured", r.getCurrentState()),
+						},
+					}
+					// TODO: PANIC : SPLIT_VOTE 
+					o.log.Printf(`
+					we have a split brain scenario. This node who is a leader, also 
+					recvd an RequestVoteRPC from a node of the same term. 
+					RPCRequestTerm: %+v
+					Diagnotics: %s
+					
+					While this hasn't been accounted for yet, we are going to panic
+					`, req, r.Diagnostics())
+					panic("")
+				}
+
+				o.log.Printf("stepping down to Follower, recvd a higher RPCTerm: %d, %s\n", req.Term, r.Diagnostics())
+				r.term.Store(req.Term)
+				rpcReq.reply <- RPCReply{
+					kind: RequestVote,
+					payload: &RequestVoteRes{
+						Id:     r.id,
+						Acked:  true,
+						Term:   r.term.Load(),
+						Reason: fmt.Sprintf("%s: an internal error occured", r.getCurrentState()),
+					},
+				}
+				o.log.Println("sent replyRPC, transitioning to Follower")
+				r.transition <- Follower
 
 			default:
-				rpc.reply <- RPCReply{
+				rpcReq.reply <- RPCReply{
 					kind: AppendEntry,
 					payload: &AppendEntryRes{
 						Id:           r.id,
@@ -69,7 +128,7 @@ func (r *Raft) runLeader(opts *Opts) {
 						Acknowledged: false,
 					},
 				}
-				log.Printf("rpcRequest not understood: %+v\n", rpc)
+				log.Printf("rpcRequest not understood: %+v\n", rpcReq)
 			}
 
 		}

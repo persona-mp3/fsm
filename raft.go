@@ -36,7 +36,12 @@ const (
 type RPCKind int
 
 const (
+	// AppendEntry represents an AppendEntry payload
 	AppendEntry RPCKind = iota
+
+	// RequestVote represents an RequestVoteRPC payload
+	RequestVote
+
 	// For some reason an unexpected RPCRequest got through
 	Confused
 )
@@ -103,7 +108,7 @@ func NewRaft(
 	incoming := make(chan RPC, bufferChanSize)
 	// we only want one state transition to happen at a time
 	transition := make(chan RaftState)
-	server := NewServer(incoming, nil)
+	server := NewServer(id, incoming, nil)
 
 	var l *log.Logger
 	if output == nil {
@@ -272,7 +277,7 @@ func dialRaftPeers(network string, addrs []string) (rpcPeers []*rpc.Client, fail
 	return peers, failed
 }
 
-// TODO: Not sure if an unknown RPC could ever happend because 
+// TODO: Not sure if an unknown RPC could ever happend because
 // validation is done at the protocol level
 func (r *Raft) handleUnknownRPCKind(rpcReq RPC, opts *Opts) {
 	var o *Opts

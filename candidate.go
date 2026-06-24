@@ -145,7 +145,7 @@ func (r *Raft) Candidate(opts *Opts) {
 		o.log.Println("all votes have been collected before electionTimer, checking vote count")
 		result := totalVotes.Load()
 		if result > 2 {
-			o.log.Println("i'm not going to be a leader...", result)
+			o.log.Println("i'm going to be a leader...", result)
 
 			// TODO: It's not yet clear that we might need a mutex here considering the fact that
 			// each RaftState owns the Node ie only one thread can mutate r.rpcClients
@@ -172,6 +172,49 @@ func (r *Raft) Candidate(opts *Opts) {
 				return
 			}
 
+		case RequestVote:
+			o.log.Println("processing RequestVoteRPC request")
+			req, ok := rpcReq.payload.(RequestVoteReq)
+			if !ok {
+				rpcReq.reply <- RPCReply{kind: RequestVote, payload: &RequestVoteRes{
+					err:  fmt.Errorf("%s internal error occured", r.getCurrentState().String()),
+					Id:   r.id,
+					Term: r.term.Load(),
+				}}
+				o.log.Panicf(`expected RequestVoteRPC request from got : %+v\n`, rpcReq)
+			}
+
+			// rpcReq came from an outdated candidate or leader. ignore them
+			if req.Term < r.term.Load() {
+				rpcReq.reply <- RPCReply{
+					kind: RequestVote,
+					payload: &RequestVoteRes{
+						Id:     r.id,
+						Acked:  false,
+						Term:   r.term.Load(),
+						Reason: fmt.Sprintf("%s: term higher", r.getCurrentState().String()),
+					},
+				}
+				o.log.Println("requestVoteRPC had a lower term, rejecting it", r.Diagnostics())
+			} else if req.Term == r.term.Load() || req.Term > r.term.Load() {
+				// treating rpcReq as a an already established leader
+				rpcReq.reply <- RPCReply{
+					kind: RequestVote,
+					payload: &RequestVoteRes{
+						Id:     r.id,
+						Acked:  true,
+						Term:   r.term.Load(),
+						Reason: fmt.Sprintf("%s: your term is higher. i yeild", r.getCurrentState().String()),
+					},
+				}
+				o.log.Printf("requestVoteRPC had a higher term:%d, updating term to match theirs: %s\n", req.Term, r.Diagnostics())
+				r.term.Store(req.Term)
+				o.log.Println("updated term", r.Diagnostics())
+				o.log.Println("term updated transitioning to Follower", r.Diagnostics())
+				r.transition <- Follower
+				return
+			}
+
 		default:
 			r.handleUnknownRPCKind(rpcReq, o)
 		}
@@ -180,20 +223,9 @@ func (r *Raft) Candidate(opts *Opts) {
 
 }
 
-type RequestVoteReq struct {
-	Id     string
-	Term   uint64
-	Reason string
-}
-type RequestVoteRes struct {
-	Id     string
-	Term   uint64
-	Acked  bool
-	Reason string
-}
+func (r *Raft) sendHeartbeats() {}
 
 func (r *Raft) makeRequestVoteRPC(dial *rpc.Client, totalVotes *atomic.Uint64) {
-	log.Printf("[makeRequestVoteRPC] not implemented yet\n")
 	req := RequestVoteReq{
 		Id:     r.id,
 		Term:   r.term.Load(),
