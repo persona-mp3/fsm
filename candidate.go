@@ -67,7 +67,6 @@ func (r *Raft) runCandidate(opts *Opts) {
 	}
 }
 
-
 func (r *Raft) Diagnostics() string {
 	diagnostics := fmt.Sprintf("diagnostics: { address: %s, state: %s, term: %d, electionTimeout: %s }",
 		r.serverAddr, r.state.String(), r.term.Load(), r.electionTimeout)
@@ -79,3 +78,7 @@ func (r *Raft) newStateContext(parentCtx context.Context) {
 	r.stateCtx = ctx
 	r.stateCtxCancel = cancel
 }
+
+// Candidate increments this nodes term and sends rpcs too all the peers 
+// it has connections to
+func (r *Raft) Candidate(opts *Opts) { }
