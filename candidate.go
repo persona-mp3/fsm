@@ -3,10 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/rpc"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
-func (r *Raft) runCandidate(opts *Opts) {
+func (r *Raft) runCandidateDep(opts *Opts) {
 	var o *Opts
 	if opts == nil {
 		o = defaultOpts()
@@ -79,6 +83,102 @@ func (r *Raft) newStateContext(parentCtx context.Context) {
 	r.stateCtxCancel = cancel
 }
 
-// Candidate increments this nodes term and sends rpcs too all the peers 
+// Candidate increments this nodes term and sends rpcs too all the peers
 // it has connections to
-func (r *Raft) Candidate(opts *Opts) { }
+func (r *Raft) Candidate(opts *Opts) {
+	var o *Opts
+	if opts == nil {
+		o = defaultOpts()
+	} else {
+		o = opts
+	}
+
+	o.log.SetPrefix(fmt.Sprintf("(%s:candidate_) ", r.id))
+
+	electionTimeout := randomTimeout(time.Millisecond)
+	electionTimer := time.NewTimer(electionTimeout)
+
+	rpcPeers, failed := dialRaftPeers("tcp", r.peers)
+
+	if failed == len(r.peers) {
+		o.log.Panicf(`
+		edge case. This node is the only node active here, 
+		triedRaisingElection, all rpcPeers failed. 
+		failedDials: %d, allPeers: %+v
+		`, failed, r.peers)
+	}
+
+	totalVotes := atomic.Uint64{}
+
+	// according to the Raft Paper, a node can vote itself when running for an election
+	totalVotes.Add(1)
+
+	wg := sync.WaitGroup{}
+
+	for _, rpcClient := range rpcPeers {
+		if rpcClient != nil {
+			wg.Add(1)
+			go func(dialer *rpc.Client, totalVotes *atomic.Uint64) {
+				defer wg.Done()
+				makeRequestVoteRPC(dialer, totalVotes)
+
+			}(rpcClient, &totalVotes)
+		}
+	}
+
+	done := make(chan struct{})
+
+	go func() {
+		wg.Wait()
+		done <- struct{}{}
+	}()
+
+	select {
+	case <-r.stateCtx.Done():
+		return
+	case <-electionTimer.C:
+		o.log.Println("electionTimer fired before could make all votes, dropping to follower and waiting...")
+		r.transition <- Follower
+		return
+	case <-done:
+		o.log.Println("all votes have been collected before electionTimer, checking vote count")
+		result := totalVotes.Load()
+		if result > 2 {
+			o.log.Println("i'm not going to be a leader...", result)
+
+			// TODO: It's not yet clear that we might need a mutex here considering the fact that
+			// each RaftState owns the Node ie only one thread can mutate r.rpcClients
+			r.rpcPeers = append(r.rpcPeers, rpcPeers...)
+			r.transition <- Leader
+			return
+		}
+
+		o.log.Println("lost the election, not enough votes, going back to follower")
+		r.transition <- Follower
+
+	case rpcReq := <-r.incoming:
+		switch rpcReq.kind {
+		case AppendEntry:
+			req, ok := rpcReq.payload.(AppendEntryReq)
+			if !ok {
+				o.log.Panicf(`expected AppendEntryReq from RPCRequest got : %+v\n`, rpcReq)
+			}
+
+			isHigherTerm := r.handleAppendEntryRPC(o, req, rpcReq.reply)
+			if isHigherTerm {
+				o.log.Printf("lost the election, recvd higherRPC: %d, %s going back to follower\n", req.Term, r.Diagnostics())
+				r.transition <- Follower
+				return
+			}
+
+		default:
+			r.handleUnknownRPCKind(rpcReq, o)
+		}
+
+	}
+
+}
+
+func makeRequestVoteRPC(dial *rpc.Client, totalVotes *atomic.Uint64) {
+	log.Panicf("[makeRequestVoteRPC] not implemented yet")
+}

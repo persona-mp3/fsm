@@ -45,7 +45,7 @@ func NewCluster(totalNodes int, opts *Opts) *Cluster {
 	}
 
 	for _, node := range raftNodes {
-		for _, addr := range node.peers {
+		for _, addr := range peers {
 			if addr != node.serverAddr {
 				node.peers = append(node.peers, addr)
 			}
@@ -71,7 +71,9 @@ func (c *Cluster) Start(parentCtx context.Context) {
 		go func(ctx context.Context, node *Raft) {
 			defer wg.Done()
 			c.log.Println("started node with id:", node.id)
-			node.Run(ctx)
+			if err := node.Run(ctx); err != nil {
+				log.Println(err)
+			}
 		}(ctx, node)
 	}
 

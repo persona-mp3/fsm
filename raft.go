@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"math/rand/v2"
+	"net/rpc"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -36,6 +37,8 @@ type RPCKind int
 
 const (
 	AppendEntry RPCKind = iota
+	// For some reason an unexpected RPCRequest got through
+	Confused
 )
 
 type RPC struct {
@@ -80,10 +83,10 @@ type Raft struct {
 	stateCtx       context.Context
 	stateCtxCancel context.CancelFunc
 
-	// TODO: this is meant for debug purposes and will probably be enforced later
-	// on to be able to determine what states are running in a sep goroutine actively.
-	_inflight atomic.Uint64
-	log       *log.Logger
+	log *log.Logger
+
+	// holds all the connections to the nodes in the cluster as provided by [Raft.peer]
+	rpcPeers []*rpc.Client
 }
 
 const (
@@ -109,6 +112,13 @@ func NewRaft(
 		l = log.New(output, "(raft) ", log.Default().Flags()|log.Lmicroseconds)
 	}
 
+	// rpcPeers, failed := dialPeers("tcp", peers)
+	// if failed > 0 {
+	// 	l.Printf("[STARTUP] WARN: could not dial %d nodes\n", failed)
+	// } else if failed == len(peers) {
+	// 	return nil, fmt.Errorf("Could not dial any peer, cannot continue Raft. Failed Dials: %d", failed)
+	// }
+
 	return &Raft{
 		id:              id,
 		mu:              sync.RWMutex{},
@@ -120,13 +130,21 @@ func NewRaft(
 		electionTimeout: electionTimeout,
 		incoming:        incoming,
 		transition:      transition,
-		_inflight:       atomic.Uint64{},
+		rpcPeers:        []*rpc.Client{},
 		log:             l,
 	}
 }
 
-func (r *Raft) Run(parentCtx context.Context) {
+func (r *Raft) Run(parentCtx context.Context) error {
 	errCh := make(chan error)
+	// rpcPeers, failed := dialPeers("tcp", r.peers)
+	// if failed > 0 {
+	// 	r.log.Printf("[STARTUP] WARN: could not dial %d nodes\n", failed)
+	// } else if failed == len(r.peers) {
+	// 	return fmt.Errorf("Could not dial any peer, because no peers were present cannot continue Raft. Failed Dials: %d, peers: %+v", failed, r.peers)
+	// }
+
+	// r.rpcPeers = rpcPeers
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
 
@@ -150,10 +168,10 @@ func (r *Raft) Run(parentCtx context.Context) {
 		select {
 		case <-parentCtx.Done():
 			r.log.Println("exiting full raftState")
-			return
+			return nil
 		case err := <-errCh:
 			r.log.Println("error from server: ", err)
-			return
+			return err
 
 		case raftState := <-r.transition:
 			r.stateCtxCancel()
@@ -190,7 +208,8 @@ func (r *Raft) Run(parentCtx context.Context) {
 						raftState.String(), r.getCurrentState().String())
 				}
 				r.updateRaftState(raftState)
-				go r.runCandidate(nil)
+				// go r.runCandidate(nil)
+				go r.Candidate(nil)
 			}
 		}
 	}
@@ -234,4 +253,46 @@ func (rs RaftState) String() string {
 	default:
 		return fmt.Sprintf("unexpected main.RaftState: %#v", rs)
 	}
+}
+
+func dialRaftPeers(network string, addrs []string) (rpcPeers []*rpc.Client, failedDials int) {
+	peers := []*rpc.Client{}
+	failed := 0
+
+	for _, addr := range addrs {
+		client, err := rpc.Dial(network, addr)
+		if err != nil {
+			fmt.Printf("[DIALER] failed to dial: %s. Reason: %s\n", addr, err)
+			failed += 1
+			continue
+		}
+
+		peers = append(peers, client)
+	}
+	return peers, failed
+}
+
+// TODO: Not sure if an unknown RPC could ever happend because 
+// validation is done at the protocol level
+func (r *Raft) handleUnknownRPCKind(rpcReq RPC, opts *Opts) {
+	var o *Opts
+	if opts == nil {
+		o = defaultOpts()
+	} else {
+		o = opts
+	}
+
+	o.log.SetPrefix(fmt.Sprintf("(%s:unknownRPCHandler) ", r.id))
+	o.log.Printf("handling unknownRequestRPC: %+v\n", rpcReq.payload)
+
+	rpcReq.reply <- RPCReply{
+		kind: Confused,
+		payload: &AppendEntryRes{
+			Id:           r.id,
+			Term:         r.term.Load(),
+			Data:         "I don't understand this protocol you speak of",
+			Acknowledged: false,
+		},
+	}
+	o.log.Println("sent AppendEntryRes because node is confused")
 }
