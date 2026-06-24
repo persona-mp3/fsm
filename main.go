@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"time"
 )
 
 // NOTEs: terms act as logical clocks in Raft. It's possible
@@ -59,17 +58,10 @@ is randomised
 */
 
 func main() {
-	electionTimeout := randomTimeout(time.Millisecond)
-	raft := NewRaft(
-		"single-node-test",
-		"localhost:8080",
-		[]string{},
-		electionTimeout,
-		nil,
-	)
+	const stubTotalNodes = 2
+	cluster := NewCluster(stubTotalNodes, nil)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
-	// raft.Run(ctx)
-	raft.Run(ctx)
+	cluster.Start(ctx)
 }

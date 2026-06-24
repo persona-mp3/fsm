@@ -149,6 +149,7 @@ func (r *Raft) Run(parentCtx context.Context) {
 	for {
 		select {
 		case <-parentCtx.Done():
+			r.log.Println("exiting full raftState")
 			return
 		case err := <-errCh:
 			r.log.Println("error from server: ", err)
@@ -214,7 +215,7 @@ func (r *Raft) incrementTerm() int {
 	return int(r.term.Add(1))
 }
 
-// randomTimeout generates a number between the [minInterval] and [maxInterval] 
+// randomTimeout generates a number between the [minInterval] and [maxInterval]
 // and returns the duration [d]
 func randomTimeout(d time.Duration) time.Duration {
 	n := rand.IntN(maxInterval-minInterval) + minInterval
