@@ -29,8 +29,8 @@ func (r *Raft) updateState(raftState RaftState) {
 ```go
 func (r *Raft) getCurrentState() RaftState {
     r.mu.RLock()
-    state := raftState
-    defer r.mu.RWUnlock()
+    state := r.raftState
+    defer r.mu.RUnlock()
     return state
 }
 ```
