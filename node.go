@@ -8,19 +8,6 @@ import (
 	"os"
 )
 
-type RPCKind int
-
-type RPC struct {
-	kind    RPCKind
-	payload any
-	reply   chan RPCReply
-}
-
-type RPCReply struct {
-	kind    RPCKind
-	payload any
-}
-
 type Node struct {
 	id string
 	// address is where the Node's server will listen for incoming RPC's
@@ -170,6 +157,92 @@ func (n *Node) Run(parentCtx context.Context) error {
 			}
 		}
 	}
+}
+
+type Action struct {
+	action    bool
+	newTerm   uint64
+	newLeader string
+}
+
+// handleAppendEntryRequest handles the incoming RPC request
+//   - If the node is a [Follower] and handleRPCRequest returns and true,
+//     the [Follower] updates it's term with the number returned
+//
+// a term number higher, ,
+// it updates it's term with  the number returned, and the returned string with
+// votedFor with the
+func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, logger rlog.RLogger) Action {
+	currentTerm := n.raft.getTerm()
+	currentLeader := n.raft.getCurrentLeader()
+
+	action := Action{}
+	if req.Term < currentTerm {
+		action.action = false
+		replyCh <- RPCReply{
+			kind: AppendEntry,
+			payload: &AppendEntryReply{
+				Id:      n.id,
+				Acked:   false,
+				Term:    currentTerm,
+				Message: "you have an outdated term",
+			},
+		}
+		logger.Println("appendEntry was from a lower term:", req, n.Diagnostics())
+		return action
+	}
+
+	// assume node missed an election and old leader died
+	if req.Term > currentTerm {
+		replyCh <- RPCReply{
+			kind: AppendEntry,
+			payload: &AppendEntryReply{
+				Id:      n.id,
+				Acked:   true,
+				Term:    req.Term,
+				Message: "yielding to you",
+			},
+		}
+		action.action = true
+		action.newLeader = req.Id
+		action.newTerm = req.Term
+		logger.Println("appendEntry was from a a higher term:", req, n.Diagnostics())
+		return action
+	}
+
+	// assume rpc is legitimate leader
+	if req.Term == currentTerm && req.Id == currentLeader {
+		replyCh <- RPCReply{
+			kind: AppendEntry,
+			payload: &AppendEntryReply{
+				Id:      n.id,
+				Acked:   true,
+				Term:    currentTerm,
+				Message: "accepting appendEntry recognised as leader",
+			},
+		}
+		action.action = true
+		action.newLeader = req.Id
+		action.newTerm = req.Term
+		logger.Println("appendEntry was from a higher term:", req, n.Diagnostics())
+		return action
+	}
+
+	// someone posing as a rouge leader
+	replyCh <- RPCReply{
+		kind: AppendEntry,
+		payload: &AppendEntryReply{
+			Id:      n.id,
+			Term:    currentTerm,
+			Acked:   false,
+			Message: "not accepting appendEntry",
+		},
+	}
+	action.action = true
+	action.newLeader = req.Id
+	action.newTerm = req.Term
+	logger.Println("appendEntry invalidated: ", req, n.Diagnostics())
+	return action
 }
 
 // Diagnotics returns all revelevant information for this Node, including who it's

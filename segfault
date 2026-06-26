@@ -1,0 +1,65 @@
+[daniel@nixos:~/dev/fsm-refactor]$ go run .
+
+[daniel@nixos:~/dev/fsm-refactor]$ go run .
+  using default cluster config
+16:56:21.163612 (0:cluster:0) initialising cluster with totalNodes:  1
+16:56:21.163744 (0:cluster:0) started node with id: 1
+16:56:21.163776 (1:node:0) initialising...
+16:56:21.163822 (0:cluster:0) started node with id: 2
+16:56:21.163833 (2:node:0) initialising...
+2026/06/26 16:56:21.163852 (2:server) listening on tcp localhost:4001
+2026/06/26 16:56:21.163886 (1:server) listening on tcp localhost:4000
+16:56:21.164030 (0:cluster:0) started node with id: 3
+16:56:21.164078 (3:node:0) initialising...
+2026/06/26 16:56:21.164162 (3:server) listening on tcp localhost:4002
+16:56:21.449190 (2:follower:0) did not recv heartbeat from leader
+16:56:21.449243 (2:follower:0) follower mode exited successfully diagnostics: { term: 0, state: Follower, votedFor:  }
+16:56:21.449257 (2:node:0) recvd transition to Candidate
+16:56:21.449291 (2:candidate:1) candidate state succesfully initiated diagnostics: { term: 1, state: Candidate, votedFor:  }
+16:56:21.480596 (1:follower:0) did not recv heartbeat from leader
+16:56:21.480646 (1:follower:0) follower mode exited successfully diagnostics: { term: 0, state: Follower, votedFor:  }
+16:56:21.480659 (1:node:0) recvd transition to Candidate
+16:56:21.480714 (1:candidate:1) candidate state succesfully initiated diagnostics: { term: 1, state: Candidate, votedFor:  }
+16:56:21.560903 (3:follower:0) did not recv heartbeat from leader
+16:56:21.560929 (3:follower:0) follower mode exited successfully diagnostics: { term: 0, state: Follower, votedFor:  }
+16:56:21.560937 (3:node:0) recvd transition to Candidate
+16:56:21.560956 (3:candidate:1) candidate state succesfully initiated diagnostics: { term: 1, state: Candidate, votedFor:  }
+16:56:21.623279 (1:candidate:1) election timer fired dropping back to Follower
+16:56:21.623392 (1:candidate:1) stub: won the election
+16:56:21.623411 (1:node:0) recvd transition to Leader
+16:56:21.623452 (1:leader:1) leader state transitioned successfully diagnostics: { term: 1, state: Leader, votedFor:  }
+16:56:21.800618 (2:candidate:1) election timer fired dropping back to Follower
+16:56:21.800656 (2:candidate:1) stub: won the election
+16:56:21.800672 (2:node:0) recvd transition to Leader
+16:56:21.800716 (2:leader:1) leader state transitioned successfully diagnostics: { term: 1, state: Leader, votedFor:  }
+16:56:21.961974 (3:candidate:1) election timer fired dropping back to Follower
+16:56:21.962013 (3:candidate:1) stub: won the election
+16:56:21.962028 (3:node:0) recvd transition to Leader
+16:56:21.962072 (3:leader:1) leader state transitioned successfully diagnostics: { term: 1, state: Leader, votedFor:  }
+^C16:56:24.209301 (2:leader:1) leader state terminated succesfully
+panic: sync: WaitGroup misuse: Add called concurrently with Wait
+
+goroutine 21 [running]:
+sync.(*WaitGroup).Add(0x2b4244d8a020, 0xffffffffffffffff)
+        /nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/sync/waitgroup.go:132 +0x214
+sync.(*WaitGroup).Done(...)
+        /nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/sync/waitgroup.go:156
+main.(*Cluster).Start.func1({0x66d970, 0x2b4244d96000}, 0x2b4244d1a8c0)
+        /home/daniel/dev/fsm-refactor/cluster.go:77 +0x177
+created by main.(*Cluster).Start in goroutine 1
+        /home/daniel/dev/fsm-refactor/cluster.go:71 +0x14a
+panic: sync: negative WaitGroup counter
+
+goroutine 22 [running]:
+sync.(*WaitGroup).Add(0x2b4244d8a020, 0xffffffffffffffff)
+        /nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/sync/waitgroup.go:118 +0x23a
+sync.(*WaitGroup).Done(...)
+        /nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/sync/waitgroup.go:156
+main.(*Cluster).Start.func1({0x66d970, 0x2b4244d96000}, 0x2b4244d1a960)
+        /home/daniel/dev/fsm-refactor/cluster.go:77 +0x177
+created by main.(*Cluster).Start in goroutine 1
+        /home/daniel/dev/fsm-refactor/cluster.go:71 +0x14a
+exit status 2
+
+[daniel@nixos:~/dev/fsm-refactor]$ 
+

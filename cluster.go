@@ -67,10 +67,10 @@ func (c *Cluster) Start(parentCtx context.Context) {
 	wg := sync.WaitGroup{}
 	wg.Add(c.TotalNodes)
 
-	for _, node := range c.raftNodes {
+	for i := range c.TotalNodes {
+		node := c.raftNodes[i]
 		go func(ctx context.Context, node *Node) {
 			defer wg.Done()
-			c.log.Println("started node with id:", node.id)
 			if err := node.Run(ctx); err != nil {
 				log.Println(err)
 			}
@@ -80,7 +80,6 @@ func (c *Cluster) Start(parentCtx context.Context) {
 	done := make(chan struct{})
 	go func() {
 		wg.Wait()
-		c.log.Println("wg counter returned, sending to done chan")
 		done <- struct{}{}
 	}()
 
@@ -112,7 +111,7 @@ const (
 func parseConfig(path string) (*Cluster, error) {
 	if len(strings.ReplaceAll(path, " ", "")) == 0 {
 		path = defaultClusterConfigPath
-		fmt.Println("  using default cluster config")
+		fmt.Println("using default cluster config")
 	}
 
 	content, err := os.ReadFile(path)

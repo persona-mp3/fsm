@@ -1,11 +1,9 @@
 name = "cluster_config"
 
-# number of nodes to spin in a cluster. It must match with 
-# the [addresses]
+# number of nodes to spin in a cluster. 
 totalNodes = 3
 
-# addresses that the nodes will listen on. It must match with 
-# [totalNodes]
+# addresses that the nodes will listen on 
 addresses = [
 	"localhost:4000",
 	"localhost:4001",
@@ -14,7 +12,7 @@ addresses = [
 
 # used by dev-tools to hijack a cluster with higher terms
 # faster or slower heartbeats
-forceTerm = 100
+forceTerm = 101
 heartbeat = 10
 
 # tells dev-tools to continue until it's in control of the raft

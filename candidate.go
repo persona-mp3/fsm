@@ -8,6 +8,7 @@ import (
 func (n *Node) runCandidate(logger rlog.RLogger) {
 	n.raft.incrementTerm()
 	logger.UpdateTerm(n.raft.getTerm())
+	n.raft.clearLeader()
 
 	logger.Println("candidate state succesfully initiated", n.Diagnostics())
 

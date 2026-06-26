@@ -31,6 +31,7 @@ type Raft struct {
 	// term is the internal clock for the node
 	term atomic.Uint64
 
+	leaderLock sync.Mutex
 	// votedFor is the [Leader] this node voted for, for this [Raft.term]
 	votedFor string
 
@@ -51,6 +52,7 @@ func NewRaft(id string) *Raft {
 		mu:              sync.RWMutex{},
 		state:           Follower,
 		term:            atomic.Uint64{},
+		leaderLock:      sync.Mutex{},
 		votedFor:        "",
 		electionTimeout: initialTimeout,
 		log:             raftLogger,
@@ -103,6 +105,12 @@ func (r *Raft) getCurrentLeader() string {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.votedFor
+}
+
+func (r *Raft) clearLeader() {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	r.votedFor = ""
 }
 
 func (rs RaftState) String() string {
