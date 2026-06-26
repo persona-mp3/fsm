@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	rlog "fsm/raftlogger"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -36,13 +36,15 @@ type Raft struct {
 
 	electionTimeout time.Duration
 
-	log *log.Logger
+	log rlog.RLogger
 }
 
 func NewRaft(id string) *Raft {
 	initialTimeout := randomTimeout(time.Millisecond)
-	prefix := fmt.Sprintf("(%s:raft) ", id)
-	raftLogger := log.New(os.Stdout, prefix, log.Ldate|log.Lmicroseconds|log.Lmsgprefix)
+	// prefix := fmt.Sprintf("(%s:raft) ", id)
+
+	// raftLogger := log.New(os.Stdout, prefix, log.Ldate|log.Lmicroseconds|log.Lmsgprefix)
+	raftLogger := rlog.NewHumaneLogger(id, "raft", 0, os.Stdout)
 
 	return &Raft{
 		id:              id,
@@ -95,6 +97,12 @@ func (r *Raft) resetElectionTimeout(dur time.Duration) {
 	defer r.mu.Unlock()
 
 	r.electionTimeout = dur
+}
+
+func (r *Raft) getCurrentLeader() string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.votedFor
 }
 
 func (rs RaftState) String() string {

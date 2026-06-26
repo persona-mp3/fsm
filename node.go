@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	rlog "fsm/raftlogger"
 	"net/rpc"
 	"os"
 )
@@ -45,11 +45,11 @@ type Node struct {
 	server *Server
 
 	// peers contains the ip addresses of other nodes in the cluster, excluding this Node
-	// If no peers are empty, the Node will refuse to start
+	// If the peers are empty, the Node will refuse to start
 	peers []string
 
 	// connectedPeers are connections that have been made when the [Node] was either
-	// a [Leader] or candidate
+	// a [Leader] or [Candidate].
 	connectedPeers []*rpc.Client
 
 	// stateCtx cancels the active [Raft.State] listening when an the [Node] needs to
@@ -60,11 +60,11 @@ type Node struct {
 	// stateCtxCancel cancels [Raft.stateCtx]
 	stateCtxCancel context.CancelFunc
 
-	log *log.Logger
+	log rlog.RLogger
 }
 
 const (
-	// defaultChanBuffer is used for the Node's transition chan
+	// defaultChanBuffer is used for the Node's incoming chan
 	defaultChanBuffer = 1
 )
 
@@ -77,8 +77,9 @@ func NewNode(id string, address string, peers []string) (*Node, error) {
 
 	server := NewServer(id, address, incoming)
 
-	prefix := fmt.Sprintf("(%s:node) ", id)
-	logger := log.New(os.Stdout, prefix, log.Ldate|log.Lmicroseconds|log.Lmsgprefix)
+	// prefix := fmt.Sprintf("(%s:node) ", id)
+	// logger := log.New(os.Stdout, prefix, log.Ldate|log.Lmicroseconds|log.Lmsgprefix)
+	logger := rlog.NewHumaneLogger(id, "node", 0, os.Stdout)
 
 	return &Node{
 		id:         id,
@@ -121,7 +122,7 @@ func (n *Node) Run(parentCtx context.Context) error {
 		case <-parentCtx.Done():
 			return nil
 		case err := <-errCh:
-			n.log.Println(err)
+			n.log.Println(err.Error())
 			return nil
 
 		case raftState := <-n.transition:
@@ -131,7 +132,7 @@ func (n *Node) Run(parentCtx context.Context) error {
 					n.log.Panic(`recvd transition into Follower while in Follower state`, n.Diagnostics())
 				}
 
-				n.log.Println("recvd transition to Follower",)
+				n.log.Println("recvd transition to Follower")
 				n.raft.updateState(raftState)
 				// cancel context and make a new one
 				n.stateCtxCancel()
@@ -149,9 +150,10 @@ func (n *Node) Run(parentCtx context.Context) error {
 				n.stateCtxCancel()
 				n.newContext(ctx)
 
-				go n.runLeader()
+				rlog := rlog.NewHumaneLogger(n.id, "leader", n.raft.getTerm(), n.log.Out())
+				go n.runLeader(rlog)
 			case Candidate:
-				if n.raft.getState() == Leader {
+				if n.raft.getState() == Candidate {
 					n.log.Panic(`recvd transition into Candidate while in Candidate state`, n.Diagnostics())
 				}
 
@@ -161,18 +163,29 @@ func (n *Node) Run(parentCtx context.Context) error {
 				n.stateCtxCancel()
 				n.newContext(ctx)
 
-				go n.runCandidate()
+				clog := rlog.NewHumaneLogger(n.id, "candidate", n.raft.getTerm(), n.log.Out())
+				go n.runCandidate(clog)
 			default:
-				n.log.Panicf("%s state not yet implemented!\n", raftState)
+				n.log.Panic("%s state not yet implemented!\n", raftState)
 			}
 		}
 	}
 }
 
+// Diagnotics returns all revelevant information for this Node, including who it's
+// votedFor, current term, and what state it's in
 func (n *Node) Diagnostics() string {
-	return "diagnostics"
+	term := n.raft.getTerm()
+	state := n.raft.getState().String()
+	votedFor := n.raft.getCurrentLeader()
+
+	diagnostics := fmt.Sprintf("diagnostics: { term: %d, state: %s, votedFor: %s }",
+		term, state, votedFor)
+	return diagnostics
 }
 
+// newContext creates a new context and cancel func and attaches it to the Node for
+// states to actively running states to be canceled
 func (n *Node) newContext(parent context.Context) {
 	ctx, cancel := context.WithCancel(parent)
 	n.stateCtx = ctx

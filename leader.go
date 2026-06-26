@@ -1,15 +1,12 @@
 package main
 
-import (
-	"fmt"
-)
+import "fsm/raftlogger"
 
-func (n *Node) runLeader() {
-	fmt.Println("\n\nleader state transitioned successfully")
+func (n *Node) runLeader(logger raftlogger.RLogger) {
+	logger.Println("leader state transitioned successfully", n.Diagnostics())
 	defer func() {
-		fmt.Println("leader state terminated succesfully")
+		logger.Println("leader state terminated succesfully")
 	}()
 
 	<-n.stateCtx.Done()
 }
-

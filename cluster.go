@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	rlog "fsm/raftlogger"
 	"github.com/BurntSushi/toml"
 )
 
@@ -24,10 +25,11 @@ type Cluster struct {
 
 	raftNodes []*Node
 
-	log *log.Logger
+	log rlog.RLogger
 }
 
 func DefaultCluster() *Cluster {
+	l := rlog.NewHumaneLogger("0", "cluster", 0, os.Stdout)
 	addrs := []string{
 		"localhost:4000",
 		"localhost:4001",
@@ -41,7 +43,7 @@ func DefaultCluster() *Cluster {
 		serverAddr, peers := filterAddr(addr, addrs)
 		n, err := NewNode(fmt.Sprintf("%d", i+1), serverAddr, peers)
 		if err != nil {
-			fmt.Println("could not create node with addr: ", serverAddr, err)
+			l.Println("could not create node with addr: ", serverAddr, err)
 			totalNodes -= 1
 			continue
 		}
@@ -49,12 +51,11 @@ func DefaultCluster() *Cluster {
 		raftNodes = append(raftNodes, n)
 	}
 
-	clog := log.New(os.Stdout, "[cluster] ", log.Lmsgprefix)
 	return &Cluster{
 		TotalNodes: totalNodes,
 		Addresses:  addrs,
 		raftNodes:  raftNodes,
-		log:        clog,
+		log:        l,
 	}
 }
 
