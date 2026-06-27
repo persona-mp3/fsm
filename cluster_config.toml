@@ -1,7 +1,7 @@
 name = "cluster_config"
 
 # number of nodes to spin in a cluster. 
-totalNodes = 3
+totalNodes = 1
 
 # addresses that the nodes will listen on 
 addresses = [

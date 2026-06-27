@@ -39,3 +39,4 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 	}
 
 }
+

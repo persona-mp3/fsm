@@ -33,7 +33,6 @@ type Node struct {
 	server *Server
 
 	// peers contains the ip addresses of other nodes in the cluster, excluding this Node
-	// If the peers are empty, the Node will refuse to start
 	peers []string
 
 	// connectedPeers are connections that have been made when the [Node] was either
