@@ -15,9 +15,6 @@ import (
 )
 
 type Cluster struct {
-	// TotalNodes is the total number of nodes that the cluster will start up. Default is 3
-	TotalNodes int
-
 	// Addresses are ip addresses for the nodes to start.
 	// Defaults are localhost:4000 to 4002.
 	Addresses []string
@@ -35,7 +32,6 @@ func DefaultCluster() *Cluster {
 		"localhost:4002",
 	}
 
-	totalNodes := 3
 	raftNodes := []*Node{}
 
 	for i, addr := range addrs {
@@ -43,7 +39,6 @@ func DefaultCluster() *Cluster {
 		n, err := NewNode(fmt.Sprintf("%d", i+1), serverAddr, peers, nil)
 		if err != nil {
 			l.Println("could not create node with addr: ", serverAddr, err)
-			totalNodes -= 1
 			continue
 		}
 
@@ -51,23 +46,22 @@ func DefaultCluster() *Cluster {
 	}
 
 	return &Cluster{
-		TotalNodes: totalNodes,
-		Addresses:  addrs,
-		raftNodes:  raftNodes,
-		log:        l,
+		Addresses: addrs,
+		raftNodes: raftNodes,
+		log:       l,
 	}
 }
 
-func (c *Cluster) Start(parentCtx context.Context) {
-	c.log.Println("initialising cluster with totalNodes: ", c.TotalNodes)
+func (c *Cluster) Start(parentCtx context.Context) error {
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
 
 	wg := sync.WaitGroup{}
-	wg.Add(c.TotalNodes)
+	wg.Add(len(c.raftNodes))
 
-	for i := range c.TotalNodes {
+	for i := range len(c.raftNodes) {
 		node := c.raftNodes[i]
+		wg.Add(1)
 		go func(ctx context.Context, node *Node) {
 			defer wg.Done()
 			if err := node.Run(ctx); err != nil {
@@ -85,10 +79,10 @@ func (c *Cluster) Start(parentCtx context.Context) {
 	select {
 	case <-done:
 		c.log.Println("all raftNodes have died")
-		return
+		return nil
 	case <-parentCtx.Done():
 		c.log.Println("parentCtx cancelled first, killing all rafts")
-		return
+		return nil
 	}
 }
 
@@ -109,8 +103,8 @@ const (
 
 func parseConfig(path string) (*Cluster, error) {
 	if len(strings.ReplaceAll(path, " ", "")) == 0 {
-		path = defaultClusterConfigPath
 		fmt.Println("using default cluster config")
+		return DefaultCluster(), nil
 	}
 
 	content, err := os.ReadFile(path)
@@ -118,12 +112,29 @@ func parseConfig(path string) (*Cluster, error) {
 		return nil, fmt.Errorf("could not load config. %w ", err)
 	}
 
-	cfg := DefaultCluster()
+	cfg := &Cluster{}
 	if _, err := toml.Decode(string(content), cfg); err != nil {
 		fmt.Println("could not parse config file: ", err)
 		fmt.Println("using defaults")
 		cfg = DefaultCluster()
 	}
+
+	raftNodes := []*Node{}
+
+	for i, addr := range cfg.Addresses {
+		serverAddr, peers := filterAddr(addr, cfg.Addresses)
+		n, err := NewNode(fmt.Sprintf("%d", i+1), serverAddr, peers, nil)
+		if err != nil {
+			log.Println("could not create node with addr: ", serverAddr, err)
+			continue
+		}
+
+		raftNodes = append(raftNodes, n)
+	}
+
+	cfg.raftNodes = raftNodes
+	l := rlog.NewHumaneLogger("0", "cluster", 0, os.Stdout)
+	cfg.log = l
 
 	return cfg, nil
 

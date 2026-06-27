@@ -1,13 +1,12 @@
 name = "cluster_config"
 
-# number of nodes to spin in a cluster. 
-totalNodes = 1
-
 # addresses that the nodes will listen on 
 addresses = [
 	"localhost:4000",
 	"localhost:4001",
 	"localhost:4002",
+	"localhost:4004",
+	"localhost:4005",
 ]
 
 # used by dev-tools to hijack a cluster with higher terms

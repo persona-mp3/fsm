@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -12,11 +13,11 @@ import (
 )
 
 const (
-	DebugAddr = "locahost:6061"
+	DebugAddr = "localhost:6061"
 )
 
 func main() {
-	cluster, err := parseConfig("")
+	cluster, err := parseConfig("cluster_config.toml")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -41,5 +42,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	cluster.Start(ctx)
+	if err := cluster.Start(ctx); err != nil {
+		log.Fatal(err)
+	}
 }
