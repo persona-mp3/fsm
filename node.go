@@ -261,7 +261,12 @@ func (n *Node) Diagnostics() string {
 // newContext creates a new context and cancel func and attaches it to the Node for
 // states to actively running states to be canceled
 func (n *Node) newContext(parent context.Context) {
-	ctx, cancel := context.WithCancel(parent)
-	n.stateCtx = ctx
-	n.stateCtxCancel = cancel
+	if n.stateCtx.Err() == nil {
+		n.stateCtxCancel()
+		panic("stateCtx not cancelled yet")
+	} else {
+		ctx, cancel := context.WithCancel(parent)
+		n.stateCtx = ctx
+		n.stateCtxCancel = cancel
+	}
 }
