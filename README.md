@@ -40,8 +40,8 @@ Todos
 - [X] Implementing simulation testing
 - [X] Starting cluster from a config file,  `cluster_config.toml` with default number of nodes 3
 - [X] Reimplement Follower 
-- [ ] Reimplement Leader
-- [ ] Reimplement Candidate
+- [X] Reimplement Leader
+- [X] Reimplement Candidate
 
 
 
