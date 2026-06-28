@@ -35,14 +35,14 @@ go run simulation/single-leader.go
 
 Profiling and Monitoring
 ---
-Visit [http://localhost:6061/debug/pprof/](http://localhost:6061/debug/pprof/), it uses go's
+Visit [http://localhost:6061/debug/pprof/](http://localhost:6061/debug/pprof/) while the appilication is running, it uses go's
 [net/http/pprof](https://go.dev/blog/pprof).
 
 
 Next 
 ---
 - [ ] Log replication across the cluster
-- [ ] Contorl plane for killing speciific nodes
+- [ ] Control plane for killing specific nodes
 
 
 Todos
