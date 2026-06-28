@@ -1,75 +1,76 @@
 package main
 
 import (
-	"fmt"
+	rlog "fsm/raftlogger"
 	"time"
 )
 
-// runFollower has an internal timer that goes off on [Raft.electionTimeout]
-// When the timer fire, it transists into a [Candidate] state. If an [AppendEntry] rpc
-// or `heartbeat` arrives before the timer fires, the node remains in this state 
-// and resets it's internal timer. If it receives an [AppendEntry] rpcs from another
-// nodes whose term is higher it updates this nodes term to the rpc provided in the request
-func (r *Raft) runFollower(opts *Opts) {
-	var o *Opts
-	if opts == nil {
-		o = defaultOpts()
-	} else {
-		o = opts
-	}
+// runFollower runs if the node is in a [Follower] state. If it receives
+// an [AppendEntryReq] with a term that is higher or similar, it simply
+// resets it's electionTimeout or updates it's [Raft.votedFor] and [Raft.term] if the
+// AppendEntryReq has a higher term. A [Follower] cannot grant a vote more than once
+// in the same term. For example a Node who sends an [RequestVoteRPC] to this node within
+// the same term will be ignored. If a Node also sends an [AppendEntryRPC] with a higher
+// term, but the follower did not vote of it, the request is also ignored
+func (n *Node) runFollower() {
+	term := n.raft.getTerm()
+	logger := rlog.NewHumaneLogger(n.id, "follower", term, n.log.Out())
 
-	o.log.SetPrefix(fmt.Sprintf("(%s:follower) ", r.id))
-	timer := time.NewTimer(r.electionTimeout)
+	ticker := time.NewTicker(n.raft.electionTimeout)
 	defer func() {
-		if !timer.Stop() {
-			go func() { <-timer.C }()
-		}
-		o.log.Println("exiting state ")
+		ticker.Stop()
+		logger.Println("follower mode exited successfully", n.Diagnostics())
 	}()
-
-	resetTimer := func() {
-		if !timer.Stop() {
-			<-timer.C
-		}
-		timer.Reset(r.electionTimeout)
-	}
 
 	for {
 		select {
-		case <-r.stateCtx.Done():
+		case <-n.stateCtx.Done():
 			return
-		case rpc := <-r.incoming:
-			switch rpc.kind {
+		case <-ticker.C:
+			logger.Println("did not recv heartbeat from leader")
+			n.transition <- Candidate
+			return
+		case req := <-n.incoming:
+			switch req.kind {
 			case AppendEntry:
-				payload, ok := rpc.payload.(AppendEntryReq)
+				request, ok := req.payload.(AppendEntryRequest)
+				// no point in relaying respose backup to the server because the server will still
+				// invalidate it and panic
 				if !ok {
-					o.log.Panicf("expected appendEntry from payload, recvd: %+v\n", payload)
+					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
-				if transit := r.handleAppendEntryRPC(o, payload, rpc.reply); transit {
-					resetTimer()
-					r.term.Store(payload.Term)
-					o.log.Println("updated term info and reset timer")
+				action := n.handleAppendEntry(request, req.reply, logger.Inherit("handleAE"))
+				if !action.action {
 					continue
 				}
 
-			default:
-				rpc.reply <- RPCReply{
-					kind: AppendEntry,
-					payload: &AppendEntryRes{
-						Id:           r.id,
-						Term:         r.term.Load(),
-						Data:         "I dont understand this rpc call yet",
-						Acknowledged: false,
-					},
-				}
-				o.log.Printf("rpcRequest not understood: %+v\n", rpc)
-			}
+				n.raft.updateTerm(action.newTerm, action.newLeader)
+				logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
+				ticker.Reset(n.raft.electionTimeout)
 
-		case <-timer.C:
-			r.transition <- Candidate
-			o.log.Println("timeout reached without hearbeat, tranisitioning to Candidate ")
-			return
+			case Vote:
+				request, ok := req.payload.(VoteRequest)
+				// no point in relaying respose backup to the server because the server will still
+				// invalidate it and panic
+				if !ok {
+					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
+				}
+
+				action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
+				if !action.action {
+					continue
+				}
+
+				n.raft.updateTerm(action.newTerm, action.newLeader)
+				logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
+				ticker.Reset(n.raft.electionTimeout)
+
+
+			default:
+				logger.Panic("Unhandled RPC Not yet implemented:", req.payload, n.Diagnostics())
+			}
 		}
 	}
+
 }
