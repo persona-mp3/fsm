@@ -38,13 +38,6 @@ type Raft struct {
 	electionTimeout time.Duration
 
 	log rlog.RLogger
-
-	// givenVote represents if the node has already voted for this term it's in
-	// for example, while a [Candidate] it will have votedFor empty. If it steps 
-	// down to follower because of a higher term, givenVote will be true, otherwise 
-	// false. Scenario: if a node has already voted for someone because they were a in 
-	// a higher term, another node coudl also ask again with the same term number
-	givenVote *atomic.Bool
 }
 
 func NewRaft(id string) *Raft {
@@ -101,11 +94,13 @@ func (r *Raft) getState() RaftState {
 	return r.state
 }
 
-func (r *Raft) resetElectionTimeout(dur time.Duration) {
+func (r *Raft) resetElectionTimeout() time.Duration {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	dur := randomTimeout(time.Millisecond)
 	r.electionTimeout = dur
+	return dur
 }
 
 func (r *Raft) getCurrentLeader() string {

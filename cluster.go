@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand/v2"
 	"os"
 	"strings"
 	"sync"
-	"time"
 
 	rlog "fsm/raftlogger"
 	"github.com/BurntSushi/toml"
@@ -138,17 +136,4 @@ func parseConfig(path string) (*Cluster, error) {
 
 	return cfg, nil
 
-}
-
-const (
-	// According to the Raft Paper, it's recommended for timeouts(election) to range from 100-500ms, but
-	// we're increasing it because that's too aggressive
-	minInterval = 400
-	maxInterval = 1500
-)
-
-func randomTimeout(d time.Duration) time.Duration {
-	n := rand.IntN(maxInterval-minInterval) + minInterval
-
-	return d * time.Duration(n)
 }

@@ -251,9 +251,7 @@ func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, 
 			Message: "not accepting appendEntry",
 		},
 	}
-	action.action = true
-	action.newLeader = req.Id
-	action.newTerm = req.Term
+	action.action = false
 	logger.Println("appendEntry invalidated: ", req, n.Diagnostics())
 	return action
 }
@@ -317,7 +315,7 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
 	action := Action{}
 	if req.Term > currentTerm {
 		replyCh <- RPCReply{
-			kind: AppendEntry,
+			kind: Vote,
 			payload: &VoteReply{
 				Id:       n.id,
 				VotedFor: true,

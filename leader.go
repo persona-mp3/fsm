@@ -4,16 +4,21 @@ import (
 	"context"
 	"fmt"
 	rlog "fsm/raftlogger"
+	"math/rand/v2"
 	"sync"
 	"time"
 )
 
 const (
 	// heartbeatInterval is the rate at which the node when in a [Leader] state sends
-	// heartbeats to the followers in the cluster. This value is hardcoded right now
-	// because the intervals for elections is always randomised between 100-500ms
-	// 10ms makes it very unlikely that a [Leader] doesn't delay in sending a heartbeat RPC
+	// out heartbeats to follower in a cluster. At the moment, this is set to be 200 which
+	// is roughly half the minimum election timeout interval
 	heartbeatInterval = time.Millisecond * 200
+
+	// According to the Raft Paper, it's recommended for timeouts(election) to range from 100-500ms, but
+	// we're increasing it because that's too aggressive
+	minInterval = 400
+	maxInterval = 1500
 )
 
 func (n *Node) runLeader(logger rlog.RLogger) {
@@ -122,4 +127,10 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 			return
 		}
 	}
+}
+
+func randomTimeout(d time.Duration) time.Duration {
+	n := rand.IntN(maxInterval-minInterval) + minInterval
+
+	return d * time.Duration(n)
 }

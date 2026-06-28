@@ -12,14 +12,12 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 	n.raft.incrementTerm()
 	logger.UpdateTerm(n.raft.getTerm())
 	n.raft.clearLeader()
-	n.raft.resetElectionTimeout(time.Millisecond)
+	newTimeout := n.raft.resetElectionTimeout()
 
 	logger.Println("candidate state succesfully initiated", n.Diagnostics())
 	logger.Println("running for election")
 
-	timeout := randomTimeout(time.Millisecond)
-	n.raft.electionTimeout = timeout
-	electionTimer := time.NewTimer(timeout)
+	electionTimer := time.NewTimer(newTimeout)
 
 	defer func() {
 		electionTimer.Stop()
@@ -29,7 +27,7 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 	connectedPeers := n.getRPCPeers()
 
 	if len(connectedPeers) == 0 {
-		// TODO: Might be worth considerting dialing peers in-seerate goroutines since we don't
+		// TODO: Might be worth considering dialing peers in-seperate goroutines since we don't
 		// want to block this mean thread because of a slow client or slow dial
 		// successfulDials, failedCount := dialPeers("tcp", n.peers, logger.Inherit("dialPeers"))
 		successfulDials, failedCount := dialPeers("tcp", n.peers, logger.Inherit("dialPeers"))
