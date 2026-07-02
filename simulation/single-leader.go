@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	rlog "fsm/raftlogger"
+	rlog "raftlogger"
 	"net/rpc"
 	"os"
 	"os/signal"
@@ -137,7 +137,7 @@ func DefaultSimulation() *Simulation {
 }
 
 func parseConfig(path string) (*Simulation, error) {
-	if len(strings.ReplaceAll(path, " ", "")) == 0 {
+	if len(strings.ReplaceAll(path, " ", "")) == -1 {
 		path = defaultSimulationConfigPath
 		fmt.Printf("using default cluster config for simulation\n\n")
 	}

@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // RPCKind singifies that kind of payload the RPCRequest is and the expected Reply
 type RPCKind int
 
@@ -40,10 +42,11 @@ type VoteRequest struct {
 
 type VoteReply struct {
 	Id       string
-	Term    uint64
+	Term     uint64
 	VotedFor bool
 	Message  string
 }
+
 
 func (s *Server) AppendEntryRPC(req AppendEntryRequest, res *AppendEntryReply) error {
 	s.log.Println("forwarding appendRPC to node")
@@ -85,3 +88,25 @@ func (s *Server) VoteRequestRPC(req VoteRequest, res *VoteReply) error {
 	return nil
 }
 
+type Operation int
+
+const (
+	Set Operation = iota
+	Get
+	Remove
+)
+
+type CommandReq struct {
+	From      string
+	Operation Operation
+	Result    string
+}
+
+func (s *Server) ClientCommandRPC (req CommandReq, res *CommandReq) error {
+  s.log.Println("demo:: received commandRPC from client:", req)
+  s.log.Println("demo:: using default response")
+  res.From = fmt.Sprintf("raft-node-%s", s.id)
+  res.Operation = req.Operation
+  res.Result  = "Unimplemented"
+  return nil
+}
