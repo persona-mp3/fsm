@@ -59,7 +59,14 @@ type Node struct {
 	stateCtxCancel context.CancelFunc
 
 	database db.Database
+
 	log      rlog.RLogger
+
+
+	// logs are all the logs that this node has had through out this term 
+	// and previous terms. It receives these logs from clients when a leader 
+	// or from the leader for the currentTerm via the AppendEntryRPCs
+	logs  Logs
 }
 
 const (
@@ -270,17 +277,6 @@ func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, 
 	return action
 }
 
-// Diagnotics returns all revelevant information for this Node, including who it's
-// votedFor, current term, and what state it's in
-func (n *Node) Diagnostics() string {
-	term := n.raft.getTerm()
-	state := n.raft.getState().String()
-	votedFor := n.raft.getCurrentLeader()
-
-	diagnostics := fmt.Sprintf("diagnostics: { term: %d, state: %s, votedFor|leader: %s }",
-		term, state, votedFor)
-	return diagnostics
-}
 
 // newContext creates a new context and cancel func and attaches it to the Node for
 // states to actively running states to be canceled
@@ -374,3 +370,16 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
 	}
 	return action
 }
+
+// Diagnotics returns all revelevant information for this Node, including who it's
+// votedFor, current term, and what state it's in
+func (n *Node) Diagnostics() string {
+  term := n.raft.getTerm()
+  state := n.raft.getState().String()
+  votedFor := n.raft.getCurrentLeader()
+
+  diagnostics := fmt.Sprintf("diagnostics: { term: %d, state: %s, votedFor|leader: %s, logs: %+v }",
+    term, state, votedFor, n.logs.String())
+  return diagnostics
+}
+

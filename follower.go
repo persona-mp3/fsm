@@ -45,7 +45,18 @@ func (n *Node) runFollower() {
 					continue
 				}
 
+				// TODO: The leader can send the same entry as long as it wants? But we'd need to distinguish if
+				// we already have this entry the leader has sent, by simply checking against the [Entry.Idx],and [Entry.Term]
+				if request.Entry != nil {
+					if !n.logs.Contains(request.Entry.Idx, request.Entry.Term) {
+						logger.Println("CONSTRUCTION:FOLLOWER_ received a new entry from leader", request.Entry)
+						n.logs.Append(request.Entry)
+					}
+
+				}
+
 				n.raft.updateTerm(action.newTerm, action.newLeader)
+				logger.UpdateTerm(action.newTerm)
 				logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
 				ticker.Reset(n.raft.electionTimeout)
 
@@ -66,6 +77,15 @@ func (n *Node) runFollower() {
 				logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
 				ticker.Reset(n.raft.electionTimeout)
 
+			case ClientCommand:
+				logger.Println("in follower state, need to forward request to leader")
+				req.reply <- RPCReply{
+					kind: ClientCommand,
+					payload: &CommandReply{
+						From:   n.id,
+						Result: "FOLLOWER_STUB: Forward request to leader, currently follower",
+					},
+				}
 
 			default:
 				logger.Panic("Unhandled RPC Not yet implemented:", req.payload, n.Diagnostics())

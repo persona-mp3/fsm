@@ -110,6 +110,16 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 				n.raft.updateTerm(action.newTerm, action.newLeader)
 				logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
 
+			case ClientCommand:
+				logger.Println("in candidate_state, need to forward request to leader")
+				req.reply <- RPCReply{
+					kind: ClientCommand,
+					payload: &CommandReply{
+						From:       n.id,
+						Result:  "CANDIDATE_STUB: Read spec impl on how to handle requests mid election",
+					},
+				}
+
 			default:
 				logger.Panic("Unhandled RPC Not yet implemented:", req.payload, n.Diagnostics())
 			}

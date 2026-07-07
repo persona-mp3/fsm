@@ -40,16 +40,17 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 	}
 
 	currentPeers := n.getRPCPeers()
+	entries := make(chan Entry)
 	for idx, rpcPeer := range currentPeers {
 		if rpcPeer != nil {
 			wg.Add(1)
 
 			childLogger := n.log.Inherit(fmt.Sprintf("%d-sendHB", idx))
 
-			go func(ctx context.Context, rpcPeer *Peer, logger rlog.RLogger) {
+			go func(ctx context.Context, rpcPeer *Peer, e chan Entry, logger rlog.RLogger) {
 				defer wg.Done()
-				n.sendHeartBeat(ctx, rpcPeer, heartbeatInterval, logger)
-			}(ctx, rpcPeer, childLogger)
+				n.sendHeartBeat(ctx, rpcPeer, heartbeatInterval, e, logger)
+			}(ctx, rpcPeer, entries, childLogger)
 		}
 	}
 
@@ -58,7 +59,7 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 	go func() {
 		wg.Wait()
 		done <- struct{}{}
-		logger.Println("DEBUG:: leader loop recvdvd")
+		logger.Println("leader workers exited succsessfully")
 	}()
 
 	for {
@@ -90,6 +91,31 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 				n.transition <- Follower
 				return
 
+			case ClientCommand:
+				logger.Println("in leader state, received command request from a client", req.payload)
+				req.reply <- RPCReply{
+					kind: ClientCommand,
+					payload: &CommandReply{
+						From:       n.id,
+						Result:  "LEADER_STUB: Need to send requests to whole cluster to append this to their logs",
+					},
+				}
+				logger.Println("begin sending out appendRPCs")
+				payload, ok := req.payload.(CommandReq)
+				if !ok {
+					logger.Panic("Expected CommandReq, got", payload)
+				}
+				e := Entry{}
+				e.Idx = 10
+				e.Term = n.raft.getTerm()
+				e.Operation = payload.Operation
+				e.Key = payload.Key
+				e.Value = payload.Value
+				for i := range len(n.rpcPeers) {
+					_ = i
+					entries <- e
+				}
+				logger.Println("sent new Entry to all peers")
 			default:
 				logger.Panic("Unhandled RPC Not yet implemented:", req.payload, n.Diagnostics())
 			}
@@ -97,7 +123,16 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 	}
 }
 
-func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Duration, logger rlog.RLogger) {
+// contemplation: I'd want the main state routine to send jobs to these worker routines, but I'd also 
+// want these workers to be able to communicate back w the leader otherwise. For example, if a new client
+// command comes in, I'd want the runLeader to send the command across the cluster for 'replication' via 
+// the appendRPC's channel. So then this worker can just send the data to the Follower it's attached to.
+// At the moment, if a call fails, we simply return
+// But what it the follower doesn't acknowledge the RPCS? We'd want this communication btwn the worker and 
+// leader then. Without having to wrap appendRPCs with a channel abstraction, I think it would be better 
+// to give the worker some independence accross the Node. So if the follower fails to ack the appendEntry, we
+// can simply just read against this Node's logs instead of handing it over to the top-level runLeader
+func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Duration, entry chan Entry, logger rlog.RLogger) {
 	// TODO: Might also be worth retrying connections with  dropped peers incase it was just 
 	// a network glitch
 	ticker := time.NewTicker(interval)
@@ -116,6 +151,15 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 
 	for {
 		select {
+		case <-ctx.Done():
+			return
+		case e := <-entry:
+			logger.Println("recvd entry::", e)
+			req.Entry = &e
+			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
+				logger.Println("Failed to send heartbeat", err, peer.id, peer.addr)
+				return
+			}
 		case <-ticker.C:
 			logger.Println("sending heartbeatRPC")
 			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
@@ -123,8 +167,6 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 				return
 			}
 			logger.Println("reply: ", reply, peer.addr)
-		case <-ctx.Done():
-			return
 		}
 	}
 }

@@ -6,18 +6,24 @@ import (
 	"net/rpc"
 )
 
-type Operation int
+type Operation string
 
 const (
-	Set Operation = iota
-	Get
-	Remove
+	Set    Operation = "set"
+	Get              = "get"
+	Remove           = "rm"
 )
 
 type CommandReq struct {
 	From      string
 	Operation Operation
-	Result    string
+	Key       string
+	Value     string
+}
+
+type CommandReply struct {
+	From   string
+	Result string
 }
 
 func main() {
@@ -26,15 +32,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	req := CommandReq{From: "sim-client-request", Operation: Get, Result: ""}
-	res := &CommandReq{}
+  req := CommandReq{From: "sim-client-request", Operation: Get, Key: "bryson_tyler", Value: "Right my wrongs"}
+	res := &CommandReply{}
 
 	dial, err := rpc.Dial("tcp", sim.Addresses[0])
 	if err != nil {
 		log.Fatal("could not dial node: ", err)
 	}
 
-	if err := dial.Call("Server.ClientCommandRPC", req, res); err != nil {
+	if err := dial.Call("Server.CommandRPC", req, res); err != nil {
 		log.Fatal("could not call service: ", err)
 	}
 	log.Printf("response from raft-server:: %#v\n", res)

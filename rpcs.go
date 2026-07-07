@@ -1,13 +1,12 @@
 package main
 
-import "fmt"
-
 // RPCKind singifies that kind of payload the RPCRequest is and the expected Reply
 type RPCKind int
 
 const (
 	AppendEntry RPCKind = iota
 	Vote
+	ClientCommand
 )
 
 type RPC struct {
@@ -25,6 +24,7 @@ type AppendEntryRequest struct {
 	Id      string
 	Term    uint64
 	Message string
+	Entry   *Entry
 }
 
 type AppendEntryReply struct {
@@ -47,6 +47,26 @@ type VoteReply struct {
 	Message  string
 }
 
+type Operation string
+
+const (
+	Set    Operation = "set"
+	Get    Operation = "get"
+	Remove Operation = "rm"
+)
+
+type CommandReq struct {
+	From      string
+	Operation Operation
+	Key       string
+	Value     string
+	Result    string
+}
+
+type CommandReply struct {
+	From   string
+	Result string
+}
 
 func (s *Server) AppendEntryRPC(req AppendEntryRequest, res *AppendEntryReply) error {
 	s.log.Println("forwarding appendRPC to node")
@@ -88,25 +108,17 @@ func (s *Server) VoteRequestRPC(req VoteRequest, res *VoteReply) error {
 	return nil
 }
 
-type Operation int
+func (s *Server) CommandRPC(req CommandReq, res *CommandReply) error {
+	s.log.Println("forwarding commandRPC to node")
+	reply := make(chan RPCReply)
+	s.incoming <- RPC{kind: ClientCommand, payload: req, reply: reply}
+	response := <-reply
+	s.log.Println("response from node-state::", response)
+	payload, ok := response.payload.(*CommandReply)
+	if !ok {
+		s.log.Panic("Expected CommandReply, recvd:", payload)
+	}
 
-const (
-	Set Operation = iota
-	Get
-	Remove
-)
-
-type CommandReq struct {
-	From      string
-	Operation Operation
-	Result    string
-}
-
-func (s *Server) ClientCommandRPC (req CommandReq, res *CommandReq) error {
-  s.log.Println("demo:: received commandRPC from client:", req)
-  s.log.Println("demo:: using default response")
-  res.From = fmt.Sprintf("raft-node-%s", s.id)
-  res.Operation = req.Operation
-  res.Result  = "Unimplemented"
-  return nil
+	*res = *payload
+	return nil
 }
