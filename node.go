@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	db "fsm/database"
 	rlog "fsm/raftlogger"
 	"io"
 	"net/rpc"
@@ -57,7 +58,8 @@ type Node struct {
 	// stateCtxCancel cancels [Raft.stateCtx]
 	stateCtxCancel context.CancelFunc
 
-	log rlog.RLogger
+	database db.Database
+	log      rlog.RLogger
 }
 
 const (
@@ -79,6 +81,8 @@ func NewNode(id string, address string, peers []string, out io.Writer) (*Node, e
 	sl := rlog.NewHumaneLogger(id, "server", 0, out)
 	server := NewServer(id, address, incoming, sl)
 
+	jkvsDatabase := db.NewJKVSDatabase("tcp", "localhost:9090")
+
 	return &Node{
 		mu:         sync.Mutex{},
 		id:         id,
@@ -89,12 +93,22 @@ func NewNode(id string, address string, peers []string, out io.Writer) (*Node, e
 		server:     server,
 		peers:      peers,
 		rpcPeers:   []*Peer{},
+		database:   jkvsDatabase,
 		log:        logger,
 	}, nil
 }
 
 func (n *Node) Run(parentCtx context.Context) error {
-	n.log.Println("initialising...")
+	n.log.Println("initialising node")
+	n.log.Println("connecting to database...")
+
+  if err := n.database.Connect(); err != nil {
+    return err
+  }
+
+
+	n.log.Println("successfully connected to database")
+  n.database.Send(db.Command{Operation: db.GetOps, Key: "raft-node-id", Value: "Testing raft-db connection" })
 	errCh := make(chan error)
 
 	ctx, cancel := context.WithCancel(parentCtx)
