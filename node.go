@@ -281,6 +281,9 @@ func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, 
 // newContext creates a new context and cancel func and attaches it to the Node for
 // states to actively running states to be canceled
 func (n *Node) newContext(parent context.Context) {
+  n.mu.Lock()
+  defer n.mu.Unlock()
+
 	if n.stateCtx.Err() == nil {
 		n.stateCtxCancel()
 		panic("stateCtx not cancelled yet")
