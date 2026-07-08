@@ -68,7 +68,7 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 			return
 
 		case <-done:
-			logger.Println("all child sendhearbeats have returned")
+			logger.Println("all child sendheartbeats have returned")
 			n.transition <- Follower
 			return
 
@@ -96,8 +96,8 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 				req.reply <- RPCReply{
 					kind: ClientCommand,
 					payload: &CommandReply{
-						From:       n.id,
-						Result:  "LEADER_STUB: Need to send requests to whole cluster to append this to their logs",
+						From:   n.id,
+						Result: "LEADER_STUB: Need to send requests to whole cluster to append this to their logs",
 					},
 				}
 				logger.Println("begin sending out appendRPCs")
@@ -105,17 +105,49 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 				if !ok {
 					logger.Panic("Expected CommandReq, got", payload)
 				}
-				e := Entry{}
-				e.Idx = 10
-				e.Term = n.raft.getTerm()
-				e.Operation = payload.Operation
-				e.Key = payload.Key
-				e.Value = payload.Value
-				for i := range len(n.rpcPeers) {
-					_ = i
-					entries <- e
+				// TODO: Let's check our logs if we have this first
+				entry := Entry{}
+				entry.Term = n.raft.getTerm()
+				entry.Operation = payload.Operation
+				entry.Key = payload.Key
+				entry.Value = payload.Value
+				if !n.logs.HasEntry(&entry) {
+					index := n.logs.Append(&entry)
+					entry.Idx = index
+          // TODO: Might need to keep this buffered? The thing here is that 
+          // there are x-worker routines sending hearbeats to x connectedPeers
+          // And all workers recv on this channel. Sending to this channel is a blocking operation
+          // so there's no garauntee that each worker receives the newEntry, and one 
+          // doesn't take all of them, or there are no listeners, or the worker is busy on another
+          // select/case branch. Another way might involve having each worker return a seperate channel 
+          // the recv on, and then just looping over those, but, i'm not yet sure if I'd want to go that 
+          // route yet
+					for i := range len(n.rpcPeers) {
+						_ = i
+						entries <- entry
+					}
+					logger.Println("sent new Entry to all peers")
+				} else {
+					logger.Println("entry already existed, not repeating duplicate logs", n.Diagnostics())
+        }
+      case Vote:
+				request, ok := req.payload.(VoteRequest)
+				// no point in relaying respose backup to the server because the server will still
+				// invalidate it and panic
+				if !ok {
+					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
-				logger.Println("sent new Entry to all peers")
+
+				action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
+				if !action.action {
+					continue
+				}
+
+				n.raft.updateTerm(action.newTerm, action.newLeader)
+				logger.Println("succesfully updated term, dropping back to follower", n.Diagnostics())
+        n.transition <- Follower
+
+
 			default:
 				logger.Panic("Unhandled RPC Not yet implemented:", req.payload, n.Diagnostics())
 			}
@@ -123,17 +155,17 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 	}
 }
 
-// contemplation: I'd want the main state routine to send jobs to these worker routines, but I'd also 
+// contemplation: I'd want the main state routine to send jobs to these worker routines, but I'd also
 // want these workers to be able to communicate back w the leader otherwise. For example, if a new client
-// command comes in, I'd want the runLeader to send the command across the cluster for 'replication' via 
+// command comes in, I'd want the runLeader to send the command across the cluster for 'replication' via
 // the appendRPC's channel. So then this worker can just send the data to the Follower it's attached to.
 // At the moment, if a call fails, we simply return
-// But what it the follower doesn't acknowledge the RPCS? We'd want this communication btwn the worker and 
-// leader then. Without having to wrap appendRPCs with a channel abstraction, I think it would be better 
+// But what it the follower doesn't acknowledge the RPCS? We'd want this communication btwn the worker and
+// leader then. Without having to wrap appendRPCs with a channel abstraction, I think it would be better
 // to give the worker some independence accross the Node. So if the follower fails to ack the appendEntry, we
 // can simply just read against this Node's logs instead of handing it over to the top-level runLeader
 func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Duration, entry chan Entry, logger rlog.RLogger) {
-	// TODO: Might also be worth retrying connections with  dropped peers incase it was just 
+	// TODO: Might also be worth retrying connections with  dropped peers incase it was just
 	// a network glitch
 	ticker := time.NewTicker(interval)
 	defer func() {

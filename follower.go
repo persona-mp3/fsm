@@ -49,8 +49,10 @@ func (n *Node) runFollower() {
 				// we already have this entry the leader has sent, by simply checking against the [Entry.Idx],and [Entry.Term]
 				if request.Entry != nil {
 					if !n.logs.Contains(request.Entry.Idx, request.Entry.Term) {
-						logger.Println("CONSTRUCTION:FOLLOWER_ received a new entry from leader", request.Entry)
+						logger.Println("CONSTRUCTION:FOLLOWER_ received a new entry from leader", request.Entry, n.logs.Contains(request.Entry.Idx, request.Entry.Term))
 						n.logs.Append(request.Entry)
+					} else {
+						logger.Println("entry already exists", request.Entry, n.logs.Contains(request.Entry.Idx, request.Entry.Term))
 					}
 
 				}

@@ -20,12 +20,13 @@ type Logs struct {
 	latestCommited int
 }
 
-func (l *Logs) Append(e *Entry) {
+func (l *Logs) Append(e *Entry) int {
 	l.rw.Lock()
 	defer l.rw.Unlock()
 	idx := len(l.entries)
 	e.Idx = idx
 	l.entries = append(l.entries, e)
+  return idx
 }
 
 func (l *Logs) Contains(idx int, term uint64) bool {
@@ -41,6 +42,18 @@ func (l *Logs) Contains(idx int, term uint64) bool {
 		return true
 	}
 
+	return false
+}
+
+func (l *Logs) HasEntry(entry *Entry) bool {
+	for _, e := range l.entries {
+		if e.Term == entry.Term &&
+			e.Operation == entry.Operation &&
+			e.Key == entry.Key &&
+			e.Value == entry.Value {
+			return true
+		}
+	}
 	return false
 }
 
