@@ -60,13 +60,12 @@ type Node struct {
 
 	database db.Database
 
-	log      rlog.RLogger
+	log rlog.RLogger
 
-
-	// logs are all the logs that this node has had through out this term 
-	// and previous terms. It receives these logs from clients when a leader 
+	// logs are all the logs that this node has had through out this term
+	// and previous terms. It receives these logs from clients when a leader
 	// or from the leader for the currentTerm via the AppendEntryRPCs
-	logs  Logs
+	logs Logs
 }
 
 const (
@@ -109,13 +108,12 @@ func (n *Node) Run(parentCtx context.Context) error {
 	n.log.Println("initialising node")
 	n.log.Println("connecting to database...")
 
-  if err := n.database.Connect(); err != nil {
-    return err
-  }
-
+	if err := n.database.Connect(); err != nil {
+		return err
+	}
 
 	n.log.Println("successfully connected to database")
-  n.database.Send(db.Command{Operation: db.GetOps, Key: "raft-node-id", Value: "Testing raft-db connection" })
+	n.database.Send(db.Command{Operation: db.GetOps, Key: "raft-node-id", Value: "Testing raft-db connection"})
 	errCh := make(chan error)
 
 	ctx, cancel := context.WithCancel(parentCtx)
@@ -193,7 +191,9 @@ func (n *Node) Run(parentCtx context.Context) error {
 	}
 }
 
+// Action represents what operation or next step action the current state, should take.
 type Action struct {
+	// represents if the state should ignore the request
 	action    bool
 	newTerm   uint64
 	newLeader string
@@ -277,12 +277,11 @@ func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, 
 	return action
 }
 
-
 // newContext creates a new context and cancel func and attaches it to the Node for
 // states to actively running states to be canceled
 func (n *Node) newContext(parent context.Context) {
-  n.mu.Lock()
-  defer n.mu.Unlock()
+	n.mu.Lock()
+	defer n.mu.Unlock()
 
 	if n.stateCtx.Err() == nil {
 		n.stateCtxCancel()
@@ -310,17 +309,6 @@ func (n *Node) addRPCPeer(peers ...*Peer) {
 	}
 }
 
-/*
-term higher && follower -> actions: yes  *
-term same && follower -> actions: no
-
-term_higher && candidate -> actions: yes *
-term_same && candidate && votedFor == "" -> yes
-term_lower && candidate -> no *
-
-term_higher && leader -> actions: yes *
-term_same && leade -> ignore *
-*/
 func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger rlog.RLogger) Action {
 	currentTerm := n.raft.getTerm()
 	currentLeader := n.raft.getCurrentLeader()
@@ -374,15 +362,14 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
 	return action
 }
 
-// Diagnotics returns all revelevant information for this Node, including who it's
+// Diagnostics returns all revelevant information for this Node, including who it's
 // votedFor, current term, and what state it's in
 func (n *Node) Diagnostics() string {
-  term := n.raft.getTerm()
-  state := n.raft.getState().String()
-  votedFor := n.raft.getCurrentLeader()
+	term := n.raft.getTerm()
+	state := n.raft.getState().String()
+	votedFor := n.raft.getCurrentLeader()
 
-  diagnostics := fmt.Sprintf("diagnostics: { term: %d, state: %s, votedFor|leader: %s, logs: %+v }",
-    term, state, votedFor, n.logs.String())
-  return diagnostics
+	diagnostics := fmt.Sprintf("diagnostics: { term: %d, state: %s, votedFor|leader: %s, logs: %+v }",
+		term, state, votedFor, n.logs.String())
+	return diagnostics
 }
-
