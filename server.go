@@ -17,7 +17,6 @@ type Server struct {
 }
 
 func NewServer(id, addr string, incoming chan RPC, logger rlog.RLogger) *Server {
-	// logger := log.New(os.Stdout, prefix, log.Ldate|log.Lmicroseconds|log.Lmsgprefix)
 	return &Server{
 		id:       id,
 		addr:     addr,
@@ -27,10 +26,6 @@ func NewServer(id, addr string, incoming chan RPC, logger rlog.RLogger) *Server 
 }
 
 func (s *Server) Listen(ctx context.Context, network, addr string) error {
-	go func() {
-		<-ctx.Done()
-		s.log.Println("shutting down server")
-	}()
 
 	s.log.Println("listening on", network, addr)
 
@@ -46,7 +41,10 @@ func (s *Server) Listen(ctx context.Context, network, addr string) error {
 
 	go func() {
 		<-ctx.Done()
-		ln.Close()
+		if err := ln.Close(); err != nil {
+			s.log.Println("could not close listener:", err)
+		}
+		s.log.Println("shutting down server")
 	}()
 
 	s.log.Println("tcp server active at", addr)

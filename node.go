@@ -297,17 +297,6 @@ func (n *Node) addRPCPeer(peers ...*Peer) {
 	}
 }
 
-/*
-term higher && follower -> actions: yes  *
-term same && follower -> actions: no
-
-term_higher && candidate -> actions: yes *
-term_same && candidate && votedFor == "" -> yes
-term_lower && candidate -> no *
-
-term_higher && leader -> actions: yes *
-term_same && leade -> ignore *
-*/
 func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger rlog.RLogger) Action {
 	currentTerm := n.raft.getTerm()
 	currentLeader := n.raft.getCurrentLeader()
