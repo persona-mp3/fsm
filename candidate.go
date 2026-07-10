@@ -29,7 +29,6 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 	if len(connectedPeers) == 0 {
 		// TODO: Might be worth considering dialing peers in-seperate goroutines since we don't
 		// want to block this mean thread because of a slow client or slow dial
-		// successfulDials, failedCount := dialPeers("tcp", n.peers, logger.Inherit("dialPeers"))
 		successfulDials, failedCount := dialPeers("tcp", n.peers, logger.Inherit("dialPeers"))
 		if failedCount == len(n.peers) {
 			// TODO: Worth adding Shutdown state because of these kind of variants, instead of hard panics
@@ -48,7 +47,7 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 	}
 
 	voteCount := atomic.Int64{}
-	// raft paper metiones a node can vote itself first for an election
+	// raft paper mentions a node can vote itself first for an election
 	voteCount.Add(1)
 
 	wg := sync.WaitGroup{}
