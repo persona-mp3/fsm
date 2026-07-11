@@ -146,6 +146,7 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 				n.raft.updateTerm(action.newTerm, action.newLeader)
 				logger.Println("succesfully updated term, dropping back to follower", n.Diagnostics())
         n.transition <- Follower
+				return
 
 
 			default:

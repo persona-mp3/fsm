@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	rlog "raftlogger"
+	rlog "fsm/raftlogger"
 	"net/rpc"
 	"os"
 	"os/signal"
@@ -51,7 +51,7 @@ type Simulation struct {
 }
 
 func main() {
-	sim, err := parseConfig("")
+	sim, err := parseConfig(defaultSimulationConfigPath)
 	if err != nil {
 		fmt.Println(err)
 		return
