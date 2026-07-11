@@ -6,6 +6,7 @@ type RPCKind int
 const (
 	AppendEntry RPCKind = iota
 	Vote
+	ClientCommand
 )
 
 type RPC struct {
@@ -23,6 +24,7 @@ type AppendEntryRequest struct {
 	Id      string
 	Term    uint64
 	Message string
+	Entry   *Entry
 }
 
 type AppendEntryReply struct {
@@ -40,9 +42,30 @@ type VoteRequest struct {
 
 type VoteReply struct {
 	Id       string
-	Term    uint64
+	Term     uint64
 	VotedFor bool
 	Message  string
+}
+
+type Operation string
+
+const (
+	Set    Operation = "set"
+	Get    Operation = "get"
+	Remove Operation = "rm"
+)
+
+type CommandReq struct {
+	From      string
+	Operation Operation
+	Key       string
+	Value     string
+	Result    string
+}
+
+type CommandReply struct {
+	From   string
+	Result string
 }
 
 func (s *Server) AppendEntryRPC(req AppendEntryRequest, res *AppendEntryReply) error {
@@ -85,3 +108,17 @@ func (s *Server) VoteRequestRPC(req VoteRequest, res *VoteReply) error {
 	return nil
 }
 
+func (s *Server) CommandRPC(req CommandReq, res *CommandReply) error {
+	s.log.Println("forwarding commandRPC to node")
+	reply := make(chan RPCReply)
+	s.incoming <- RPC{kind: ClientCommand, payload: req, reply: reply}
+	response := <-reply
+	s.log.Println("response from node-state::", response)
+	payload, ok := response.payload.(*CommandReply)
+	if !ok {
+		s.log.Panic("Expected CommandReply, recvd:", payload)
+	}
+
+	*res = *payload
+	return nil
+}

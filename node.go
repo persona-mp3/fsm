@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	db "fsm/database"
 	rlog "fsm/raftlogger"
 	"io"
 	"net/rpc"
@@ -57,7 +58,14 @@ type Node struct {
 	// stateCtxCancel cancels [Raft.stateCtx]
 	stateCtxCancel context.CancelFunc
 
+	database db.Database
+
 	log rlog.RLogger
+
+	// logs are all the logs that this node has had through out this term
+	// and previous terms. It receives these logs from clients when a leader
+	// or from the leader for the currentTerm via the AppendEntryRPCs
+	logs Logs
 }
 
 const (
@@ -79,6 +87,8 @@ func NewNode(id string, address string, peers []string, out io.Writer) (*Node, e
 	sl := rlog.NewHumaneLogger(id, "server", 0, out)
 	server := NewServer(id, address, incoming, sl)
 
+	jkvsDatabase := db.NewJKVSDatabase("tcp", "localhost:9090")
+
 	return &Node{
 		mu:         sync.Mutex{},
 		id:         id,
@@ -89,12 +99,21 @@ func NewNode(id string, address string, peers []string, out io.Writer) (*Node, e
 		server:     server,
 		peers:      peers,
 		rpcPeers:   []*Peer{},
+		database:   jkvsDatabase,
 		log:        logger,
 	}, nil
 }
 
 func (n *Node) Run(parentCtx context.Context) error {
-	n.log.Println("initialising...")
+	n.log.Println("initialising node")
+	n.log.Println("connecting to database...")
+
+	if err := n.database.Connect(); err != nil {
+		return err
+	}
+
+	n.log.Println("successfully connected to database")
+	n.database.Send(db.Command{Operation: db.GetOps, Key: "raft-node-id", Value: "Testing raft-db connection"})
 	errCh := make(chan error)
 
 	ctx, cancel := context.WithCancel(parentCtx)
@@ -172,7 +191,9 @@ func (n *Node) Run(parentCtx context.Context) error {
 	}
 }
 
+// Action represents what operation or next step action the current state, should take.
 type Action struct {
+	// represents if the state should ignore the request
 	action    bool
 	newTerm   uint64
 	newLeader string
@@ -256,21 +277,12 @@ func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, 
 	return action
 }
 
-// Diagnotics returns all revelevant information for this Node, including who it's
-// votedFor, current term, and what state it's in
-func (n *Node) Diagnostics() string {
-	term := n.raft.getTerm()
-	state := n.raft.getState().String()
-	votedFor := n.raft.getCurrentLeader()
-
-	diagnostics := fmt.Sprintf("diagnostics: { term: %d, state: %s, votedFor|leader: %s }",
-		term, state, votedFor)
-	return diagnostics
-}
-
 // newContext creates a new context and cancel func and attaches it to the Node for
 // states to actively running states to be canceled
 func (n *Node) newContext(parent context.Context) {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
 	if n.stateCtx.Err() == nil {
 		n.stateCtxCancel()
 		panic("stateCtx not cancelled yet")
@@ -348,4 +360,16 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
 		return action
 	}
 	return action
+}
+
+// Diagnostics returns all revelevant information for this Node, including who it's
+// votedFor, current term, and what state it's in
+func (n *Node) Diagnostics() string {
+	term := n.raft.getTerm()
+	state := n.raft.getState().String()
+	votedFor := n.raft.getCurrentLeader()
+
+	diagnostics := fmt.Sprintf("diagnostics: { term: %d, state: %s, votedFor|leader: %s, logs: %+v }",
+		term, state, votedFor, n.logs.String())
+	return diagnostics
 }

@@ -55,15 +55,17 @@ func (c *Cluster) Start(parentCtx context.Context) error {
 	defer cancel()
 
 	wg := sync.WaitGroup{}
-	wg.Add(len(c.raftNodes))
 
 	for i := range len(c.raftNodes) {
 		node := c.raftNodes[i]
 		wg.Add(1)
 		go func(ctx context.Context, node *Node) {
-			defer wg.Done()
+			defer func() {
+				wg.Done()
+			}()
 			if err := node.Run(ctx); err != nil {
-				log.Println(err)
+        c.log.Println("node error: ", err)
+				return
 			}
 		}(ctx, node)
 	}

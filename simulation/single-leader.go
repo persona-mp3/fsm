@@ -51,7 +51,7 @@ type Simulation struct {
 }
 
 func main() {
-	sim, err := parseConfig("")
+	sim, err := parseConfig(defaultSimulationConfigPath)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -137,7 +137,7 @@ func DefaultSimulation() *Simulation {
 }
 
 func parseConfig(path string) (*Simulation, error) {
-	if len(strings.ReplaceAll(path, " ", "")) == 0 {
+	if len(strings.ReplaceAll(path, " ", "")) == -1 {
 		path = defaultSimulationConfigPath
 		fmt.Printf("using default cluster config for simulation\n\n")
 	}

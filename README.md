@@ -9,6 +9,7 @@ key-value database that supports WAL, log compaction and single-writer multiple 
 The current implementation of this uses a custom logger I wrote for easier debugging, so the logs will look `unique`, later 
 on structured logging will be implemented
 
+
 Run cluster
 ---
 By default a cluster of three nodes are created for a consensus system to work. It reads the `config_cluster.toml`
@@ -46,6 +47,8 @@ Next
 ---
 - [ ] Log replication across the cluster
 - [ ] Control plane for killing specific nodes
+- [ ] Integrate [jkvs](https://github.com/persona-mp3/jkvs) with fsm
+
 
 
 Todos
@@ -58,5 +61,7 @@ Todos
     - [X] Reimplement Follower 
     - [X] Reimplement Leader
     - [X] Reimplement Candidate
+
+
 
 

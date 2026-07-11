@@ -27,6 +27,7 @@ type RLogger interface {
 	Inherit(childName string) RLogger
 	UpdateTerm(term uint64)
 	UpdateOwner(state string)
+	Clear()
 
 	Out() io.Writer
 }
@@ -191,4 +192,8 @@ func (h *Humane) UpdateInfo(owner string, term uint64) {
 
 func (h *Humane) Out() io.Writer {
 	return h.out
+}
+
+func (h *Humane) Clear() {
+	h.log.Println("\033[H\033[2J")
 }

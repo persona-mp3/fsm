@@ -42,7 +42,8 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	if err := cluster.Start(ctx); err != nil {
+	err = cluster.Start(ctx); 
+  if err != nil {
 		log.Fatal(err)
 	}
 }
