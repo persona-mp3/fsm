@@ -16,5 +16,6 @@ addresses = [
 forceTerm = 101
 heartbeat = 10
 
-# TODO: tells simulation to continue until it's in control of the raft
-persist = false
+# tells the cluster to only run a single node, instead of all nodes provided 
+# in [addresses]. This was introduced to allow isolated running on docker containers
+single = false

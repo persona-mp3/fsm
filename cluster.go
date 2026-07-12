@@ -19,7 +19,11 @@ type Cluster struct {
 
 	raftNodes []*Node
 
-	log rlog.RLogger
+	// Single decides whether this cluster should only
+	// run a single node. This was introduced to allow running
+	// nodes in isolated containers.
+	Single bool
+	log    rlog.RLogger
 }
 
 func DefaultCluster() *Cluster {
@@ -56,18 +60,30 @@ func (c *Cluster) Start(parentCtx context.Context) error {
 
 	wg := sync.WaitGroup{}
 
-	for i := range len(c.raftNodes) {
-		node := c.raftNodes[i]
-		wg.Add(1)
-		go func(ctx context.Context, node *Node) {
-			defer func() {
-				wg.Done()
-			}()
-			if err := node.Run(ctx); err != nil {
-        c.log.Println("node error: ", err)
+	if c.Single {
+		c.log.Println("running single-mode cluster")
+		node := c.raftNodes[0]
+		wg.Go(func() {
+			err := node.Run(ctx)
+			if err != nil {
+				c.log.Println("while in single-mode: %w", err)
 				return
 			}
-		}(ctx, node)
+		})
+	} else {
+		for i := range len(c.raftNodes) {
+			node := c.raftNodes[i]
+			wg.Add(1)
+			go func(ctx context.Context, node *Node) {
+				defer func() {
+					wg.Done()
+				}()
+				if err := node.Run(ctx); err != nil {
+					c.log.Println("node error: ", err)
+					return
+				}
+			}(ctx, node)
+		}
 	}
 
 	done := make(chan struct{})
