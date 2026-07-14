@@ -1,2 +1,6 @@
 trash
 .vscode
+.DS_STORE
+jkvs
+logs/
+
