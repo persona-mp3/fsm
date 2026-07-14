@@ -1,5 +1,9 @@
 package main
 
+import (
+  db "fsm/database"
+)
+
 // RPCKind singifies that kind of payload the RPCRequest is and the expected Reply
 type RPCKind int
 
@@ -57,7 +61,7 @@ const (
 
 type CommandReq struct {
 	From      string
-	Operation Operation
+	Operation db.Operation
 	Key       string
 	Value     string
 	Result    string

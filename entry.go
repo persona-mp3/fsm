@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+  db "fsm/database"
 	"strings"
 	"sync"
 )
@@ -9,7 +10,7 @@ import (
 type Entry struct {
 	Idx       int
 	Term      uint64
-	Operation Operation
+	Operation db.Operation
 	Key       string
 	Value     string
 }

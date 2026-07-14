@@ -36,7 +36,12 @@ func main() {
 	// 	log.Fatal(err)
 	// }
 
-	req := CommandReq{From: "sim-client-request", Operation: Set, Key: "username", Value: "person-amp3"}
+	req := CommandReq{
+		From:      "sim-client-request",
+		Operation: Set,
+		Key:       "here",
+		Value:     "we go! pickle rick!!!",
+	}
 	res := &CommandReply{}
 
 	dial, err := rpc.Dial("tcp", leaderAddr)

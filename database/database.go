@@ -11,8 +11,8 @@ type Operation string
 
 const (
 	GetOps    Operation = "get"
-	SetOps              = "set"
-	RemoveOps           = "rm"
+	SetOps    Operation = "set"
+	RemoveOps Operation = "rm"
 )
 
 type Command struct {
@@ -31,7 +31,7 @@ type Database interface {
 
 	// Send sends a request to the database. At the moment, the underlying protocol
 	// is RESP inspired as that is was the database supports
-	Send(Command) (*Response, error)
+	Commit(Command) (*Response, error)
 
 	// Disconnect safely disconnects from the database, returns an error if it
 	// failed
@@ -65,28 +65,43 @@ func (jkvs *JKVS) Connect() error {
 	return nil
 }
 
-func (jkvs *JKVS) Send(cmd Command) (*Response, error) {
+func (jkvs *JKVS) Commit(cmd Command) (*Response, error) {
 	payload := fmt.Sprintf("%s\r\n%s\r\n%s\r\n", cmd.Operation, cmd.Key, cmd.Value)
 	log.Println("formatted_payload::", payload)
-  raw := []byte(payload)
+	raw := []byte(payload)
 
-  header := make([]byte, 4)
-  binary.BigEndian.PutUint32(header, uint32(len(raw)))
-  header = append(header, raw...)
-
+	header := make([]byte, 4)
+	binary.BigEndian.PutUint32(header, uint32(len(raw)))
+	header = append(header, raw...)
 
 	if _, err := jkvs.Conn.Write(header); err != nil {
 		return nil, fmt.Errorf("could not send payload to database: %w", err)
 	}
 
 	log.Println("sent to database successfully")
-  
 
-	return &Response{From: "mock_jkvs.send()", Message: "stub_message"}, nil
+	// _, err := jkvs.Conn.Read(1000)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("could not read header from jkvs: %w", err)
+	// }
+
+	// packetSize := binary.BigEndian.Uint32(header)
+	buffer := make([]byte, 2000)
+	n, err := jkvs.Conn.Read(buffer)
+	if err != nil {
+		return nil, fmt.Errorf("could not read contents from jkvs: %w", err)
+	}
+
+	content := buffer[:n]
+	return &Response{From: "mock_jkvs.send()", Message: fmt.Sprintf("from-jkvs::%s", content)}, nil
 }
 
 func (jkvs *JKVS) Disconnect() error {
 	log.Println("mock_disconnected")
+	err := jkvs.Conn.Close()
+	if err != nil {
+		return fmt.Errorf("could not close connection with jkvs: %w", err)
+	}
 	return nil
 }
 

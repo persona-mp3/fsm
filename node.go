@@ -9,8 +9,8 @@ import (
 	"net/rpc"
 	"os"
 	"slices"
-  "time"
 	"sync"
+	"time"
 )
 
 const (
@@ -21,14 +21,17 @@ const (
 
 	// According to the Raft Paper, it's recommended for timeouts(election) to range from 100-500ms, but
 	// we're increasing it because that's too aggressive
-	minInterval = 600
-	maxInterval = 1800
+	minInterval = 500
+	maxInterval = 1200
 )
 
+// Peer has the underlying rpc connection to a raft peer alongside
+// a dedicated channel for sending new logEntries
 type Peer struct {
 	id      int
 	addr    string
 	rpcConn *rpc.Client
+	dropCh  chan Entry
 }
 
 type Node struct {
@@ -126,7 +129,7 @@ func (n *Node) Run(parentCtx context.Context) error {
 	}
 
 	n.log.Println("successfully connected to database")
-	n.database.Send(db.Command{Operation: db.GetOps, Key: "raft-node-id", Value: "Testing raft-db connection"})
+	n.database.Commit(db.Command{Operation: db.GetOps, Key: "raft-node-id", Value: "Testing raft-db connection"})
 	errCh := make(chan error)
 
 	ctx, cancel := context.WithCancel(parentCtx)
