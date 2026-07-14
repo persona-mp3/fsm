@@ -38,7 +38,17 @@ func DefaultCluster() *Cluster {
 
 	for i, addr := range addrs {
 		serverAddr, peers := filterAddr(addr, addrs)
-		n, err := NewNode(fmt.Sprintf("%d", i+1), serverAddr, peers, nil)
+		// TODO: create log files for each node
+		nodeId := fmt.Sprintf("%d", i+1)
+		logdest := fmt.Sprintf("node-log-%s", nodeId)
+		logfile, err := os.Create(logdest)
+		if err != nil {
+			l.Println("could not create logFile, using stdout as defaults. reason: ", err)
+			logfile = nil
+		}
+
+		l.Println(fmt.Sprintf("using: logfile_%v for node.%s\n", logfile, nodeId))
+		n, err := NewNode(nodeId, serverAddr, peers, logfile)
 		if err != nil {
 			l.Println("could not create node with addr: ", serverAddr, err)
 			continue
@@ -139,7 +149,17 @@ func parseConfig(path string) (*Cluster, error) {
 
 	for i, addr := range cfg.Addresses {
 		serverAddr, peers := filterAddr(addr, cfg.Addresses)
-		n, err := NewNode(fmt.Sprintf("%d", i+1), serverAddr, peers, nil)
+
+		nodeId := fmt.Sprintf("%d", i+1)
+		logfileName := fmt.Sprintf("log-file-%s", nodeId)
+
+		logfile, err := os.Create(logfileName)
+		if err != nil {
+			log.Println("could not create logFile, using stdout as defaults. reason: ", err)
+			logfile = nil
+		}
+
+		n, err := NewNode(fmt.Sprintf("%d", i+1), serverAddr, peers, logfile)
 		if err != nil {
 			log.Println("could not create node with addr: ", serverAddr, err)
 			continue

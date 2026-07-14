@@ -9,7 +9,20 @@ import (
 	"net/rpc"
 	"os"
 	"slices"
+  "time"
 	"sync"
+)
+
+const (
+	// heartbeatInterval is the rate at which the node when in a [Leader] state sends
+	// out heartbeats to follower in a cluster. At the moment, this is set to be 200 which
+	// is roughly half the minimum election timeout interval
+	heartbeatInterval = time.Millisecond * 200
+
+	// According to the Raft Paper, it's recommended for timeouts(election) to range from 100-500ms, but
+	// we're increasing it because that's too aggressive
+	minInterval = 600
+	maxInterval = 1800
 )
 
 type Peer struct {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fsm/simulation/utils"
+	"flag"
 	"log"
 	"net/rpc"
 )
@@ -27,15 +27,19 @@ type CommandReply struct {
 }
 
 func main() {
-	sim, err := utils.ParseConfig("")
-	if err != nil {
-		log.Fatal(err)
-	}
+	var leaderAddr string
+	flag.StringVar(&leaderAddr, "leader", "localhost:4000", "address of the leader node in the cluter")
+	flag.Parse()
 
-  req := CommandReq{From: "sim-client-request", Operation: Get, Key: "random_beatbop", Value: "this is the new method"}
+	// sim, err := utils.ParseConfig("")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	req := CommandReq{From: "sim-client-request", Operation: Set, Key: "username", Value: "person-amp3"}
 	res := &CommandReply{}
 
-	dial, err := rpc.Dial("tcp", sim.Addresses[0])
+	dial, err := rpc.Dial("tcp", leaderAddr)
 	if err != nil {
 		log.Fatal("could not dial node: ", err)
 	}
