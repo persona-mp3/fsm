@@ -15,6 +15,10 @@ const (
 	RemoveOps Operation = "rm"
 )
 
+const (
+	HeaderSizeBytes = 4
+)
+
 type Command struct {
 	Operation Operation
 	Key       string
@@ -67,10 +71,9 @@ func (jkvs *JKVS) Connect() error {
 
 func (jkvs *JKVS) Commit(cmd Command) (*Response, error) {
 	payload := fmt.Sprintf("%s\r\n%s\r\n%s\r\n", cmd.Operation, cmd.Key, cmd.Value)
-	log.Println("formatted_payload::", payload)
 	raw := []byte(payload)
 
-	header := make([]byte, 4)
+	header := make([]byte, HeaderSizeBytes)
 	binary.BigEndian.PutUint32(header, uint32(len(raw)))
 	header = append(header, raw...)
 
@@ -80,19 +83,20 @@ func (jkvs *JKVS) Commit(cmd Command) (*Response, error) {
 
 	log.Println("sent to database successfully")
 
-	// _, err := jkvs.Conn.Read(1000)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("could not read header from jkvs: %w", err)
-	// }
-
-	// packetSize := binary.BigEndian.Uint32(header)
-	buffer := make([]byte, 2000)
-	n, err := jkvs.Conn.Read(buffer)
+	buff := make([]byte, HeaderSizeBytes)
+	_, err := jkvs.Conn.Read(buff)
 	if err != nil {
-		return nil, fmt.Errorf("could not read contents from jkvs: %w", err)
+		return nil, fmt.Errorf("could not read header response from jkvs: %w", err)
 	}
 
-	content := buffer[:n]
+	packetSize := binary.BigEndian.Uint32(buff)
+	packet := make([]byte, packetSize)
+	n, err := jkvs.Conn.Read(packet)
+	if err != nil {
+		return nil, fmt.Errorf("could not read  response from jkvs: %w", err)
+	}
+
+	content := packet[:n]
 	return &Response{From: "mock_jkvs.send()", Message: fmt.Sprintf("from-jkvs::%s", content)}, nil
 }
 
