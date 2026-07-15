@@ -253,8 +253,8 @@ func (n *Node) commitFunc(payload CommandReq, entry Entry, reply chan RPCReply, 
 	quorumTarget := (numPeers / 2) + 1
 	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Millisecond)
 	defer cancel()
-  for i := range numPeers {
-    _ = i
+	for i := range numPeers {
+		_ = i
 		if successCount.Load() >= uint32(quorumTarget) {
 			logger.Println("quorum has been reached for replication", successCount.Load())
 			break
