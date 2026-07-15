@@ -10,6 +10,7 @@ import (
 	"os"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -17,21 +18,26 @@ const (
 	// heartbeatInterval is the rate at which the node when in a [Leader] state sends
 	// out heartbeats to follower in a cluster. At the moment, this is set to be 200 which
 	// is roughly half the minimum election timeout interval
-	heartbeatInterval = time.Millisecond * 200
+	heartbeatInterval = time.Millisecond * 400
 
 	// According to the Raft Paper, it's recommended for timeouts(election) to range from 100-500ms, but
 	// we're increasing it because that's too aggressive
-	minInterval = 500
-	maxInterval = 1200
+	minInterval = 900
+	maxInterval = 1800
 )
 
 // Peer has the underlying rpc connection to a raft peer alongside
 // a dedicated channel for sending new logEntries
+type replicate struct {
+	entry   Entry
+	success *atomic.Uint32
+	done    chan bool
+}
 type Peer struct {
-	id      int
-	addr    string
-	rpcConn *rpc.Client
-	dropCh  chan Entry
+	id          int
+	addr        string
+	rpcConn     *rpc.Client
+	replicateCh chan replicate
 }
 
 type Node struct {
