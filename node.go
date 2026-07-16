@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/rpc"
 	"os"
-	"slices"
+	// "slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -33,11 +33,16 @@ type replicate struct {
 	success *atomic.Uint32
 	done    chan bool
 }
+
 type Peer struct {
 	id          int
 	addr        string
 	rpcConn     *rpc.Client
 	replicateCh chan replicate
+}
+
+func (p *Peer) Close() error {
+	return p.rpcConn.Close()
 }
 
 type Node struct {
@@ -324,11 +329,12 @@ func (n *Node) getRPCPeers() []*Peer {
 func (n *Node) addRPCPeer(peers ...*Peer) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
-	for _, p := range peers {
-		if p != nil && !slices.Contains(n.rpcPeers, p) {
-			n.rpcPeers = append(n.rpcPeers, p)
-		}
-	}
+	n.rpcPeers = peers
+	// for _, p := range peers {
+	// 	if p != nil && !slices.Contains(n.rpcPeers, p) {
+	// 		n.rpcPeers = append(n.rpcPeers, p)
+	// 	}
+	// }
 }
 
 func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger rlog.RLogger) Action {
@@ -400,7 +406,7 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
   Thank you
 `, n.id, n.Diagnostics(), req)
 
-  logger.Println(debugProse)
+	logger.Println(debugProse)
 	// logger.Panic("what is a kilometer::::", n.Diagnostics(), req)
 	replyCh <- RPCReply{
 		kind: Vote,

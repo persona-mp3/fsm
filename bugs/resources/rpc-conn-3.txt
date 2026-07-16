@@ -1,0 +1,132 @@
+goroutine profile: total 289
+108 @ 0x4c852e 0x487d77 0x4c76e5 0x575f71 0x577af9 0x577acf 0x6536cb 0x667f4d 0x5cbf18 0x535411 0x5de545 0x5de4d8 0x5ebed8 0x5ec57e 0x5ecc45 0x5ec90e 0x96aa0f 0x9693d2 0x4d01c1
+#	0x4c76e4	internal/poll.runtime_pollWait+0x84			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/netpoll.go:351
+#	0x575f70	internal/poll.(*pollDesc).wait+0xb0			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_poll_runtime.go:84
+#	0x577af8	internal/poll.(*pollDesc).waitRead+0x498		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_poll_runtime.go:89
+#	0x577ace	internal/poll.(*FD).Read+0x46e				/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_unix.go:165
+#	0x6536ca	net.(*netFD).Read+0x4a					/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/fd_posix.go:68
+#	0x667f4c	net.(*conn).Read+0xac					/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/net.go:196
+#	0x5cbf17	bufio.(*Reader).Read+0x4b7				/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/bufio/bufio.go:245
+#	0x535410	io.ReadAtLeast+0xd0					/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/io/io.go:335
+#	0x5de544	io.ReadFull+0x84					/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/io/io.go:354
+#	0x5de4d7	encoding/gob.decodeUintReader+0x17			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/encoding/gob/decode.go:116
+#	0x5ebed7	encoding/gob.(*Decoder).recvMessage+0x77		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/encoding/gob/decoder.go:84
+#	0x5ec57d	encoding/gob.(*Decoder).decodeTypeSequence+0x9d		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/encoding/gob/decoder.go:150
+#	0x5ecc44	encoding/gob.(*Decoder).DecodeValue+0x2a4		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/encoding/gob/decoder.go:229
+#	0x5ec90d	encoding/gob.(*Decoder).Decode+0x12d			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/encoding/gob/decoder.go:206
+#	0x96aa0e	net/rpc.(*gobClientCodec).ReadResponseHeader+0x4e	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/rpc/client.go:228
+#	0x9693d1	net/rpc.(*Client).input+0x111				/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/rpc/client.go:109
+
+108 @ 0x4c852e 0x487d77 0x4c76e5 0x575f71 0x577af9 0x577acf 0x6536cb 0x667f4d 0x5cbf18 0x535411 0x5de545 0x5de4d8 0x5ebed8 0x5ec57e 0x5ecc45 0x5ec90e 0x96df0f 0x9701cd 0x96fc9c 0x96eec7 0x96ed58 0x4d01c1
+#	0x4c76e4	internal/poll.runtime_pollWait+0x84			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/netpoll.go:351
+#	0x575f70	internal/poll.(*pollDesc).wait+0xb0			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_poll_runtime.go:84
+#	0x577af8	internal/poll.(*pollDesc).waitRead+0x498		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_poll_runtime.go:89
+#	0x577ace	internal/poll.(*FD).Read+0x46e				/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_unix.go:165
+#	0x6536ca	net.(*netFD).Read+0x4a					/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/fd_posix.go:68
+#	0x667f4c	net.(*conn).Read+0xac					/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/net.go:196
+#	0x5cbf17	bufio.(*Reader).Read+0x4b7				/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/bufio/bufio.go:245
+#	0x535410	io.ReadAtLeast+0xd0					/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/io/io.go:335
+#	0x5de544	io.ReadFull+0x84					/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/io/io.go:354
+#	0x5de4d7	encoding/gob.decodeUintReader+0x17			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/encoding/gob/decode.go:116
+#	0x5ebed7	encoding/gob.(*Decoder).recvMessage+0x77		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/encoding/gob/decoder.go:84
+#	0x5ec57d	encoding/gob.(*Decoder).decodeTypeSequence+0x9d		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/encoding/gob/decoder.go:150
+#	0x5ecc44	encoding/gob.(*Decoder).DecodeValue+0x2a4		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/encoding/gob/decoder.go:229
+#	0x5ec90d	encoding/gob.(*Decoder).Decode+0x12d			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/encoding/gob/decoder.go:206
+#	0x96df0e	net/rpc.(*gobServerCodec).ReadRequestHeader+0x4e	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/rpc/server.go:403
+#	0x9701cc	net/rpc.(*Server).readRequestHeader+0x6c		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/rpc/server.go:589
+#	0x96fc9b	net/rpc.(*Server).readRequest+0x5b			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/rpc/server.go:549
+#	0x96eec6	net/rpc.(*Server).ServeCodec+0x86			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/rpc/server.go:464
+#	0x96ed57	net/rpc.(*Server).ServeConn+0x637			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/rpc/server.go:455
+
+13 @ 0x4c852e 0x455a0f 0x455592 0xa039e5 0x4d01c1
+#	0xa039e4	main.(*Server).Listen.func1+0x64	/home/daniel/dev/fsm/server.go:43
+
+13 @ 0x4c852e 0x487d77 0x4c76e5 0x575f71 0x57dcaa 0x57dc80 0x656865 0x6777ae 0x675bc5 0xa0361d 0x9ff81c 0x4d01c1
+#	0x4c76e4	internal/poll.runtime_pollWait+0x84		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/netpoll.go:351
+#	0x575f70	internal/poll.(*pollDesc).wait+0xb0		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_poll_runtime.go:84
+#	0x57dca9	internal/poll.(*pollDesc).waitRead+0x4e9	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_poll_runtime.go:89
+#	0x57dc7f	internal/poll.(*FD).Accept+0x4bf		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_unix.go:613
+#	0x656864	net.(*netFD).accept+0x44			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/fd_unix.go:150
+#	0x6777ad	net.(*TCPListener).accept+0x4d			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/tcpsock_posix.go:159
+#	0x675bc4	net.(*TCPListener).Accept+0x64			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/tcpsock.go:387
+#	0xa0361c	main.(*Server).Listen+0x63c			/home/daniel/dev/fsm/server.go:52
+#	0x9ff81b	main.(*Node).Run.func1+0x9b			/home/daniel/dev/fsm/node.go:145
+
+13 @ 0x4c852e 0x4a3cf7 0x9feae6 0x9f5b05 0x4d01c1
+#	0x9feae5	main.(*Node).Run+0x665			/home/daniel/dev/fsm/node.go:162
+#	0x9f5b04	main.(*Cluster).Start.func2+0xc4	/home/daniel/dev/fsm/cluster.go:91
+
+12 @ 0x4c852e 0x4a3cf7 0x9fb753 0x9faea5 0x4d01c1
+#	0x9fb752	main.(*Node).sendHeartBeat+0x7d2	/home/daniel/dev/fsm/leader.go:179
+#	0x9faea4	main.(*Node).runLeader.func1+0x144	/home/daniel/dev/fsm/leader.go:45
+
+8 @ 0x4c852e 0x4a3cf7 0x9f7c4d 0x4d01c1
+#	0x9f7c4c	main.(*Node).runFollower+0x34c	/home/daniel/dev/fsm/follower.go:26
+
+4 @ 0x4c852e 0x4a3cf7 0x9f7c4d 0x9ff74f 0x4d01c1
+#	0x9f7c4c	main.(*Node).runFollower+0x34c	/home/daniel/dev/fsm/follower.go:26
+#	0x9ff74e	main.(*Node).Run.func2+0x2e	/home/daniel/dev/fsm/node.go:158
+
+1 @ 0x45c4e9 0x4caa58 0x9f17fd 0x4d01c1
+#	0x4caa57	os/signal.signal_recv+0x97	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/sigqueue.go:152
+#	0x9f17fc	os/signal.loop+0x1c		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/os/signal/signal_unix.go:23
+
+1 @ 0x484831 0x4c733d 0x9c5dca 0x9c5ba6 0x9c11e4 0x9e91e8 0x9ea025 0x8d9148 0x8dc043 0x8ef7e2 0x8d6245 0x4d01c1
+#	0x9c5dc9	runtime/pprof.writeRuntimeProfile+0xc9	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/pprof/pprof.go:851
+#	0x9c5ba5	runtime/pprof.writeGoroutine+0x85	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/pprof/pprof.go:784
+#	0x9c11e3	runtime/pprof.(*Profile).WriteTo+0x1a3	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/pprof/pprof.go:408
+#	0x9e91e7	net/http/pprof.handler.ServeHTTP+0x647	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/http/pprof/pprof.go:273
+#	0x9ea024	net/http/pprof.Index+0xc4		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/http/pprof/pprof.go:397
+#	0x8d9147	net/http.HandlerFunc.ServeHTTP+0x47	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/http/server.go:2286
+#	0x8dc042	net/http.(*ServeMux).ServeHTTP+0x242	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/http/server.go:2828
+#	0x8ef7e1	net/http.serverHandler.ServeHTTP+0x2a1	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/http/server.go:3311
+#	0x8d6244	net/http.(*conn).serve+0xda4		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/http/server.go:2073
+
+1 @ 0x4c852e 0x455a0f 0x4555b2 0x9fda46 0x4d01c1
+#	0x9fda45	main.main.func1+0x385	/home/daniel/dev/fsm/main.go:37
+
+1 @ 0x4c852e 0x487d77 0x4c76e5 0x575f71 0x57dcaa 0x57dc80 0x656865 0x6777ae 0x675bc5 0x8decb0 0x8de4b4 0xa03c1b 0xa03c21 0x4d01c1
+#	0x4c76e4	internal/poll.runtime_pollWait+0x84		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/netpoll.go:351
+#	0x575f70	internal/poll.(*pollDesc).wait+0xb0		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_poll_runtime.go:84
+#	0x57dca9	internal/poll.(*pollDesc).waitRead+0x4e9	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_poll_runtime.go:89
+#	0x57dc7f	internal/poll.(*FD).Accept+0x4bf		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_unix.go:613
+#	0x656864	net.(*netFD).accept+0x44			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/fd_unix.go:150
+#	0x6777ad	net.(*TCPListener).accept+0x4d			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/tcpsock_posix.go:159
+#	0x675bc4	net.(*TCPListener).Accept+0x64			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/tcpsock.go:387
+#	0x8decaf	net/http.(*Server).Serve+0x60f			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/http/server.go:3434
+#	0x8de4b3	net/http.(*Server).ListenAndServe+0xb3		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/http/server.go:3360
+#	0xa03c1a	net/http.ListenAndServe+0xfa			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/http/server.go:3675
+#	0xa03c20	main.main.func2+0x100				/home/daniel/dev/fsm/main.go:46
+
+1 @ 0x4c852e 0x4a3cf7 0x9f1189 0x4d01c1
+#	0x9f1188	os/signal.NotifyContext.func1+0xe8	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/os/signal/signal.go:292
+
+1 @ 0x4c852e 0x4a3cf7 0x9f55a5 0x9fd5ff 0x48f2b5 0x4d01c1
+#	0x9f55a4	main.(*Cluster).Start+0x444	/home/daniel/dev/fsm/cluster.go:105
+#	0x9fd5fe	main.main+0x2de			/home/daniel/dev/fsm/main.go:53
+#	0x48f2b4	runtime.main+0x2d4		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/proc.go:290
+
+1 @ 0x4c852e 0x4a3cf7 0x9f942c 0x4d01c1
+#	0x9f942b	main.(*Node).runLeader+0x7eb	/home/daniel/dev/fsm/leader.go:59
+
+1 @ 0x4c852e 0x4a4dd2 0x4a4da9 0x4c9e2e 0x4e50e5 0x9f5994 0x4d01c1
+#	0x4c9e2d	sync.runtime_SemacquireWaitGroup+0x2d	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/sema.go:114
+#	0x4e50e4	sync.(*WaitGroup).Wait+0xc4		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/sync/waitgroup.go:206
+#	0x9f5993	main.(*Cluster).Start.func3+0x33	/home/daniel/dev/fsm/cluster.go:101
+
+1 @ 0x4c852e 0x4a4dd2 0x4a4da9 0x4c9e2e 0x4e50e5 0x9fac6f 0x4d01c1
+#	0x4c9e2d	sync.runtime_SemacquireWaitGroup+0x2d	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/runtime/sema.go:114
+#	0x4e50e4	sync.(*WaitGroup).Wait+0xc4		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/sync/waitgroup.go:206
+#	0x9fac6e	main.(*Node).runLeader.func2+0x4e	/home/daniel/dev/fsm/leader.go:53
+
+1 @ 0x54850b 0x545f77 0x542909 0x577a0f 0x577841 0x6536cb 0x667f4d 0x8cb692 0x4d01c1
+#	0x54850a	syscall.Syscall+0x2a				/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/syscall/syscall_linux.go:74
+#	0x545f76	syscall.read+0x56				/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/syscall/zsyscall_linux_amd64.go:736
+#	0x542908	syscall.Read+0x48				/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/syscall/syscall_unix.go:183
+#	0x577a0e	internal/poll.ignoringEINTRIO+0x3ae		/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_unix.go:738
+#	0x577840	internal/poll.(*FD).Read+0x1e0			/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/internal/poll/fd_unix.go:161
+#	0x6536ca	net.(*netFD).Read+0x4a				/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/fd_posix.go:68
+#	0x667f4c	net.(*conn).Read+0xac				/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/net.go:196
+#	0x8cb691	net/http.(*connReader).backgroundRead+0x51	/nix/store/33fw5m31lfcnk4ff2f0df7j2bxnh8lgk-go-1.26.3/share/go/src/net/http/server.go:702
+
+
