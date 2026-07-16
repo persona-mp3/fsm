@@ -1,0 +1,21 @@
+It appears a packet was dropped, which should technically be impossible since 
+this is running on localhost?? The current_leader sent a packet to node-6 
+at  this timestamp
+
+```
+05:50:04.102741 (3:node:0.6-sendHB) sending heartbeatRPC
+```
+
+But inside the logs of node-6, that timestamp or anything close does not 
+exist
+
+05:50:04.102161 (3:node:0.4-sendHB) sending heartbeatRPC
+05:50:04.102398 (3:node:0.8-sendHB) sending heartbeatRPC
+05:50:04.102545 (3:node:0.3-sendHB) sending heartbeatRPC
+05:50:04.102728 (3:node:0.5-sendHB) log-inspection-diagnostics: diagnostics: { term: 3, state: Leader, votedFor|leader: , logs: &{Idx:0 Term:1 Operation:get Key:command_6 Value:}, &{Idx:1 Term:1 Operation:set Key:command_1 Value:this is the first command, listening to Master of None by Beach house}, &{Idx:2 Term:1 Operation:get Key:command_4 Value:}, &{Idx:3 Term:1 Operation:set Key:command_5 Value:persona-mp3@github.com}, &{Idx:4 Term:1 Operation:get Key:command_2 Value:}, &{Idx:5 Term:1 Operation:set Key:command_3 Value:Evain Bottle water},  }
+05:50:04.102741 (3:node:0.6-sendHB) sending heartbeatRPC
+05:50:04.102847 (3:node:0.10-sendHB) log-inspection-diagnostics: diagnostics: { term: 3, state: Leader, votedFor|leader: , logs: &{Idx:0 Term:1 Operation:get Key:command_6 Value:}, &{Idx:1 Term:1 Operation:set Key:command_1 Value:this is the first command, listening to Master of None by Beach house}, &{Idx:2 Term:1 Operation:get Key:command_4 Value:}, &{Idx:3 Term:1 Operation:set Key:command_5 Value:persona-mp3@github.com}, &{Idx:4 Term:1 Operation:get Key:command_2 Value:}, &{Idx:5 Term:1 Operation:set Key:command_3 Value:Evain Bottle water},  }
+05:50:04.102901 (3:node:0.4-sendHB) log-inspection-diagnostics: diagnostics: { term: 3, state: Leader, votedFor|leader: , logs: &{Idx:0 Term:1 Operation:get Key:command_6 Value:}, &{Idx:1 Term:1 Operation:set Key:command_1 Value:this is the first command, listening to Master of None by Beach house}, &{Idx:2 Term:1 Operation:get Key:command_4 Value:}, &{Idx:3 Term:1 Operation:set Key:command_5 Value:persona-mp3@github.com}, &{Idx:4 Term:1 Operation:get Key:command_2 Value:}, &{Idx:5 Term:1 Operation:set Key:command_3 Value:Evain Bottle water},  }
+05:50:04.103065 (3:node:0.9-sendHB) log-inspection-diagnostics: diagnostics: { term: 3, state: Leader, votedFor|leader: , logs: &{Idx:0 Term:1 Operation:get Key:command_6 Value:}, &{Idx:1 Term:1 Operation:set Key:command_1 Value:this is the first command, listening to Master of None by Beach house}, &{Idx:2 Term:1 Operation:get Key:command_4 Value:}, &{Idx:3 Term:1 Operation:set Key:command_5 Value:persona-mp3@github.com}, &{Idx:4 Term:1 Operation:get Key:command_2 Value:}, &{Idx:5 Term:1 Operation:set Key:command_3 Value:Evain Bottle water},  }
+05:50:04.103076 (3:node:0.2-sendHB) log-inspection-diagnostics: diagnostics: { term: 3, state: Leader, votedFor|leader: , logs: &{Idx:0 Term:1 Operation:get Key:command_6 Value:}, &{Idx:1 Term:1 Operation:set Key:command_1 Value:this is the first command, listening to Master of None by Beach house}, &{Idx:2 Term:1 Operation:get Key:command_4 Value:}, &{Idx:3 Term:1 Operation:set Key:command_5 Value:persona-mp3@github.com}, &{Idx:4 Term:1 Operation:get Key:command_2 Value:}, &{Idx:5 Term:1 Operation:set Key:command_3 Value:Evain Bottle water},  }
+
