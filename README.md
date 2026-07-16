@@ -28,6 +28,20 @@ single = true
 
 
 ### Run the application
+#### Requirements
+- [Apache Maven](https://maven.apache.org/) 
+- Java installed, at least from version 21 
+- [Go](https://go.dev/doc/install) at least version 1.26.3
+
+
+Get the database and start executing it. Clones the database repository in the current directory 
+builds it using mvn and executes the jar file. By default the database server runs on port 9090
+and this is where the raft nodes expect to contact the database
+```bash
+bash setup.sh
+```
+
+Run the raft engine
 ```bash
 go run .
 
