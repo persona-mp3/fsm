@@ -97,7 +97,20 @@ using Protobufs were over-engineering, especially since the protocol wasn't comp
 When the database replies, the leader forwards the response from the underlying database back to the client
 
 If the Leader does not receive a majority before a hard set timeout of 180ms, it fails to 
-execute the command of the client
+execute the command of the client. 
+
+Constraints
+---
+- Latency: Sending a command to  a majority of a cluster takes a lot of time, and causes noticeable 
+latency from the client's perspective. So waiting for a quorum of Followers to acknowledge the replication 
+only spikes the latency. Also adding the fact that the Leader also has to communicate with  the database, 
+databse process the request, process the response and send it back to the client
+
+
+While the raft engine mostly priotizes Consistency, performance related things shouldn't be an 
+afterthought, hence the hardset timeout. This is just the case for now, and will be increased later 
+on. Preferrably via the config_toml file
+
 
 If the node that receives this CommandRPC is not the Leader,  it rejects the command and 
 tells the client to forward the request to the leader. This behavior is simply adhoc as 
