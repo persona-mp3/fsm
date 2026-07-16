@@ -1,0 +1,168 @@
+	goroutine profile: total 218
+48 @ 0x118108e 0x1141617 0x11801e5 0x1229971 0x122b4f9 0x122b4cf 0x130492b 0x13189ed 0x127bd38 0x11ee191 0x128b0c5 0x128b058 0x1298a58 0x12990fe 0x12997c5 0x129948e 0x161db6f 0x161c532 0x1188fa1
+#	0x11801e4	internal/poll.runtime_pollWait+0x84			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/netpoll.go:351
+#	0x1229970	internal/poll.(*pollDesc).wait+0xb0			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:84
+#	0x122b4f8	internal/poll.(*pollDesc).waitRead+0x498		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:89
+#	0x122b4ce	internal/poll.(*FD).Read+0x46e				/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_unix.go:165
+#	0x130492a	net.(*netFD).Read+0x4a					/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/fd_posix.go:68
+#	0x13189ec	net.(*conn).Read+0xac					/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/net.go:196
+#	0x127bd37	bufio.(*Reader).Read+0x4b7				/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/bufio/bufio.go:245
+#	0x11ee190	io.ReadAtLeast+0xd0					/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/io/io.go:335
+#	0x128b0c4	io.ReadFull+0x84					/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/io/io.go:354
+#	0x128b057	encoding/gob.decodeUintReader+0x17			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/encoding/gob/decode.go:116
+#	0x1298a57	encoding/gob.(*Decoder).recvMessage+0x77		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/encoding/gob/decoder.go:84
+#	0x12990fd	encoding/gob.(*Decoder).decodeTypeSequence+0x9d		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/encoding/gob/decoder.go:150
+#	0x12997c4	encoding/gob.(*Decoder).DecodeValue+0x2a4		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/encoding/gob/decoder.go:229
+#	0x129948d	encoding/gob.(*Decoder).Decode+0x12d			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/encoding/gob/decoder.go:206
+#	0x161db6e	net/rpc.(*gobClientCodec).ReadResponseHeader+0x4e	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/rpc/client.go:228
+#	0x161c531	net/rpc.(*Client).input+0x111				/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/rpc/client.go:109
+
+48 @ 0x118108e 0x1141617 0x11801e5 0x1229971 0x122b4f9 0x122b4cf 0x130492b 0x13189ed 0x127bd38 0x11ee191 0x128b0c5 0x128b058 0x1298a58 0x12990fe 0x12997c5 0x129948e 0x162106f 0x162332d 0x1622dfc 0x1622027 0x1621eb8 0x1188fa1
+#	0x11801e4	internal/poll.runtime_pollWait+0x84			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/netpoll.go:351
+#	0x1229970	internal/poll.(*pollDesc).wait+0xb0			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:84
+#	0x122b4f8	internal/poll.(*pollDesc).waitRead+0x498		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:89
+#	0x122b4ce	internal/poll.(*FD).Read+0x46e				/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_unix.go:165
+#	0x130492a	net.(*netFD).Read+0x4a					/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/fd_posix.go:68
+#	0x13189ec	net.(*conn).Read+0xac					/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/net.go:196
+#	0x127bd37	bufio.(*Reader).Read+0x4b7				/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/bufio/bufio.go:245
+#	0x11ee190	io.ReadAtLeast+0xd0					/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/io/io.go:335
+#	0x128b0c4	io.ReadFull+0x84					/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/io/io.go:354
+#	0x128b057	encoding/gob.decodeUintReader+0x17			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/encoding/gob/decode.go:116
+#	0x1298a57	encoding/gob.(*Decoder).recvMessage+0x77		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/encoding/gob/decoder.go:84
+#	0x12990fd	encoding/gob.(*Decoder).decodeTypeSequence+0x9d		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/encoding/gob/decoder.go:150
+#	0x12997c4	encoding/gob.(*Decoder).DecodeValue+0x2a4		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/encoding/gob/decoder.go:229
+#	0x129948d	encoding/gob.(*Decoder).Decode+0x12d			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/encoding/gob/decoder.go:206
+#	0x162106e	net/rpc.(*gobServerCodec).ReadRequestHeader+0x4e	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/rpc/server.go:403
+#	0x162332c	net/rpc.(*Server).readRequestHeader+0x6c		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/rpc/server.go:589
+#	0x1622dfb	net/rpc.(*Server).readRequest+0x5b			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/rpc/server.go:549
+#	0x1622026	net/rpc.(*Server).ServeCodec+0x86			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/rpc/server.go:464
+#	0x1621eb7	net/rpc.(*Server).ServeConn+0x637			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/rpc/server.go:455
+
+22 @ 0x118108e 0x110fc4f 0x110f7d2 0x16a5d5e 0x16a5b7b 0x16a550b 0x1188fa1
+#	0x16a5d5d	net/rpc.(*Client).Call+0x1fd		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/rpc/client.go:321
+#	0x16a5b7a	main.(*Node).collectVote+0x1a		/Users/eghosa.aiwuyo/dev/fsm/candidate.go:170
+#	0x16a550a	main.(*Node).runCandidate.func2+0xea	/Users/eghosa.aiwuyo/dev/fsm/candidate.go:58
+
+22 @ 0x118108e 0x110fc4f 0x110f7d2 0x16b3e0c 0x11ca532 0x11c9036 0x1620ddf 0x1188fa1
+#	0x16b3e0b	main.(*Server).VoteRequestRPC+0x16b	/Users/eghosa.aiwuyo/dev/fsm/rpcs.go:100
+#	0x11ca531	reflect.Value.call+0x1231		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/reflect/value.go:586
+#	0x11c9035	reflect.Value.Call+0xb5			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/reflect/value.go:369
+#	0x1620dde	net/rpc.(*service).call+0x2de		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/rpc/server.go:383
+
+13 @ 0x118108e 0x110fc4f 0x110f7d2 0x16b4e05 0x1188fa1
+#	0x16b4e04	main.(*Server).Listen.func1+0x64	/Users/eghosa.aiwuyo/dev/fsm/server.go:43
+
+13 @ 0x118108e 0x1141617 0x11801e5 0x1229971 0x12316aa 0x1231680 0x1307ac5 0x132788e 0x1325d65 0x16b4a3d 0x16b0f5c 0x1188fa1
+#	0x11801e4	internal/poll.runtime_pollWait+0x84		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/netpoll.go:351
+#	0x1229970	internal/poll.(*pollDesc).wait+0xb0		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:84
+#	0x12316a9	internal/poll.(*pollDesc).waitRead+0x4e9	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:89
+#	0x123167f	internal/poll.(*FD).Accept+0x4bf		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_unix.go:613
+#	0x1307ac4	net.(*netFD).accept+0x44			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/fd_unix.go:150
+#	0x132788d	net.(*TCPListener).accept+0x4d			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/tcpsock_posix.go:159
+#	0x1325d64	net.(*TCPListener).Accept+0x64			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/tcpsock.go:387
+#	0x16b4a3c	main.(*Server).Listen+0x63c			/Users/eghosa.aiwuyo/dev/fsm/server.go:52
+#	0x16b0f5b	main.(*Node).Run.func1+0x9b			/Users/eghosa.aiwuyo/dev/fsm/node.go:145
+
+13 @ 0x118108e 0x115cc97 0x16b0226 0x16a7745 0x1188fa1
+#	0x16b0225	main.(*Node).Run+0x665			/Users/eghosa.aiwuyo/dev/fsm/node.go:162
+#	0x16a7744	main.(*Cluster).Start.func2+0xc4	/Users/eghosa.aiwuyo/dev/fsm/cluster.go:91
+
+12 @ 0x118108e 0x115cc97 0x16ad393 0x16acae5 0x1188fa1
+#	0x16ad392	main.(*Node).sendHeartBeat+0x7d2	/Users/eghosa.aiwuyo/dev/fsm/leader.go:179
+#	0x16acae4	main.(*Node).runLeader.func1+0x144	/Users/eghosa.aiwuyo/dev/fsm/leader.go:45
+
+9 @ 0x118108e 0x115cc97 0x16a988d 0x16b0e8f 0x1188fa1
+#	0x16a988c	main.(*Node).runFollower+0x34c	/Users/eghosa.aiwuyo/dev/fsm/follower.go:26
+#	0x16b0e8e	main.(*Node).Run.func2+0x2e	/Users/eghosa.aiwuyo/dev/fsm/node.go:158
+
+3 @ 0x118108e 0x115cc97 0x16a988d 0x1188fa1
+#	0x16a988c	main.(*Node).runFollower+0x34c	/Users/eghosa.aiwuyo/dev/fsm/follower.go:26
+
+3 @ 0x118108e 0x115dd72 0x115dd49 0x118296e 0x119de65 0x16a53f4 0x1188fa1
+#	0x118296d	sync.runtime_SemacquireWaitGroup+0x2d	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/sema.go:114
+#	0x119de64	sync.(*WaitGroup).Wait+0xc4		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/sync/waitgroup.go:206
+#	0x16a53f3	main.(*Node).runCandidate.func3+0x33	/Users/eghosa.aiwuyo/dev/fsm/candidate.go:64
+
+1 @ 0x113e0d1 0x117fe5d 0x1677eea 0x1677cc6 0x1673304 0x169aee8 0x169bd25 0x158c2a8 0x158f1a3 0x15a2942 0x15893a5 0x1188fa1
+#	0x1677ee9	runtime/pprof.writeRuntimeProfile+0xc9	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/pprof/pprof.go:851
+#	0x1677cc5	runtime/pprof.writeGoroutine+0x85	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/pprof/pprof.go:784
+#	0x1673303	runtime/pprof.(*Profile).WriteTo+0x1a3	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/pprof/pprof.go:408
+#	0x169aee7	net/http/pprof.handler.ServeHTTP+0x647	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/pprof/pprof.go:273
+#	0x169bd24	net/http/pprof.Index+0xc4		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/pprof/pprof.go:397
+#	0x158c2a7	net/http.HandlerFunc.ServeHTTP+0x47	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:2286
+#	0x158f1a2	net/http.(*ServeMux).ServeHTTP+0x242	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:2828
+#	0x15a2941	net/http.serverHandler.ServeHTTP+0x2a1	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:3311
+#	0x15893a4	net/http.(*conn).serve+0xda4		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:2073
+
+1 @ 0x1142798 0x1183585 0x16a34fd 0x1188fa1
+#	0x1183584	os/signal.signal_recv+0x84	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/sigqueue.go:149
+#	0x16a34fc	os/signal.loop+0x1c		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/os/signal/signal_unix.go:23
+
+1 @ 0x118108e 0x110eb5c 0x110e757 0x16a5405 0x1188fa1
+#	0x16a5404	main.(*Node).runCandidate.func3+0x44	/Users/eghosa.aiwuyo/dev/fsm/candidate.go:65
+
+1 @ 0x118108e 0x110fc4f 0x110f7f2 0x16af3e5 0x1188fa1
+#	0x16af3e4	main.main.func1+0xe4	/Users/eghosa.aiwuyo/dev/fsm/main.go:29
+
+1 @ 0x118108e 0x1141617 0x11801e5 0x1229971 0x122b4f9 0x122b4cf 0x130492b 0x13189ed 0x157e7f2 0x1188fa1
+#	0x11801e4	internal/poll.runtime_pollWait+0x84		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/netpoll.go:351
+#	0x1229970	internal/poll.(*pollDesc).wait+0xb0		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:84
+#	0x122b4f8	internal/poll.(*pollDesc).waitRead+0x498	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:89
+#	0x122b4ce	internal/poll.(*FD).Read+0x46e			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_unix.go:165
+#	0x130492a	net.(*netFD).Read+0x4a				/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/fd_posix.go:68
+#	0x13189ec	net.(*conn).Read+0xac				/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/net.go:196
+#	0x157e7f1	net/http.(*connReader).backgroundRead+0x51	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:702
+
+1 @ 0x118108e 0x1141617 0x11801e5 0x1229971 0x122b4f9 0x122b4cf 0x130492b 0x13189ed 0x157ef48 0x127afc4 0x127ce05 0x127d434 0x14d982b 0x15a0e05 0x15a0e20 0x1580536 0x1588d6f 0x1188fa1
+#	0x11801e4	internal/poll.runtime_pollWait+0x84		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/netpoll.go:351
+#	0x1229970	internal/poll.(*pollDesc).wait+0xb0		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:84
+#	0x122b4f8	internal/poll.(*pollDesc).waitRead+0x498	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:89
+#	0x122b4ce	internal/poll.(*FD).Read+0x46e			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_unix.go:165
+#	0x130492a	net.(*netFD).Read+0x4a				/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/fd_posix.go:68
+#	0x13189ec	net.(*conn).Read+0xac				/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/net.go:196
+#	0x157ef47	net/http.(*connReader).Read+0x287		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:812
+#	0x127afc3	bufio.(*Reader).fill+0x2a3			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/bufio/bufio.go:113
+#	0x127ce04	bufio.(*Reader).ReadSlice+0x84			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/bufio/bufio.go:377
+#	0x127d433	bufio.(*Reader).ReadLine+0x33			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/bufio/bufio.go:406
+#	0x14d982a	net/textproto.(*Reader).readLineSlice+0xea	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/textproto/reader.go:64
+#	0x15a0e04	net/textproto.(*Reader).ReadLine+0xe4		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/textproto/reader.go:44
+#	0x15a0e1f	net/http.readRequest+0xff			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/request.go:1087
+#	0x1580535	net/http.(*conn).readRequest+0x5f5		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:1005
+#	0x1588d6e	net/http.(*conn).serve+0x76e			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:1995
+
+1 @ 0x118108e 0x1141617 0x11801e5 0x1229971 0x12316aa 0x1231680 0x1307ac5 0x132788e 0x1325d65 0x1591e10 0x1591614 0x16b503b 0x16b5041 0x1188fa1
+#	0x11801e4	internal/poll.runtime_pollWait+0x84		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/netpoll.go:351
+#	0x1229970	internal/poll.(*pollDesc).wait+0xb0		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:84
+#	0x12316a9	internal/poll.(*pollDesc).waitRead+0x4e9	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_poll_runtime.go:89
+#	0x123167f	internal/poll.(*FD).Accept+0x4bf		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/internal/poll/fd_unix.go:613
+#	0x1307ac4	net.(*netFD).accept+0x44			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/fd_unix.go:150
+#	0x132788d	net.(*TCPListener).accept+0x4d			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/tcpsock_posix.go:159
+#	0x1325d64	net.(*TCPListener).Accept+0x64			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/tcpsock.go:387
+#	0x1591e0f	net/http.(*Server).Serve+0x60f			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:3434
+#	0x1591613	net/http.(*Server).ListenAndServe+0xb3		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:3360
+#	0x16b503a	net/http.ListenAndServe+0xfa			/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/net/http/server.go:3675
+#	0x16b5040	main.main.func2+0x100				/Users/eghosa.aiwuyo/dev/fsm/main.go:38
+
+1 @ 0x118108e 0x115cc97 0x16a2e89 0x1188fa1
+#	0x16a2e88	os/signal.NotifyContext.func1+0xe8	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/os/signal/signal.go:292
+
+1 @ 0x118108e 0x115cc97 0x16a71e5 0x16af23f 0x1148315 0x1188fa1
+#	0x16a71e4	main.(*Cluster).Start+0x444	/Users/eghosa.aiwuyo/dev/fsm/cluster.go:105
+#	0x16af23e	main.main+0x2de			/Users/eghosa.aiwuyo/dev/fsm/main.go:45
+#	0x1148314	runtime.main+0x2d4		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/proc.go:290
+
+1 @ 0x118108e 0x115cc97 0x16ab06c 0x1188fa1
+#	0x16ab06b	main.(*Node).runLeader+0x7eb	/Users/eghosa.aiwuyo/dev/fsm/leader.go:59
+
+1 @ 0x118108e 0x115dd72 0x115dd49 0x118296e 0x119de65 0x16a75d4 0x1188fa1
+#	0x118296d	sync.runtime_SemacquireWaitGroup+0x2d	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/sema.go:114
+#	0x119de64	sync.(*WaitGroup).Wait+0xc4		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/sync/waitgroup.go:206
+#	0x16a75d3	main.(*Cluster).Start.func3+0x33	/Users/eghosa.aiwuyo/dev/fsm/cluster.go:101
+
+1 @ 0x118108e 0x115dd72 0x115dd49 0x118296e 0x119de65 0x16ac8af 0x1188fa1
+#	0x118296d	sync.runtime_SemacquireWaitGroup+0x2d	/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/runtime/sema.go:114
+#	0x119de64	sync.(*WaitGroup).Wait+0xc4		/Users/eghosa.aiwuyo/homebrew/Cellar/go/1.26.4/libexec/src/sync/waitgroup.go:206
+#	0x16ac8ae	main.(*Node).runLeader.func2+0x4e	/Users/eghosa.aiwuyo/dev/fsm/leader.go:53
+
+
+

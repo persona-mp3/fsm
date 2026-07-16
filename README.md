@@ -43,11 +43,14 @@ Profiling and Monitoring
 [net/http/pprof](https://go.dev/blog/pprof). A config option will be added for this later on
 
 
-Next 
+Ongoing 
 ---
 - [ ] Log replication across the cluster
-- [ ] Control plane for killing specific nodes
 - [ ] Integrate [jkvs](https://github.com/persona-mp3/jkvs) with fsm
+
+Next 
+---
+- [ ] Control plane for killing specific nodes
 
 
 

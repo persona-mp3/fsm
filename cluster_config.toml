@@ -9,6 +9,12 @@ addresses = [
 	"localhost:4004",
 	"localhost:4005",
 	"localhost:4006",
+	"localhost:4007",
+	"localhost:4008",
+	"localhost:4009",
+	"localhost:4010",
+	"localhost:4011",
+	"localhost:4012",
 ]
 
 # used by dev-tools to hijack a cluster with higher terms

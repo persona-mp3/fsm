@@ -3,23 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	db "fsm/database"
 	rlog "fsm/raftlogger"
 	"math/rand/v2"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
-const (
-	// heartbeatInterval is the rate at which the node when in a [Leader] state sends
-	// out heartbeats to follower in a cluster. At the moment, this is set to be 200 which
-	// is roughly half the minimum election timeout interval
-	heartbeatInterval = time.Millisecond * 200
-
-	// According to the Raft Paper, it's recommended for timeouts(election) to range from 100-500ms, but
-	// we're increasing it because that's too aggressive
-	minInterval = 400
-	maxInterval = 1500
-)
+const dropChBuff = 10
 
 func (n *Node) runLeader(logger rlog.RLogger) {
 	logger.Println("leader state transitioned successfully", n.Diagnostics())
@@ -40,17 +32,18 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 	}
 
 	currentPeers := n.getRPCPeers()
-	entries := make(chan Entry)
 	for idx, rpcPeer := range currentPeers {
 		if rpcPeer != nil {
 			wg.Add(1)
 
 			childLogger := n.log.Inherit(fmt.Sprintf("%d-sendHB", idx))
 
-			go func(ctx context.Context, rpcPeer *Peer, e chan Entry, logger rlog.RLogger) {
+			go func(ctx context.Context, rpcPeer *Peer, logger rlog.RLogger) {
 				defer wg.Done()
-				n.sendHeartBeat(ctx, rpcPeer, heartbeatInterval, e, logger)
-			}(ctx, rpcPeer, entries, childLogger)
+				replicateCh := make(chan replicate, dropChBuff)
+				rpcPeer.replicateCh = replicateCh
+				n.sendHeartBeat(ctx, rpcPeer, heartbeatInterval, logger)
+			}(ctx, rpcPeer, childLogger)
 		}
 	}
 
@@ -76,7 +69,7 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 			switch req.kind {
 			case AppendEntry:
 				request, ok := req.payload.(AppendEntryRequest)
-				// no point in relaying respose backup to the server because the server will still invalidate it and panic
+				// no point in relaying response backup to the server because the server will still invalidate it and panic
 				if !ok {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
@@ -93,19 +86,13 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 
 			case ClientCommand:
 				logger.Println("in leader state, received command request from a client", req.payload)
-				req.reply <- RPCReply{
-					kind: ClientCommand,
-					payload: &CommandReply{
-						From:   n.id,
-						Result: "LEADER_STUB: Need to send requests to whole cluster to append this to their logs",
-					},
-				}
-				logger.Println("begin sending out appendRPCs")
+
 				payload, ok := req.payload.(CommandReq)
 				if !ok {
-					logger.Panic("Expected CommandReq, got", payload)
+					logger.Panic("expected CommandReq as payload got:", payload)
 				}
-				// TODO: Let's check our logs if we have this first
+
+				logger.Println("begin sending out appendRPCs")
 				entry := Entry{}
 				entry.Term = n.raft.getTerm()
 				entry.Operation = payload.Operation
@@ -114,26 +101,22 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 				if !n.logs.HasEntry(&entry) {
 					index := n.logs.Append(&entry)
 					entry.Idx = index
-          // TODO: Might need to keep this buffered? The thing here is that 
-          // there are x-worker routines sending hearbeats to x connectedPeers
-          // And all workers recv on this channel. Sending to this channel is a blocking operation
-          // so there's no garauntee that each worker receives the newEntry, and one 
-          // doesn't take all of them, or there are no listeners, or the worker is busy on another
-          // select/case branch. Another way might involve having each worker return a seperate channel 
-          // the recv on, and then just looping over those, but, i'm not yet sure if I'd want to go that 
-          // route yet
-					for i := range len(n.rpcPeers) {
-						_ = i
-						entries <- entry
-					}
 					logger.Println("sent new Entry to all peers")
+					go n.commitFunc(payload, entry, req.reply, logger.Inherit("commitFunc"))
 				} else {
 					logger.Println("entry already existed, not repeating duplicate logs", n.Diagnostics())
-        }
-      case Vote:
+					req.reply <- RPCReply{
+						kind: ClientCommand,
+						payload: &CommandReply{
+							From:   n.id,
+							Result: "LEADER_STUB: I gave you this before, where did you keep it?",
+						},
+					}
+				}
+			case Vote:
 				request, ok := req.payload.(VoteRequest)
-				// no point in relaying respose backup to the server because the server will still
-				// invalidate it and panic
+				// no point in relaying response to the server because the server will still
+				// invalidate it and pani
 				if !ok {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
@@ -145,9 +128,8 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 
 				n.raft.updateTerm(action.newTerm, action.newLeader)
 				logger.Println("succesfully updated term, dropping back to follower", n.Diagnostics())
-        n.transition <- Follower
+				n.transition <- Follower
 				return
-
 
 			default:
 				logger.Panic("Unhandled RPC Not yet implemented:", req.payload, n.Diagnostics())
@@ -156,16 +138,7 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 	}
 }
 
-// contemplation: I'd want the main state routine to send jobs to these worker routines, but I'd also
-// want these workers to be able to communicate back w the leader otherwise. For example, if a new client
-// command comes in, I'd want the runLeader to send the command across the cluster for 'replication' via
-// the appendRPC's channel. So then this worker can just send the data to the Follower it's attached to.
-// At the moment, if a call fails, we simply return
-// But what it the follower doesn't acknowledge the RPCS? We'd want this communication btwn the worker and
-// leader then. Without having to wrap appendRPCs with a channel abstraction, I think it would be better
-// to give the worker some independence accross the Node. So if the follower fails to ack the appendEntry, we
-// can simply just read against this Node's logs instead of handing it over to the top-level runLeader
-func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Duration, entry chan Entry, logger rlog.RLogger) {
+func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Duration, logger rlog.RLogger) {
 	// TODO: Might also be worth retrying connections with  dropped peers incase it was just
 	// a network glitch
 	ticker := time.NewTicker(interval)
@@ -184,22 +157,55 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 
 	for {
 		select {
-		case <-ctx.Done():
-			return
-		case e := <-entry:
-			logger.Println("recvd entry::", e)
-			req.Entry = &e
+		case replicate := <-peer.replicateCh:
+			logger.Println("recvd entry::", replicate)
+			req.Entry = &replicate.entry
 			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
-				logger.Println("Failed to send heartbeat", err, peer.id, peer.addr)
+				logger.Println("Failed to send appendEntry with data", err, peer.id, peer.addr, req)
 				return
 			}
+			logger.Println("reply: ", reply, peer.addr)
+			if reply.Acked {
+				replicate.done <- true
+				replicate.success.Add(1)
+				logger.Println("CONSTRUCTION:: increased replicationCount for commitFunc")
+			}
+			ticker.Reset(interval)
+			continue
+		default:
+			// break if no logEntries need to be sent
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+
+		case replicate := <-peer.replicateCh:
+			logger.Println("recvd entry::", replicate)
+			req.Entry = &replicate.entry
+			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
+				logger.Println("Failed to send appendEntry with data", err, peer.id, peer.addr, req)
+				return
+			}
+			logger.Println("reply: ", reply, peer.addr)
+			if reply.Acked {
+				replicate.done <- true
+				replicate.success.Add(1)
+				logger.Println("CONSTRUCTION:: increased replicationCount for commitFunc")
+			}
+			ticker.Reset(interval)
+			continue
+
 		case <-ticker.C:
 			logger.Println("sending heartbeatRPC")
 			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
 				logger.Println("Failed to send heartbeat", err, peer.id, peer.addr)
 				return
 			}
-			logger.Println("reply: ", reply, peer.addr)
+			if !reply.Acked {
+				logger.Println("reply: ", reply, peer.addr)
+			}
+			logger.Println("log-inspection-diagnostics:", n.Diagnostics())
 		}
 	}
 }
@@ -208,4 +214,74 @@ func randomTimeout(d time.Duration) time.Duration {
 	n := rand.IntN(maxInterval-minInterval) + minInterval
 
 	return d * time.Duration(n)
+}
+
+// TODO: Commit command to database
+//
+// CONTEMPLATION:: Usually, I'm looking for a way to get the workers to comms
+// with the main leader. Using a channel sounds good, but idk why I'm iffy. Because of theb
+// scheduler. painful. Sure at somepoint, a worker might be sending to done <- struct{}{}
+// but this function might not have started listening on it. Using a waitgroup here would also
+// not work, because the goroutines need to terminate before wg.Wait before if can unblock. And
+// I don't think Cond is the right thing either. So I want to try a timer. After x-ms, check the
+// successReplicas *atomic.Uint32 and if they meet quorum, execute and respond back to client.
+// One issue i have w this approach is that already sending to a cluster from a client's perspective
+// is already slow. Sending to cluster, getting quorum, executing to database, and getting result from
+// db and sending back to client is a long trip. If anything, i think this increases latency painfully
+
+func (n *Node) commitFunc(payload CommandReq, entry Entry, reply chan RPCReply, logger rlog.RLogger) {
+	// send new entries to all workers
+	numPeers := len(n.rpcPeers)
+	done := make(chan bool, numPeers)
+
+	successCount := atomic.Uint32{}
+	successCount.Add(1)
+
+	for _, peer := range n.rpcPeers {
+		select {
+		case peer.replicateCh <- replicate{
+			entry:   entry,
+			success: &successCount,
+			done:    done,
+		}:
+		default:
+			logger.Println("WARNING:", fmt.Sprintf("peer-worker: %d is blocked, dropping entry", peer.id))
+			done <- false
+		}
+	}
+
+	quorumTarget := (numPeers / 2) + 1
+	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Millisecond)
+	defer cancel()
+	for i := range numPeers {
+		_ = i
+		if successCount.Load() >= uint32(quorumTarget) {
+			logger.Println("quorum has been reached for replication", successCount.Load())
+			break
+		}
+		select {
+		case <-ctx.Done():
+			logger.Println("replication quorum failed under 180ms")
+			return
+		case <-done:
+		}
+	}
+
+	if successCount.Load() < uint32(quorumTarget) {
+		logger.Println("replication failed to reach quorum", successCount.Load(), quorumTarget)
+		return
+	}
+
+	response, err := n.database.Commit(db.Command{Operation: payload.Operation, Key: payload.Key, Value: payload.Value})
+	if err != nil {
+		logger.Println("could not commit database with command: ", payload, err)
+		return
+	}
+
+	logger.Println(fmt.Sprintf("debug:: after commiting: %s, sending response", payload.Key))
+	reply <- RPCReply{kind: ClientCommand, payload: &CommandReply{
+		From:   "raft-leader-database",
+		Result: response.Message,
+	}}
+	logger.Println("successfully sent response to client")
 }
