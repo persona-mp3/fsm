@@ -1,4 +1,4 @@
-Raft Implementation Algorithm
+FSM - Raft Engine for JKVS 
 --
 This implementation follows the paper [In Search of an Understandable Consensus Algorithm](https://raft.github.io/raft.pdf)
 called Raft.  The aim of this project is to build a distributed database. The underlying database is a custom
