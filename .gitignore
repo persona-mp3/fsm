@@ -3,4 +3,6 @@ trash
 .DS_STORE
 jkvs
 logs/
-
+log-*
+*.out
+trace*

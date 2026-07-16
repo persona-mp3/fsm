@@ -2,6 +2,7 @@ package main
 
 import (
 	rlog "fsm/raftlogger"
+	"log"
 	"net/rpc"
 	"sync"
 	"sync/atomic"
@@ -108,32 +109,35 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 
 				n.raft.updateTerm(action.newTerm, action.newLeader)
 				logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
+				n.transition <- Follower
+				return
 
 			case ClientCommand:
 				logger.Println("in candidate_state, need to forward request to leader")
 				req.reply <- RPCReply{
 					kind: ClientCommand,
 					payload: &CommandReply{
-						From:       n.id,
-						Result:  "CANDIDATE_STUB: Read spec impl on how to handle requests mid election",
+						From:   n.id,
+						Result: "CANDIDATE_STUB: Read spec impl on how to handle requests mid election",
 					},
 				}
 
 			default:
-				logger.Panic("Unhandled RPC Not yet implemented:", req.payload, n.Diagnostics())
+				log.Panic("Unhandled RPC Not yet implemented:", req.payload, n.Diagnostics())
 			}
 
 		case <-done:
 			totalVotes := voteCount.Load()
 			logger.Println("all vote routines have finshed, totalVotes:", totalVotes)
-			if int(totalVotes) > len(connectedPeers)/2 {
-				logger.Println("recvd majority, becoming Leader")
+			if totalVotes > int64((len(connectedPeers)/2)+1) {
+				logger.Println("recvd majority, becoming Leader with total votes of", totalVotes)
 				n.transition <- Leader
 				return
 			}
 
-			logger.Println("lost election, going back to Follower")
+      logger.Println("lost election, going back to Follower. Total votes received:", totalVotes)
 			n.transition <- Follower
+			return
 
 		}
 	}

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-current_dir=$(ls | grep "jkvs")
+
+current_dir=$(find . -type d -name "jkvs")
+
+echo "here "
 if [[ -n $current_dir   ]]; then
 	echo "removing current jkvs directory and cloning new one with git"
 	rm -rf ./jkvs

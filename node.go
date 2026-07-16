@@ -336,6 +336,8 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
 	currentLeader := n.raft.getCurrentLeader()
 
 	action := Action{}
+	// take action by stepping stepping down to follower if a leader or candidate, otherwise update
+	// your term
 	if req.Term > currentTerm {
 		replyCh <- RPCReply{
 			kind: Vote,
@@ -352,6 +354,7 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
 		logger.Println("requestRPC was from a a higher term:", req, n.Diagnostics())
 		return action
 	} else if req.Term < currentTerm {
+		// this an outdated leader or node, ignore rpc
 		action.action = false
 		replyCh <- RPCReply{
 			kind: Vote,
@@ -381,6 +384,34 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
 		logger.Println("voteRPC had same term, but reached first and I have no leader:", req, n.Diagnostics())
 		return action
 	}
+
+	// at this state, this node and the rpc have the same term but we already voteed for someone before
+	// but we're also in the same term, which should  NEVER happen.
+	debugProse := fmt.Sprintf(` 
+  PROSE
+  -----
+  I %s recvd a VoteRequest with the same term and rpc, which I'm not sure yet, why that's 
+  happend. Possible cases:
+  1. Split brain? Two nodes are actively collecting votes and one reached this node first
+  Not sure yet, but here are some diagnostics
+  %s
+  request: %+v
+
+  Thank you
+`, n.id, n.Diagnostics(), req)
+
+  logger.Println(debugProse)
+	// logger.Panic("what is a kilometer::::", n.Diagnostics(), req)
+	replyCh <- RPCReply{
+		kind: Vote,
+		payload: &VoteReply{
+			Id:       n.id,
+			VotedFor: false,
+			Term:     req.Term,
+			Message:  "we both have the same term,m and I alreayd have a leader, why did this happen? Possibly because I'm in a candidate state? But if I'm in a candid state, the leader should be empty",
+		},
+	}
+
 	return action
 }
 
@@ -391,7 +422,7 @@ func (n *Node) Diagnostics() string {
 	state := n.raft.getState().String()
 	votedFor := n.raft.getCurrentLeader()
 
-	diagnostics := fmt.Sprintf("diagnostics: { term: %d, state: %s, votedFor|leader: %s, logs: %+v }",
-		term, state, votedFor, n.logs.String())
+	diagnostics := fmt.Sprintf("diagnostics: { id: %s, term: %d, state: %s, votedFor|leader: %s, logs: %+v }",
+		n.id, term, state, votedFor, n.logs.String())
 	return diagnostics
 }
