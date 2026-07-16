@@ -19,3 +19,6 @@ exist
 05:50:04.103065 (3:node:0.9-sendHB) log-inspection-diagnostics: diagnostics: { term: 3, state: Leader, votedFor|leader: , logs: &{Idx:0 Term:1 Operation:get Key:command_6 Value:}, &{Idx:1 Term:1 Operation:set Key:command_1 Value:this is the first command, listening to Master of None by Beach house}, &{Idx:2 Term:1 Operation:get Key:command_4 Value:}, &{Idx:3 Term:1 Operation:set Key:command_5 Value:persona-mp3@github.com}, &{Idx:4 Term:1 Operation:get Key:command_2 Value:}, &{Idx:5 Term:1 Operation:set Key:command_3 Value:Evain Bottle water},  }
 05:50:04.103076 (3:node:0.2-sendHB) log-inspection-diagnostics: diagnostics: { term: 3, state: Leader, votedFor|leader: , logs: &{Idx:0 Term:1 Operation:get Key:command_6 Value:}, &{Idx:1 Term:1 Operation:set Key:command_1 Value:this is the first command, listening to Master of None by Beach house}, &{Idx:2 Term:1 Operation:get Key:command_4 Value:}, &{Idx:3 Term:1 Operation:set Key:command_5 Value:persona-mp3@github.com}, &{Idx:4 Term:1 Operation:get Key:command_2 Value:}, &{Idx:5 Term:1 Operation:set Key:command_3 Value:Evain Bottle water},  }
 
+
+journalctl --since "05:30:00" --until "08:30:00"
+
