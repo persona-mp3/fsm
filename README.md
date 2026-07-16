@@ -120,15 +120,69 @@ talks to one server
 
 
 
-Next 
+Bug Documentation and Testing
+---
+Most of the tests are simulation tests where they are ran against an active cluster
+to assert correct behaviour. This was preferred in favor of normal-unit tests as faults are 
+easier to detect in an active cluster compared to testing it in isolation. The testing 
+simulation can be configured via the toml file.
+
+Another kind of test used is soak-testing  by running a cluster for over long hours. This 
+can typically be found on the `profiling` branch as it's kept more up to date. Bugs 
+are usually found on this branch. For example running a 13 node cluster over night got over 
+690 go-routines. Another one which is partially documented is all nodes missing 4 minutes 
+of logs, which is bizzare and could point to a myriad of different things.
+
+Some of these can also be found in the commit logs under the  prefix of 
+`profiling: ` or `wip: ` or `fix: ` or `testing: ` with reasonlably summarised explanations
+
+
+An example is 
+```
+commit 24aa7e3e64cc706d0934aa0f1c2d9f4a391984a6 (code/profiling)
+Author: persona-mp3 <randomnobscurebs@gmail.com>
+Date:   Thu Jul 16 14:19:37 2026 +0100
+
+    profiling: whole cluster was paused for 4 minutes
+    Synopsis
+    ----
+    While reading the logs, I was able to trace how the last term, the 4th one
+    was arrived at. It was gotten by 6 and it was taken from 3. Across all node logs
+    there were missing logs from 5:50 to 5:54am. And only then did 6 realise that it
+    had not recvd a heartbeat. So did the others, but since they had random timeouts
+    6 won the election, and 2 had to step down right as it got into candidate state.
+    
+    Possible causes
+    ---
+    1. The laptop just slept
+    2. The OS was overloaded or decided that our process had to be suspended for 4mins
+    
+    Comments
+    ---
+    This kind of thing further pushes for the following:
+    1. making nodes running in isolation rather than on a single process
+    2. using docker to run instances of them
+    3. using different cloud instances
+
+```
+
+Bugs like these are usually documented, when it has caused enough pain in the `bugs` folder
+along side stack traces for easy referencing. Alongside their fixes
+
+
+
+In progress 
 ---
 - [ ] Log replication across the cluster
-- [ ] Control plane for killing specific nodes
 - [ ] Integrate [jkvs](https://github.com/persona-mp3/jkvs) with fsm
 
 
-
 Todos
+---
+- [ ] UI Control plane 
+
+
+Done
 ---
 - [X] Implement custom logger
 - [X] Adding tests
@@ -140,3 +194,6 @@ Todos
     - [X] Refactor Candidate
 
 
+Contribute
+---
+Feel free to contribute
