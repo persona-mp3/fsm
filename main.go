@@ -26,9 +26,17 @@ func main() {
 	defer ticker.Stop()
 
 	go func() {
+		f, err := os.Create("goroutinetrack")
+		if err != nil {
+			log.Println("could not create log file goroutinetrack", err)
+			f = os.Stdout
+		}
+		defer f.Close()
+
+		log.SetOutput(f)
 		for t := range ticker.C {
 			_ = t
-			fmt.Printf("\n\nGOROUTINES::::: %d\n\n", runtime.NumGoroutine())
+			log.Printf("GOROUTINES::::: %d\n", runtime.NumGoroutine())
 		}
 	}()
 
@@ -42,8 +50,8 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	err = cluster.Start(ctx); 
-  if err != nil {
+	err = cluster.Start(ctx)
+	if err != nil {
 		log.Fatal(err)
 	}
 }
