@@ -1,9 +1,10 @@
 name = "deploy.toml"
+deploy = false
 
 [[machines]]
 ip = "ip1"
 host = "0.0.0.0"
-listen_port = 4001
+listen_port = 4000
 pprof_port = 6061
 ssh_path = "/Users/eghosa.aiwuyo/.ssh/persona_mp3"
 login_user = "root"
@@ -12,7 +13,7 @@ opts = []
 [[machines]]
 ip = "ip2"
 host = "0.0.0.0"
-listen_port = 4001
+listen_port = 5000
 pprof_port = 6061
 ssh_path = "/home/.ssh/ip2"
 login_user = "root"
@@ -21,7 +22,7 @@ opts = []
 [[machines]]
 ip = "ip3"
 host = "0.0.0.0"
-listen_port = 4001
+listen_port = 1738
 pprof_port = 6061
 ssh_path = "/home/.ssh/ip3"
 login_user = "root"
@@ -29,10 +30,13 @@ opts = []
 
 
 [cluster_settings]
-heartbeat = 200
-min_interval = 400
+heartbeat = 800
+min_interval = 1100
 max_interval = 1500
-mode = "single"
+
+[cluster_settings.topology]
+type = "cluster"
+ports = [5000, 5001, 5002, 5003]
 
 
 # Each machine/node will have peers that are the other nodes. This will by dynamically derived by dock
@@ -43,7 +47,26 @@ mode = "single"
 # the program how to run this node. 
 # "single" only run this node 
 # "cluster" run this node, and it's peers on this machine as a single process
+# If the this mode is chosen, all the host of all other nodes must reolve to tis
 # "isolated" run this node and it's peers on this machine as seperate processes
+
+# "cluster" mode will generate a single config file,
+#  instead of individual config files for the cluster to run
+#  the host addresses are by default changed to 'localhost', so are 
+#  all the peers. You have to specify what ports the peers will run on. The number of 
+#  nodes created will be the number of nodes that will be running at any given time on 
+#  this device. In that case no machines can be specified, just the cluster settings and the ports
+
+# Cluster Mode configuration file  
+# -------------
+#   peers = [localhost:5000, localhost:5001, localhost:5002, localhost:5003]
+#   [cluster_settings]
+#   heartbeat = 200
+#   min_interval = 400
+#   max_interval = 1500
+#   [cluster_settings.mode] 
+#   type = "cluster" 
+#  
 
 
 # dock will generate a cluster_config.toml for each of these nodes and then deploy them on their ips

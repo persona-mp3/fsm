@@ -2,93 +2,111 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"fsm/dock"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+
+	"os"
+	"time"
+
+	"github.com/BurntSushi/toml"
 )
 
-const (
-	DebugAddr = "localhost:6061"
+var clusterConfig = "cluster-config.toml"
+var configPath = "deploy.toml"
+var topology = "cluster"
+
+var (
+	// heartbeatInterval is the rate at which the node when in a [Leader] state sends
+	// out heartbeats to follower in a cluster. At the moment, this is set to be 200 which
+	// is roughly half the minimum election timeout interval
+	heartbeatInterval = time.Millisecond * 200
+
+	// According to the Raft Paper, it's recommended for timeouts(election) to range from 100-500ms, but
+	// we're increasing it because that's too aggressive
+	minInterval = 500
+	maxInterval = 1200
 )
 
 func main() {
-	// cluster, err := parseConfig("cluster_config.toml")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// ticker := time.NewTicker(2 * time.Second)
-	// defer ticker.Stop()
-	//
-	// go func() {
-	// 	f, err := os.Create("goroutinetrack")
-	// 	if err != nil {
-	// 		log.Println("could not create log file goroutinetrack", err)
-	// 		f = os.Stdout
-	// 	}
-	// 	defer f.Close()
-	//
-	// 	log.SetOutput(f)
-	// 	for t := range ticker.C {
-	// 		_ = t
-	// 		log.Printf("GOROUTINES::::: %d\n", runtime.NumGoroutine())
-	// 	}
-	// }()
-	//
-	// // TODO: Would want this to be by default, maybe later we could add flags to use trace.
-	// // Not sure if this server could cost the application but it should me next to nothing
-	// go func() {
-	// 	if err := http.ListenAndServe(DebugAddr, nil); err != nil {
-	// 		fmt.Println("could not start ptrace server::", err)
-	// 	}
-	// }()
-	// ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	// defer cancel()
-	//
-	// err = cluster.Start(ctx)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 
-	clusterConfig, err := readConfig()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGKILL)
-	defer cancel()
-	switch clusterConfig.ClusterSettings.Mode {
-
-	case dock.ModeSingle:
-		fmt.Println("running cluster in single mode")
-		runSingleMode(ctx, clusterConfig)
-
-	case dock.ModeCluster:
-		fmt.Println("running cluster in cluster mode")
-
-	case dock.ModeIsolated:
-		fmt.Println("running cluster in isolated mode")
-
-	default:
-		panic(fmt.Sprintf("unexpected cluster Mode: %#v", clusterConfig.ClusterSettings.Mode))
+	if err := parseConfig(); err != nil {
+		log.Println(err)
 	}
 }
 
-func runSingleMode(ctx context.Context, cfg *dock.NodeConfig) {
-	go func() {
-		if err := http.ListenAndServe(cfg.PprofAddr, nil); err != nil {
-			log.Println("failed to start pprof server: ", err)
-			return
-		}
-	}()
+func parseConfig() error {
+	flag.StringVar(&topology, "topology", topology, "topology")
+	flag.StringVar(&clusterConfig, "config", clusterConfig, "cluster-config")
+	flag.Parse()
 
-  fmt.Println("peers:", cfg.Peers)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGKILL)
+	defer cancel()
+
+	switch topology {
+	case "cluster":
+		cfg := dock.SingleClusterConfig{}
+
+		meta, err := toml.DecodeFile(clusterConfig, &cfg)
+		if err != nil {
+			fmt.Printf("undecoded-keys: %+v\n", meta.Undecoded())
+			return fmt.Errorf("could not parse cluster config: %w", err)
+		}
+
+		minInterval = cfg.ClusterSettings.MinInterval
+		maxInterval = cfg.ClusterSettings.MaxInterval
+		heartbeatInterval = time.Millisecond * time.Duration(cfg.ClusterSettings.Heartbeat)
+
+		go func() {
+			if err := http.ListenAndServe(cfg.PprofAddr, nil); err != nil {
+				log.Println("failed to start pprof server: ", err)
+				return
+			}
+		}()
+
+		if err := runClusterTopology(ctx, &cfg); err != nil {
+			fmt.Printf("%+v\n", err)
+			os.Exit(1)
+		}
+
+	case "node":
+		cfg := dock.NodeConfig{}
+		meta, err := toml.DecodeFile(clusterConfig, &cfg)
+		if err != nil {
+			fmt.Printf("undecoded-keys: %+v\n", meta.Undecoded())
+			return fmt.Errorf("could not parse cluster config: %w", err)
+		}
+
+		go func() {
+			if err := http.ListenAndServe(cfg.PprofAddr, nil); err != nil {
+				log.Println("failed to start pprof server: ", err)
+				return
+			}
+		}()
+
+		minInterval = cfg.ClusterSettings.MinInterval
+		maxInterval = cfg.ClusterSettings.MaxInterval
+		heartbeatInterval = time.Millisecond * time.Duration(cfg.ClusterSettings.Heartbeat)
+
+		runSingleTopology(ctx, &cfg)
+
+	case "isolated":
+		return fmt.Errorf("cannot run an isolated config yet")
+	default:
+		return fmt.Errorf("Unsupported topology %s", topology)
+	}
+
+	return nil
+}
+
+func runSingleTopology(ctx context.Context, cfg *dock.NodeConfig) {
+	fmt.Println("peers:", cfg.Peers)
 	node, err := NewNode(fmt.Sprintf("%d", cfg.Id), cfg.Listen, cfg.Peers, os.Stdout)
 	if err != nil {
 		log.Println(err)
@@ -115,5 +133,54 @@ func runSingleMode(ctx context.Context, cfg *dock.NodeConfig) {
 		return
 	}
 }
-func runClusterMode(cfg dock.NodeConfig) {
+
+func runClusterTopology(ctx context.Context, cfg *dock.SingleClusterConfig) error {
+	nodes := []*Node{}
+	for idx, addr := range cfg.Peers {
+		id := fmt.Sprintf("%d", idx+1)
+		remove := idx
+		peers := append([]string{}, cfg.Peers[:remove]...)
+		peers = append(peers, cfg.Peers[remove+1:]...)
+
+		out, err := os.Create(fmt.Sprintf("log-file-%s", id))
+		if err != nil {
+			log.Println("could not create logFile for node", id)
+			out = nil
+		}
+		node, err := NewNode(id, addr, peers, out)
+
+		nodes = append(nodes, node)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	}
+	wg := sync.WaitGroup{}
+	nodeCtx, nodeCancel := context.WithCancel(ctx)
+	defer nodeCancel()
+
+	for _, node := range nodes {
+		wg.Go(func() {
+			if err := node.Run(nodeCtx); err != nil {
+				log.Println("err")
+				return
+			}
+		})
+	}
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		log.Println("all raftNodes have died")
+		return nil
+	case <-ctx.Done():
+		log.Println("parentCtx cancelled first, killing all rafts")
+		return nil
+	}
+	return nil
 }

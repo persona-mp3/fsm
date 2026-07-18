@@ -3,7 +3,6 @@ package dock
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/BurntSushi/toml"
 	"golang.org/x/crypto/ssh"
@@ -27,26 +26,32 @@ type Machine struct {
 	LoginUser string `toml:"login_user"`
 }
 
-type Mode string
+type TopologyType string
 
 const (
 	// Run only one node on this machine
-	ModeSingle Mode = "single"
+	TopologyNode TopologyType = "node"
 	// Run all nodes as a single process on the same machine
-	ModeCluster Mode = "cluster"
+	TopologyCluster TopologyType = "cluster"
 	// Run all nodes as seperate processes on the same machine
-	ModeIsolated Mode = "isolated"
+	TopologyIsolated TopologyType = "isolated"
 )
 
-type ClusterSettings struct {
-	Heartbeat   int  `toml:"heartbeat"`
-	MinInterval int  `toml:"min_interval"`
-	MaxInterval int  `toml:"max_interval"`
-	Mode        Mode `toml:"mode"`
+type Topology struct {
+	Type  TopologyType `toml:"type"`
+	Ports []int        `toml:"ports"`
 }
 
-type Deploy struct {
+type ClusterSettings struct {
+	Heartbeat   int      `toml:"heartbeat"`
+	MinInterval int      `toml:"min_interval"`
+	MaxInterval int      `toml:"max_interval"`
+	Topology    Topology `toml:"topology"`
+}
+
+type DeployCfg struct {
 	Machines        []Machine
+	Deploy          bool            `toml:"deploy"`
 	ClusterSettings ClusterSettings `toml:"cluster_settings"`
 }
 
@@ -64,52 +69,80 @@ type NodeConfig struct {
 	ip        string
 }
 
-// func main() {
-// 	flag.StringVar(&configFile, "config", configFile, "reads the deployment toml config file and parses")
-// 	flag.Parse()
-//
-// 	content, err := os.ReadFile(configFile)
-// 	if err != nil {
-// 		fmt.Println("could not read config file. ", err)
-// 		os.Exit(1)
-// 	}
-//
-// 	deploy := Deploy{}
-// 	_, err = toml.Decode(fmt.Sprintf("%s", content), &deploy)
-// 	if err != nil {
-// 		fmt.Println("could not decode toml file. ", err)
-// 		os.Exit(1)
-// 	}
-//
-// 	fmt.Println("parsed config sucessfully creating node configurations")
-//
-// 	configs := createNodeConfig(deploy)
-// 	sshClients := []*ssh.Client{}
-//
-// 	defer func() {
-// 		for _, client := range sshClients {
-// 			err := client.Close()
-// 			if err != nil {
-// 				fmt.Println(err)
-// 			}
-// 		}
-// 	}()
-//
-// 	// write configuration files
-//
-// 	for _, nodeCfg := range configs {
-// 		nodeCfg.writeToConfigFile()
-// 		client, err := nodeCfg.connect()
-// 		// bail if any dial fails
-// 		if err != nil {
-// 			fmt.Println(err)
-// 			os.Exit(1)
-// 		}
-//
-// 		sshClients = append(sshClients, client)
-// 	}
-//
-// }
+func GenerateConfigFile(cfg DeployCfg) (TopologyType, error) {
+	content, err := os.ReadFile(configFile)
+	if err != nil {
+		fmt.Println("could not read config file. ", err)
+		os.Exit(1)
+	}
+
+	deployCfg := DeployCfg{}
+	_, err = toml.Decode(fmt.Sprintf("%s", content), &deployCfg)
+	if err != nil {
+		fmt.Println("could not decode toml file. ", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("parsed config sucessfully creating node configurations")
+
+	topologyType := deployCfg.ClusterSettings.Topology.Type
+	switch topologyType {
+
+	case TopologyNode:
+		configs := createTopologySingleConfig(deployCfg)
+		sshClients := []*ssh.Client{}
+
+		for _, nodeCfg := range configs {
+			nodeCfg.writeToConfigFile()
+			if deployCfg.Deploy {
+				client, err := nodeCfg.connect()
+				// bail if any dial fails
+				if err != nil {
+					fmt.Println(err)
+					os.Exit(1)
+				}
+
+				sshClients = append(sshClients, client)
+			}
+
+			fmt.Println("generated config for node", nodeCfg.Id)
+		}
+		defer func() {
+			for _, client := range sshClients {
+				err := client.Close()
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+		}()
+
+		// write configuration files
+	case TopologyCluster:
+		config := newClusterTopologyConfig(deployCfg)
+		f, err := os.Create("cluster-config.toml")
+		if err != nil {
+			return topologyType, err
+		}
+		content, err := toml.Marshal(config)
+		if err != nil {
+			return topologyType, fmt.Errorf("could not marhsall cluster-topology config: %w", err)
+		}
+
+		defer f.Close()
+
+		if _, err := fmt.Fprintf(f, "%s", content); err != nil {
+			return topologyType, fmt.Errorf("could not write cluster-topology config to file: %w", err)
+		}
+		fmt.Println("generated cluster config sucessfully")
+	case TopologyIsolated:
+		panic("isolated topology not yet implemented")
+	default:
+		fmt.Printf("unsuppoted topology type: %s\n ", topologyType)
+		os.Exit(1)
+	}
+
+	return topologyType, nil
+}
 
 func (n *NodeConfig) writeToConfigFile() error {
 	content, err := toml.Marshal(n)
@@ -161,50 +194,3 @@ func (n *NodeConfig) connect() (*ssh.Client, error) {
 
 	return conn, nil
 }
-
-func createNodeConfig(deploy Deploy) []NodeConfig {
-	allPeersAddr := []string{}
-	for _, machine := range deploy.Machines {
-		// each peer will have ip:port
-		addr := fmt.Sprintf("%s:%d", machine.IP, machine.ListenPort)
-		allPeersAddr = append(allPeersAddr, addr)
-	}
-
-	nodeConfigs := []NodeConfig{}
-	for idx, machine := range deploy.Machines {
-		nodeConfig := NodeConfig{}
-		nodeConfig.Id = idx + 1
-
-		nodeConfig.Listen = fmt.Sprintf("%s:%d", machine.Host, machine.ListenPort)
-		nodeConfig.PprofAddr = fmt.Sprintf("%s:%d", machine.Host, machine.PprofPort)
-
-		remove := idx
-		// creates a copy of the original slice, and get's all the peer addresses of
-		// before this node in allPeersAddr
-		peers := append([]string{}, allPeersAddr[:remove]...)
-		// and all peers after this node's ipAddr
-		peers = append(peers, allPeersAddr[remove+1:]...)
-		nodeConfig.Peers = peers
-
-		// cluster configuration
-		nodeConfig.ClusterSettings.Heartbeat = deploy.ClusterSettings.Heartbeat
-		nodeConfig.ClusterSettings.MinInterval = deploy.ClusterSettings.MinInterval
-		nodeConfig.ClusterSettings.MaxInterval = deploy.ClusterSettings.MaxInterval
-		nodeConfig.ClusterSettings.Mode = deploy.ClusterSettings.Mode
-
-		// ssh configuration
-		nodeConfig.sshPath = machine.SSHPath
-		nodeConfig.loginUser = machine.LoginUser
-		nodeConfig.ip = machine.IP
-
-		info := fmt.Sprintf("id: %d, ip: %s, generatedAt: %s, by: dock",
-			nodeConfig.Id, nodeConfig.ip, time.Now().Format("2006-01-02"),
-		)
-
-		nodeConfig.Info = info
-		nodeConfigs = append(nodeConfigs, nodeConfig)
-	}
-
-	return nodeConfigs
-}
-

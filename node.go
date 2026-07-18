@@ -8,22 +8,8 @@ import (
 	"io"
 	"net/rpc"
 	"os"
-	// "slices"
 	"sync"
 	"sync/atomic"
-	"time"
-)
-
-const (
-	// heartbeatInterval is the rate at which the node when in a [Leader] state sends
-	// out heartbeats to follower in a cluster. At the moment, this is set to be 200 which
-	// is roughly half the minimum election timeout interval
-	heartbeatInterval = time.Millisecond * 200
-
-	// According to the Raft Paper, it's recommended for timeouts(election) to range from 100-500ms, but
-	// we're increasing it because that's too aggressive
-	minInterval = 500
-	maxInterval = 1200
 )
 
 // Peer has the underlying rpc connection to a raft peer alongside
@@ -140,7 +126,7 @@ func (n *Node) Run(parentCtx context.Context) error {
 	}
 
 	n.log.Println("successfully connected to database")
-	n.database.Commit(db.Command{Operation: db.GetOps, Key: "raft-node-id", Value: "Testing raft-db connection"})
+	n.log.Println(fmt.Sprintf("heartbeatInterval: %+v, minInterval: %d, maxInterval: %d"), heartbeatInterval, minInterval, maxInterval)
 	errCh := make(chan error)
 
 	ctx, cancel := context.WithCancel(parentCtx)
