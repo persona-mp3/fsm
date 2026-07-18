@@ -4,4 +4,6 @@ trash
 jkvs
 logs/
 log-file-*
-
+trace
+trace*
+config-*.toml

@@ -33,7 +33,7 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 	if len(connectedPeers) == 0 {
 		logger.Println("YOO, WE DONT HAVE RECONNECTED PEERS")
 		successfulDials, failedCount := dialPeers("tcp", n.peers, logger.Inherit("dialPeers"))
-		if failedCount == len(n.peers) {
+		if failedCount == len(n.peers) || len(successfulDials) == 0 {
 			// TODO: Worth adding Shutdown state because of these kind of variants, instead of hard panics
 			logger.Println(
 				`no dials were succesfull, transitioning back to Follower:TODO: ADD Shutdown state, successDails, failedCount, peers`,
@@ -160,6 +160,10 @@ func dialPeers(network string, peers []string, logger rlog.RLogger) ([]*Peer, in
 		if err != nil {
 			if errors.Is(err, rpc.ErrShutdown) {
 				logger.Println(fmt.Sprintf("connection: %s has been shutdown", addr))
+				failed++
+				continue
+			} else {
+				logger.Println("could not dial peer:", err)
 				failed++
 				continue
 			}
