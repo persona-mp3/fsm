@@ -13,7 +13,11 @@ var configPath = "deploy.toml"
 
 func main() {
 	flag.StringVar(&configPath, "config", configPath, "deploy config to generate config")
+	flag.Parse()
+
 	deployConfig := dock.DeployCfg{}
+	fmt.Println("config-file::", configPath)
+	
 	meta, err := toml.DecodeFile(configPath, &deployConfig)
 	if err != nil {
 		fmt.Println("could not decoded config file.", err)

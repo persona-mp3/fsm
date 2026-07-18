@@ -187,5 +187,4 @@ func runClusterTopology(ctx context.Context, cfg *dock.SingleClusterConfig) erro
 		log.Println("parentCtx cancelled first, killing all rafts")
 		return nil
 	}
-	return nil
 }
