@@ -19,7 +19,6 @@ import (
 )
 
 var clusterConfig = "cluster-config.toml"
-var configPath = "deploy.toml"
 var topology = "cluster"
 
 var (
@@ -99,7 +98,7 @@ func parseConfig() error {
 	case "isolated":
 		return fmt.Errorf("cannot run an isolated config yet")
 	default:
-		return fmt.Errorf("Unsupported topology %s", topology)
+		return fmt.Errorf("unsupported topology %s", topology)
 	}
 
 	return nil
@@ -107,7 +106,12 @@ func parseConfig() error {
 
 func runSingleTopology(ctx context.Context, cfg *dock.NodeConfig) {
 	fmt.Println("peers:", cfg.Peers)
-	node, err := NewNode(fmt.Sprintf("%d", cfg.Id), cfg.Listen, cfg.Peers, os.Stdout)
+	out, err := os.Create(fmt.Sprintf("log-file-%d", cfg.Id))
+	if err != nil {
+		log.Println("could not create logFile for node", cfg.Id)
+		out = nil
+	}
+	node, err := NewNode(fmt.Sprintf("%d", cfg.Id), cfg.Listen, cfg.Peers, out)
 	if err != nil {
 		log.Println(err)
 		return

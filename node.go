@@ -126,7 +126,6 @@ func (n *Node) Run(parentCtx context.Context) error {
 	}
 
 	n.log.Println("successfully connected to database")
-	n.log.Println(fmt.Sprintf("heartbeatInterval: %+v, minInterval: %d, maxInterval: %d"), heartbeatInterval, minInterval, maxInterval)
 	errCh := make(chan error)
 
 	ctx, cancel := context.WithCancel(parentCtx)

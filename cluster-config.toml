@@ -1,17 +1,4 @@
-peers = [
-"localhost:5000", 
-"localhost:5001", 
-"localhost:5002", 
-"localhost:5003",
-"localhost:5004",
-"localhost:5005",
-"localhost:5006",
-"localhost:5007",
-"localhost:5008",
-"localhost:5009",
-"localhost:50010",
-]
-
+peers = ["localhost:5000", "localhost:5001", "localhost:5002", "localhost:5003"]
 pprof_addr = "localhost:6061"
 
 [cluster_settings]

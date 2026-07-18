@@ -1,10 +1,12 @@
 name = "deploy.toml"
+# if true, dock will ssh into these machines and run the binaries
 deploy = false
 
 [[machines]]
 ip = "ip1"
 host = "0.0.0.0"
 listen_port = 4000
+# exposed to go's http pprof
 pprof_port = 6061
 ssh_path = "/Users/eghosa.aiwuyo/.ssh/persona_mp3"
 login_user = "root"
@@ -35,7 +37,7 @@ min_interval = 1100
 max_interval = 1500
 
 [cluster_settings.topology]
-type = "cluster"
+type = "node"
 ports = [5000, 5001, 5002, 5003]
 
 
@@ -45,38 +47,52 @@ ports = [5000, 5001, 5002, 5003]
 # opts means that the node will have special settings
 # To also keep with the previous cluster configuration, the mode simply tells
 # the program how to run this node. 
-# "single" only run this node 
-# "cluster" run this node, and it's peers on this machine as a single process
-# If the this mode is chosen, all the host of all other nodes must reolve to tis
-# "isolated" run this node and it's peers on this machine as seperate processes
 
-# "cluster" mode will generate a single config file,
+# TOPOLOGY: This decides how these nodes will run on a machine. "node", "cluster", "isolated"
+
+# "node" only run this node on this machine
+# -------------
+###########################################
+# Node Mode configuration file  
+###########################################
+# id = 1
+# info = "id: 1, ip: ip1, generatedAt: 2026-07-18, by: dock"
+# listen = "0.0.0.0:4000"
+# pprof_addr = "0.0.0.0:6061"
+# peers = ["ip2:5000", "ip3:1738"]
+
+# [cluster_settings]
+#   heartbeat = 800
+#   min_interval = 1100
+#   max_interval = 1500
+#   [cluster_settings.topology]
+#     type = "node"
+#     ports = [5000, 5001, 5002, 5003]
+
+
+# "cluster" mode will generate a node config file,
+# -------------
 #  instead of individual config files for the cluster to run
 #  the host addresses are by default changed to 'localhost', so are 
 #  all the peers. You have to specify what ports the peers will run on. The number of 
 #  nodes created will be the number of nodes that will be running at any given time on 
 #  this device. In that case no machines can be specified, just the cluster settings and the ports
-
+###########################################
 # Cluster Mode configuration file  
-# -------------
-#   peers = [localhost:5000, localhost:5001, localhost:5002, localhost:5003]
-#   [cluster_settings]
-#   heartbeat = 200
-#   min_interval = 400
+###########################################
+# peers = ["localhost:5000", "localhost:5001", "localhost:5002", "localhost:5003"]
+# pprof_addr = "localhost:6061"
+#
+# [cluster_settings]
+#   heartbeat = 800
+#   min_interval = 1100
 #   max_interval = 1500
-#   [cluster_settings.mode] 
-#   type = "cluster" 
-#  
+#   [cluster_settings.topology]
+#     type = "cluster"
+#     ports = [5000, 5001, 5002, 5003]
+#
 
+# "isolated" run this node and it's peers on this machine as seperate processes
+# -------------
+# Not yet implemented
 
-# dock will generate a cluster_config.toml for each of these nodes and then deploy them on their ips
-# Each cluster_config.toml would look like this:
-# host = 0.0.0.0 or localhost
-# listen_port = 4001
-# pprof_port = 6061
-# peers = ["some-ip-address-2:4002", "some-ip-address-3:4003"]
-
-# ssh_path = "/absolute/path"
-# heartbeat = 200
-# min_interval = 400
-# max_interval = 1500
