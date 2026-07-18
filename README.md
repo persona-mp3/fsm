@@ -20,12 +20,12 @@ To run a cluster of 5 nodes on ports 4001-4005, simply add this to the config_cl
 addresses = ["localhost:4001", "localhost:4002", "localhost:4003", "localhost:4004", "localhost:4005"]
 ```
 
-To run an isolated node where it cannot contact other nodes
+To run an isolated node where it cannot contact other nodes and provide at least one port for a peer
 ```toml
-single = true
+[cluster_settings.topology]
+type = "node"
+ports = [5000, 5001, 5002, 5003]
 ```
-> Note that this config option is bound to change later on to support different modes
-
 
 ### Run the application
 #### Requirements
@@ -46,6 +46,7 @@ Run the raft engine
 go run .
 
 ```
+To generate a specific kind of cluster please see the `deploy.toml` for more information
 
 Observability and Tooling
 ---

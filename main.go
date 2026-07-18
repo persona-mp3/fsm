@@ -34,15 +34,14 @@ var (
 )
 
 func main() {
-
 	if err := parseConfig(); err != nil {
 		log.Println(err)
 	}
 }
 
 func parseConfig() error {
-	flag.StringVar(&topology, "topology", topology, "topology")
-	flag.StringVar(&clusterConfig, "config", clusterConfig, "cluster-config")
+	flag.StringVar(&topology, "topology", topology, "type of topology")
+	flag.StringVar(&clusterConfig, "config", clusterConfig, "path to cluster configuration file")
 	flag.Parse()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGKILL)
@@ -62,7 +61,9 @@ func parseConfig() error {
 		maxInterval = cfg.ClusterSettings.MaxInterval
 		heartbeatInterval = time.Millisecond * time.Duration(cfg.ClusterSettings.Heartbeat)
 
+		log.Println("running cluster in 'cluster' mode with total of", len(cfg.Peers), cfg.Peers)
 		go func() {
+			log.Printf("pprof server running on: http://%s/debug/pprof/", cfg.PprofAddr)
 			if err := http.ListenAndServe(cfg.PprofAddr, nil); err != nil {
 				log.Println("failed to start pprof server: ", err)
 				return
