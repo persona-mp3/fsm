@@ -6,4 +6,4 @@ logs/
 log-file-*
 trace
 trace*
-
+config-*.toml
