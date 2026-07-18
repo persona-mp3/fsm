@@ -8,7 +8,7 @@ host = "0.0.0.0"
 listen_port = 4000
 # exposed to go's http pprof
 pprof_port = 6061
-ssh_path = "/Users/eghosa.aiwuyo/.ssh/persona_mp3"
+ssh_path = "/home/.ssh/ip1"
 login_user = "root"
 opts = []
 
