@@ -11,4 +11,3 @@ my-deploy.toml
 bin/
 fsm
 *.zip
-node-1*

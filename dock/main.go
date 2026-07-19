@@ -1,3 +1,5 @@
+// dock is a deployment tooling for fsm. It parses 'deploy.toml' or any config
+// passed to it via the '--config' flag to generate a config for the fsm engine to run
 package dock
 
 import (
@@ -6,6 +8,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	scp "github.com/bramvdbogaerde/go-scp"
@@ -222,10 +225,12 @@ func startUp(client *ssh.Client, configFile *os.File) error {
 	targetFile := "/app/jkvs-server.jar"
 
 	jarInfo, _ := jarFile.Stat()
+	now := time.Now()
 	fmt.Println("copying jar file over to host")
 	if err := scpClient.Copy(context.Background(), jarFile, targetFile, "0665", jarInfo.Size()); err != nil {
 		return fmt.Errorf("could not copy over jarFile:  %w ", err)
 	}
+	fmt.Printf(" >> scp took [%s]\n\n", time.Since(now).String())
 
 	// copy over FSM binary
 	fsm, err := os.Open("fsm")
@@ -234,12 +239,13 @@ func startUp(client *ssh.Client, configFile *os.File) error {
 	}
 
 	fileInfo, _ := fsm.Stat()
+	fmt.Println("copying over fsm")
+	now = time.Now()
 	err = scpClient.Copy(context.Background(), fsm, "/app/fsm", "0655", fileInfo.Size())
 	if err != nil {
 		return fmt.Errorf("could not copy over fsm %w", err)
 	}
-
-	fmt.Println("copied fsm successfully")
+	fmt.Printf(" >> scp took [%s]\n\n", time.Since(now).String())
 
 	// copy cluster config
 	configFileSizeInfo, _ := configFile.Stat()
@@ -249,6 +255,7 @@ func startUp(client *ssh.Client, configFile *os.File) error {
 	if err != nil {
 		return fmt.Errorf("could not copy over cluster config %w", err)
 	}
+	fmt.Printf(" >> scp took [%s]\n\n", time.Since(now).String())
 
 	// err = scpClient.Copy(context.Background(), configFile, "/app/config.toml", "0665", fileInfo.Size())
 
@@ -259,7 +266,8 @@ func startUp(client *ssh.Client, configFile *os.File) error {
 	}
 
 	// running FSM
-	runFSMBinary := "./fsm --topology node --config config.toml"
+	fmt.Println("running topology node")
+	runFSMBinary := "./fsm --topology node --config config.toml &"
 	if err := run(client, runFSMBinary, true); err != nil {
 		return fmt.Errorf("could not runFSMBinary. reason: %w", err)
 	}
@@ -267,18 +275,21 @@ func startUp(client *ssh.Client, configFile *os.File) error {
 	return nil
 }
 
-func run(client *ssh.Client, cmd string, show bool) error {
+func run(client *ssh.Client, cmd string, showOut bool) error {
 	session, err := client.NewSession()
 	if err != nil {
 		return err
 	}
+	start := time.Now()
 	content, err := session.CombinedOutput(cmd)
 	if err != nil {
 		return err
 	}
+	done := time.Since(start)
 
-	if show {
+	if showOut {
 		fmt.Println(string(content))
+		fmt.Printf("\n  $[%s] took :%s\n", cmd, done.String())
 	}
 
 	// if err := session.Run(cmd); err != nil {
