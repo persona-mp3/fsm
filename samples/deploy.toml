@@ -4,7 +4,7 @@ reason = "testing deployment"
 deploy = true
 
 [[machines]]
-ip = "144.202.51.188"
+ip = "redacted"
 host = "0.0.0.0"
 listen_port = 4000
 # exposed to go's http pprof
@@ -13,7 +13,7 @@ ssh_path = "/home/persona-mp3/.ssh/node-1"
 login_user = "root"
 
 [[machines]]
-ip = "64.177.116.45"
+ip = "redacted"
 host = "0.0.0.0"
 listen_port = 4000
 # exposed to go's http pprof
