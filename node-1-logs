@@ -9,8 +9,8 @@
 21:47:56.940839 (1:candidate:1) candidate state succesfully initiated diagnostics: { id: 1, term: 1, state: Candidate, votedFor|leader: , logs:  }
 21:47:56.940841 (1:candidate:1) running for election
 21:47:56.940844 (1:candidate:1) YOO, WE DONT HAVE RECONNECTED PEERS
-21:47:56.941152 (1:candidate:1.dialPeers) could not dial peer: dial tcp 64.177.116.45:4000: connect: connection refused
-21:47:56.941159 (1:candidate:1) no dials were succesfull, transitioning back to Follower:TODO: ADD Shutdown state, successDails, failedCount, peers [] 1 [64.177.116.45:4000]
+21:47:56.941152 (1:candidate:1.dialPeers) could not dial peer: dial tcp redacted:4000: connect: connection refused
+21:47:56.941159 (1:candidate:1) no dials were succesfull, transitioning back to Follower:TODO: ADD Shutdown state, successDails, failedCount, peers [] 1 [redacted:4000]
 21:47:56.941163 (1:candidate:1) candidate mode terminated succesfully
 21:47:56.941167 (1:node:0) recvd transition to Follower
 21:47:58.356255 (1:follower:1) did not recv heartbeat from leader
@@ -19,8 +19,8 @@
 21:47:58.356299 (1:candidate:2) candidate state succesfully initiated diagnostics: { id: 1, term: 2, state: Candidate, votedFor|leader: , logs:  }
 21:47:58.356301 (1:candidate:2) running for election
 21:47:58.356304 (1:candidate:2) YOO, WE DONT HAVE RECONNECTED PEERS
-21:47:58.356567 (1:candidate:2.dialPeers) could not dial peer: dial tcp 64.177.116.45:4000: connect: connection refused
-21:47:58.356573 (1:candidate:2) no dials were succesfull, transitioning back to Follower:TODO: ADD Shutdown state, successDails, failedCount, peers [] 1 [64.177.116.45:4000]
+21:47:58.356567 (1:candidate:2.dialPeers) could not dial peer: dial tcp redacted:4000: connect: connection refused
+21:47:58.356573 (1:candidate:2) no dials were succesfull, transitioning back to Follower:TODO: ADD Shutdown state, successDails, failedCount, peers [] 1 [redacted:4000]
 21:47:58.356584 (1:candidate:2) candidate mode terminated succesfully
 21:47:58.356587 (1:node:0) recvd transition to Follower
 21:47:59.572681 (1:follower:2) did not recv heartbeat from leader
@@ -29,8 +29,8 @@
 21:47:59.572718 (1:candidate:3) candidate state succesfully initiated diagnostics: { id: 1, term: 3, state: Candidate, votedFor|leader: , logs:  }
 21:47:59.572719 (1:candidate:3) running for election
 21:47:59.572721 (1:candidate:3) YOO, WE DONT HAVE RECONNECTED PEERS
-21:47:59.572951 (1:candidate:3.dialPeers) could not dial peer: dial tcp 64.177.116.45:4000: connect: connection refused
-21:47:59.572957 (1:candidate:3) no dials were succesfull, transitioning back to Follower:TODO: ADD Shutdown state, successDails, failedCount, peers [] 1 [64.177.116.45:4000]
+21:47:59.572951 (1:candidate:3.dialPeers) could not dial peer: dial tcp redacted:4000: connect: connection refused
+21:47:59.572957 (1:candidate:3) no dials were succesfull, transitioning back to Follower:TODO: ADD Shutdown state, successDails, failedCount, peers [] 1 [redacted:4000]
 21:47:59.572962 (1:candidate:3) candidate mode terminated succesfully
 21:47:59.572964 (1:node:0) recvd transition to Follower
 21:48:00.946069 (1:follower:3) did not recv heartbeat from leader
@@ -510,22 +510,22 @@
 21:50:55.197126 (1:leader:4.commitFunc) quorum has been reached for replication 1
 21:50:55.197140 (1:leader:4.commitFunc) quorum has been reached for replication 1
 21:50:55.197159 (1:node:0.0-sendHB) recvd entry:: {entry:{Idx:0 Term:4 Operation:set Key:command_5 Value:persona-mp3@github.com} success:0x26aec7fe8c8 done:0x26aec854880}
-21:50:55.197446 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} 64.177.116.45:4000
+21:50:55.197446 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} redacted:4000
 21:50:55.197450 (1:node:0.0-sendHB) CONSTRUCTION:: increased replicationCount for commitFunc
 21:50:55.197456 (1:node:0.0-sendHB) recvd entry:: {entry:{Idx:5 Term:4 Operation:get Key:command_2 Value:} success:0x26aec9163c8 done:0x26aec980480}
-21:50:55.197639 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} 64.177.116.45:4000
+21:50:55.197639 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} redacted:4000
 21:50:55.197643 (1:node:0.0-sendHB) CONSTRUCTION:: increased replicationCount for commitFunc
 21:50:55.197646 (1:node:0.0-sendHB) recvd entry:: {entry:{Idx:1 Term:4 Operation:get Key:command_6 Value:} success:0x26aec9163d0 done:0x26aec980500}
-21:50:55.197793 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} 64.177.116.45:4000
+21:50:55.197793 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} redacted:4000
 21:50:55.197796 (1:node:0.0-sendHB) CONSTRUCTION:: increased replicationCount for commitFunc
 21:50:55.197799 (1:node:0.0-sendHB) recvd entry:: {entry:{Idx:2 Term:4 Operation:set Key:command_3 Value:Evain Bottle water} success:0x26aec9163d8 done:0x26aec980580}
-21:50:55.197931 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} 64.177.116.45:4000
+21:50:55.197931 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} redacted:4000
 21:50:55.197933 (1:node:0.0-sendHB) CONSTRUCTION:: increased replicationCount for commitFunc
 21:50:55.197936 (1:node:0.0-sendHB) recvd entry:: {entry:{Idx:3 Term:4 Operation:set Key:command_1 Value:this is the first command, listening to Master of None by Beach house} success:0x26aec9163e0 done:0x26aec980600}
-21:50:55.198278 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} 64.177.116.45:4000
+21:50:55.198278 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} redacted:4000
 21:50:55.198284 (1:node:0.0-sendHB) CONSTRUCTION:: increased replicationCount for commitFunc
 21:50:55.198289 (1:node:0.0-sendHB) recvd entry:: {entry:{Idx:4 Term:4 Operation:get Key:command_4 Value:} success:0x26aec916404 done:0x26aec980680}
-21:50:55.198445 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} 64.177.116.45:4000
+21:50:55.198445 (1:node:0.0-sendHB) reply:  {Id:2 Term:4 Acked:true Message:accepting appendEntry recognised as leader} redacted:4000
 21:50:55.198448 (1:node:0.0-sendHB) CONSTRUCTION:: increased replicationCount for commitFunc
 21:50:55.214462 (1:leader:4.commitFunc) debug:: after commiting: command_5, sending response
 21:50:55.214471 (1:leader:4.commitFunc) successfully sent response to client
