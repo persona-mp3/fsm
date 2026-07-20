@@ -2,7 +2,7 @@ peers = ["localhost:5000", "localhost:5001", "localhost:5002", "localhost:5003"]
 
 [leader]
 	force_term = 100
-  # rounds is the number of RPC's the test-leader will send to the node before proccessing test results
+    # rounds is the number of RPC's the test-leader will send to the node before proccessing test results
 	rounds = 8
 
 [cluster_settings]
