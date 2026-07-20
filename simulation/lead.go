@@ -41,6 +41,12 @@ type AppendEntryReply struct {
 
 var testTomlPath = "test.toml"
 
+const (
+	GreenEscapeCode = "\033[32m"
+	RedEscapeCode   = "\033[31m"
+	ResetEscapeCode = "\033[0m"
+)
+
 func main() {
 	cfg, err := parseTestConfig()
 	if err != nil {
@@ -143,7 +149,12 @@ PROCESS:
 		passed++
 	}
 
-	fmt.Printf("\n\ntotal passed: %d, failed: %d\n", passed, failed)
+	fmt.Printf("total passed:%s %d %s\n",
+		GreenEscapeCode, passed, ResetEscapeCode,
+	)
+	fmt.Printf("total failed:%s %d %s\n\n",
+		RedEscapeCode, failed, ResetEscapeCode,
+	)
 
 	return nil
 }

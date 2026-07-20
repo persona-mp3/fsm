@@ -6,7 +6,7 @@ peers = ["localhost:5000", "localhost:5001", "localhost:5002", "localhost:5003"]
 	rounds = 8
 
 [cluster_settings]
-  heartbeat = 2000
+  heartbeat = 80
   min_interval = 1100
   max_interval = 1500
 
