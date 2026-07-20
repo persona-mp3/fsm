@@ -90,7 +90,7 @@ An example logs as such
 ```
 
 
-Simulation Testing 
+Testing 
 ---
 Testing a running cluster is done via the [test.toml](./test.toml) config. This is more emphasized over
 unit tests to help tweak behaviours and match against behaviours that are expected in a cluster, as it 
