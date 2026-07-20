@@ -16,9 +16,10 @@ type Entry struct {
 }
 
 type Logs struct {
-	rw             sync.RWMutex
-	entries        []*Entry
-	latestCommited int
+	rw           sync.RWMutex
+	entries      []*Entry
+	lastCommited int
+	size         int
 }
 
 func (l *Logs) Append(e *Entry) int {
@@ -28,6 +29,18 @@ func (l *Logs) Append(e *Entry) int {
 	e.Idx = idx
 	l.entries = append(l.entries, e)
 	return idx
+}
+
+func (l *Logs) LastCommited() int {
+	l.rw.RLock()
+	defer l.rw.RUnlock()
+	return l.lastCommited
+}
+
+func (l *Logs) Size() int {
+	l.rw.RLock()
+	defer l.rw.RUnlock()
+	return len(l.entries)
 }
 
 func (l *Logs) Contains(e *Entry) bool {

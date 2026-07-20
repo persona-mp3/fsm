@@ -159,42 +159,42 @@ func (n *Node) Run(parentCtx context.Context) error {
 		case raftState := <-n.transition:
 			switch raftState {
 			case Follower:
-				if n.raft.getState() == Follower {
+				if n.raft.State() == Follower {
 					n.log.Panic(`recvd transition into Follower while in Follower state`, n.Diagnostics())
 				}
 
 				n.log.Println("recvd transition to Follower")
-				n.raft.updateState(raftState)
+				n.raft.UpdateState(raftState)
 				// cancel context and make a new one
 				n.stateCtxCancel()
 				n.newContext(ctx)
 
 				go n.runFollower()
 			case Leader:
-				if n.raft.getState() == Leader {
+				if n.raft.State() == Leader {
 					n.log.Panic(`recvd transition into Leader while in Leader state`, n.Diagnostics())
 				}
 
 				n.log.Println("recvd transition to Leader")
-				n.raft.updateState(raftState)
+				n.raft.UpdateState(raftState)
 				// cancel context and make a new one
 				n.stateCtxCancel()
 				n.newContext(ctx)
 
-				rlog := rlog.NewHumaneLogger(n.id, "leader", n.raft.getTerm(), n.log.Out())
+				rlog := rlog.NewHumaneLogger(n.id, "leader", n.raft.Term(), n.log.Out())
 				go n.runLeader(rlog)
 			case Candidate:
-				if n.raft.getState() == Candidate {
+				if n.raft.State() == Candidate {
 					n.log.Panic(`recvd transition into Candidate while in Candidate state`, n.Diagnostics())
 				}
 
 				n.log.Println("recvd transition to Candidate")
-				n.raft.updateState(raftState)
+				n.raft.UpdateState(raftState)
 				// cancel context and make a new one
 				n.stateCtxCancel()
 				n.newContext(ctx)
 
-				clog := rlog.NewHumaneLogger(n.id, "candidate", n.raft.getTerm(), n.log.Out())
+				clog := rlog.NewHumaneLogger(n.id, "candidate", n.raft.Term(), n.log.Out())
 				go n.runCandidate(clog)
 			default:
 				n.log.Panic("%s state not yet implemented!\n", raftState)
@@ -219,8 +219,8 @@ type Action struct {
 // it updates it's term with  the number returned, and the returned string with
 // votedFor with the
 func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, logger rlog.RLogger) Action {
-	currentTerm := n.raft.getTerm()
-	currentLeader := n.raft.getCurrentLeader()
+	currentTerm := n.raft.Term()
+	currentLeader := n.raft.CurrentLeader()
 
 	action := Action{}
 	if req.Term < currentTerm {
@@ -318,8 +318,8 @@ func (n *Node) addRPCPeer(peers ...*Peer) {
 }
 
 func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger rlog.RLogger) Action {
-	currentTerm := n.raft.getTerm()
-	currentLeader := n.raft.getCurrentLeader()
+	currentTerm := n.raft.Term()
+	currentLeader := n.raft.CurrentLeader()
 
 	action := Action{}
 	// take action by stepping stepping down to follower if a leader or candidate, otherwise update
@@ -387,7 +387,6 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
 `, n.id, n.Diagnostics(), req)
 
 	logger.Println(debugProse)
-	// logger.Panic("what is a kilometer::::", n.Diagnostics(), req)
 	replyCh <- RPCReply{
 		kind: Vote,
 		payload: &VoteReply{
@@ -401,15 +400,22 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
 	return action
 }
 
-
 // Diagnostics returns all revelevant information for this Node, including who it's
 // votedFor, current term, and what state it's in
 func (n *Node) Diagnostics() string {
-	term := n.raft.getTerm()
-	state := n.raft.getState().String()
-	votedFor := n.raft.getCurrentLeader()
+	term := n.raft.Term()
+	state := n.raft.State().String()
 
-	diagnostics := fmt.Sprintf("diagnostics: { id: %s, term: %d, state: %s, votedFor|leader: %s, logs: %+v }",
-		n.id, term, state, votedFor, n.logs.String())
+	diagnostics := fmt.Sprintf(
+		"id: %s, term: %d, state: %s, votedFor: %s, leader: %s, logSize: %d, lastCommited: %d logs: %+s",
+		n.id,
+		term,
+		state,
+		n.raft.VotedFor(),
+		n.raft.CurrentLeader(),
+		n.logs.Size(),
+		n.logs.LastCommited(),
+		n.logs.String(),
+	)
 	return diagnostics
 }

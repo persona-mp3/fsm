@@ -14,7 +14,7 @@ import (
 // the same term will be ignored. If a Node also sends an [AppendEntryRPC] with a higher
 // term, but the follower did not vote of it, the request is also ignored
 func (n *Node) runFollower() {
-	term := n.raft.getTerm()
+	term := n.raft.Term()
 	logger := rlog.NewHumaneLogger(n.id, "follower", term, n.log.Out())
 
 	ticker := time.NewTicker(n.raft.electionTimeout)
@@ -37,16 +37,18 @@ func (n *Node) runFollower() {
 			switch req.kind {
 			case AppendEntry:
 				request, ok := req.payload.(AppendEntryRequest)
-				action := handler.HandleAppendEntry(
-					request,
-					n.raft.getTerm(),
-					n.raft.getCurrentLeader(),
-					req.reply,
-				)
-
 				if !ok {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
+
+				action := handler.HandleAppendEntry(
+					request,
+					n.raft.Term(),
+					n.logs.LastCommited(),
+					n.logs.Size(),
+					n.raft.CurrentLeader(),
+					req.reply,
+				)
 
 				if !action.action {
 					continue
@@ -73,9 +75,7 @@ func (n *Node) runFollower() {
 
 				}
 
-				n.raft.updateTerm(action.newTerm, action.newLeader)
-				logger.UpdateTerm(action.newTerm)
-				logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
+				n.raft.UpdateTerm(action.newTerm, action.newLeader)
 				ticker.Reset(n.raft.electionTimeout)
 				slogger.Info(
 					"updated term and reset timeout",
@@ -88,17 +88,10 @@ func (n *Node) runFollower() {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
-				action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
-				if !action.action {
-					continue
-				}
-
-				n.raft.updateTerm(action.newTerm, action.newLeader)
-				logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
-				ticker.Reset(n.raft.electionTimeout)
+				handler.HandleVoteRPC(request, n.raft, req.reply)
 
 			case ClientCommand:
-				logger.Println("in follower state, need to forward request to leader")
+				slogger.Info("in follower state, need to forward request to leader")
 				req.reply <- RPCReply{
 					kind: ClientCommand,
 					payload: &CommandReply{

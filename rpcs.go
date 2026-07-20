@@ -1,7 +1,7 @@
 package main
 
 import (
-  db "fsm/database"
+	db "fsm/database"
 )
 
 // RPCKind singifies that kind of payload the RPCRequest is and the expected Reply
@@ -29,6 +29,9 @@ type AppendEntryRequest struct {
 	Term    uint64
 	Message string
 	Entry   *Entry
+	// temp
+	LastCommited int
+	LogSize      int
 }
 
 type AppendEntryReply struct {
@@ -36,6 +39,9 @@ type AppendEntryReply struct {
 	Term    uint64
 	Acked   bool
 	Message string
+	// temp
+	LastCommited int
+	LogSize      int
 }
 
 type VoteRequest struct {
