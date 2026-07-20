@@ -25,7 +25,7 @@ func NewFollowerHandler(id string, logger *slog.Logger) Handler {
 	}
 }
 
-func (f FollowerHandler) HandleAppendEntry (
+func (f FollowerHandler) HandleAppendEntry(
 	req AppendEntryRequest,
 	term uint64,
 	leader string,
@@ -52,9 +52,7 @@ func (f FollowerHandler) HandleAppendEntry (
 			slog.Any("payload", req),
 		)
 
-	}
-
-	if req.Term < term {
+	} else if req.Term < term {
 		reply.Acked = false
 		reply.Message = "Obsolete leader, you are no longer recognized as leader"
 
@@ -66,12 +64,7 @@ func (f FollowerHandler) HandleAppendEntry (
 			slog.Uint64("currentTerm", term),
 			slog.Any("payload", req),
 		)
-	}
-
-	// if a node while in follower mode gave a vote to someone else
-	// votedFor=newCandidate, leader=oldLeader
-	// currentTerm=candidateTerm
-	if req.Term == term && req.Id == leader {
+	} else if req.Term == term && req.Id == leader {
 		reply.Acked = true
 		reply.Message = "Acknowledged as leader for current term"
 
