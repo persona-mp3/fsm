@@ -75,8 +75,7 @@ func (f FollowerHandler) HandleAppendEntry(
 			slog.Any("payload", req),
 		)
 	} else if req.Term == term && req.LastCommited >= lastCommitIndex && req.LogSize >= logSize {
-		// TODO: Need to check if this is actually our leader instead of assuming anyone w the same term 
-		// and log is our leader.
+		// todo(daniel): Need to check if this is actually our leader instead of assuming anyone w the same term and log is our leader.
 		reply.Acked = true
 		reply.Message = "Acknowledged as leader for current term"
 
@@ -99,6 +98,16 @@ func (f FollowerHandler) HandleAppendEntry(
 		f.logger.Info("received append entry from an illegitimate leader for current term",
 			slog.Uint64("currentTerm", term),
 			slog.Any("payload", req),
+		)
+	} else if req.Term == term && (req.LastCommited < lastCommitIndex || req.LogSize < logSize) {
+		reply.Acked = false
+		reply.Message = "Unacknowledged as a leader of current term. logs and last commited are not up to date"
+
+		action.action = false
+		action.newTerm = term
+		action.newLeader = leader
+		f.logger.Info("received append entry from an leader with incomplete logs",
+			slog.Uint64("currentTerm", term), slog.Any("payload", req),
 		)
 	}
 
