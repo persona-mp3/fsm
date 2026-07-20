@@ -80,7 +80,7 @@ type CommandReply struct {
 
 func (s *Server) AppendEntryRPC(req AppendEntryRequest, res *AppendEntryReply) error {
 	s.log.Println("forwarding appendRPC to node")
-	reply := make(chan RPCReply)
+	reply := make(chan RPCReply, 1)
 	s.incoming <- RPC{kind: AppendEntry, payload: req, reply: reply}
 
 	response := <-reply
@@ -100,7 +100,7 @@ func (s *Server) AppendEntryRPC(req AppendEntryRequest, res *AppendEntryReply) e
 
 func (s *Server) VoteRequestRPC(req VoteRequest, res *VoteReply) error {
 	s.log.Println("forwarding voteRPC to node")
-	reply := make(chan RPCReply)
+	reply := make(chan RPCReply, 1)
 	s.incoming <- RPC{kind: Vote, payload: req, reply: reply}
 
 	response := <-reply
