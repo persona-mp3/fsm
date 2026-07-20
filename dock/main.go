@@ -257,8 +257,6 @@ func startUp(client *ssh.Client, configFile *os.File) error {
 	}
 	fmt.Printf(" >> scp took [%s]\n\n", time.Since(now).String())
 
-	// err = scpClient.Copy(context.Background(), configFile, "/app/config.toml", "0665", fileInfo.Size())
-
 	fmt.Println("running jkvs application")
 	runJKVS := "java -jar /app/jkvs-server.jar &"
 	if err := run(client, runJKVS, true); err != nil {
@@ -292,9 +290,5 @@ func run(client *ssh.Client, cmd string, showOut bool) error {
 		fmt.Printf("\n  $[%s] took :%s\n", cmd, done.String())
 	}
 
-	// if err := session.Run(cmd); err != nil {
-	// 	return err
-	// }
 	return nil
-
 }

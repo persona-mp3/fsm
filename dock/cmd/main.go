@@ -16,8 +16,8 @@ func main() {
 	flag.Parse()
 
 	deployConfig := dock.DeployCfg{}
-	fmt.Println("config-file::", configPath)
-	
+	fmt.Println("parsing config file: ", configPath)
+
 	meta, err := toml.DecodeFile(configPath, &deployConfig)
 	if err != nil {
 		fmt.Println("could not decoded config file.", err)
