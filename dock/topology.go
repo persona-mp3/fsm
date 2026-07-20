@@ -25,6 +25,7 @@ func createTopologySingleConfig(deploy DeployCfg) []NodeConfig {
 		// creates a copy of the original slice, and get's all the peer addresses of
 		// before this node in allPeersAddr
 		peers := append([]string{}, allPeersAddr[:remove]...)
+
 		// and all peers after this node's ipAddr
 		peers = append(peers, allPeersAddr[remove+1:]...)
 		nodeConfig.Peers = peers
@@ -66,7 +67,7 @@ func newClusterTopologyConfig(deploy DeployCfg) SingleClusterConfig {
 		peers = append(peers, addr)
 	}
 
-  nodeCfg.Peers = peers
+	nodeCfg.Peers = peers
 	nodeCfg.PprofAddr = fmt.Sprintf("%s:%d", host, 6061)
 	nodeCfg.ClusterSettings = clusterSettings
 	return nodeCfg

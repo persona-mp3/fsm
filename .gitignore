@@ -7,3 +7,7 @@ log-file-*
 trace
 trace*
 config-*.toml
+my-deploy.toml
+bin/
+fsm
+*.zip

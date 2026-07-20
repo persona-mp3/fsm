@@ -167,7 +167,7 @@ func runClusterTopology(ctx context.Context, cfg *dock.SingleClusterConfig) erro
 	for _, node := range nodes {
 		wg.Go(func() {
 			if err := node.Run(nodeCtx); err != nil {
-				log.Println("err")
+				log.Println(err)
 				return
 			}
 		})
@@ -187,5 +187,4 @@ func runClusterTopology(ctx context.Context, cfg *dock.SingleClusterConfig) erro
 		log.Println("parentCtx cancelled first, killing all rafts")
 		return nil
 	}
-	return nil
 }

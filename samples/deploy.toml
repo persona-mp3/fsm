@@ -1,0 +1,32 @@
+author = "persona-mp3"
+reason = "testing deployment"
+# if true, dock will ssh into these machines and run the binaries
+deploy = true
+
+[[machines]]
+ip = "redacted"
+host = "0.0.0.0"
+listen_port = 4000
+# exposed to go's http pprof
+pprof_port = 6061
+ssh_path = "/home/persona-mp3/.ssh/node-1"
+login_user = "root"
+
+[[machines]]
+ip = "redacted"
+host = "0.0.0.0"
+listen_port = 4000
+# exposed to go's http pprof
+pprof_port = 6061
+ssh_path = "/home/persona-mp3/.ssh/node-2"
+login_user = "root"
+
+
+[cluster_settings]
+heartbeat = 800
+min_interval = 1100
+max_interval = 1500
+
+[cluster_settings.topology]
+type = "node"
+ports = [5000, 5001, 5002, 5003]

@@ -3,6 +3,7 @@ package database
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"log"
 	"net"
 )
@@ -42,15 +43,15 @@ type Database interface {
 	Disconnect() error
 
 	Ping() error
-
-	// WritePump(incoming <-chan Command)
-	// ReadPump(responses chan<- Response)
 }
 
 type JKVS struct {
+	// Network JKVS supports. Currently TCP
 	Network string
-	Addr    string
-	Conn    net.Conn
+	// Addr JKVS is running on
+	Addr string
+	// Underlying connection
+	Conn net.Conn
 }
 
 func NewJKVSDatabase(network, addr string) *JKVS {
@@ -69,6 +70,7 @@ func (jkvs *JKVS) Connect() error {
 	return nil
 }
 
+// Commit sends the command for JKVS or the underlying database to apply to its log
 func (jkvs *JKVS) Commit(cmd Command) (*Response, error) {
 	payload := fmt.Sprintf("%s\r\n%s\r\n%s\r\n", cmd.Operation, cmd.Key, cmd.Value)
 	raw := []byte(payload)
@@ -84,24 +86,22 @@ func (jkvs *JKVS) Commit(cmd Command) (*Response, error) {
 	log.Println("sent to database successfully")
 
 	buff := make([]byte, HeaderSizeBytes)
-	_, err := jkvs.Conn.Read(buff)
+	_, err := io.ReadFull(jkvs.Conn, buff)
 	if err != nil {
 		return nil, fmt.Errorf("could not read header response from jkvs: %w", err)
 	}
 
 	packetSize := binary.BigEndian.Uint32(buff)
 	packet := make([]byte, packetSize)
-	n, err := jkvs.Conn.Read(packet)
-	if err != nil {
-		return nil, fmt.Errorf("could not read  response from jkvs: %w", err)
+
+	if _, err := io.ReadFull(jkvs.Conn, packet); err != nil {
+		return nil, fmt.Errorf("could not read response body from jkvs: %w", err)
 	}
 
-	content := packet[:n]
-	return &Response{From: "mock_jkvs.send()", Message: fmt.Sprintf("from-jkvs::%s", content)}, nil
+	return &Response{From: "fsm-jkvs", Message: fmt.Sprintf("from-jkvs::%s", packet)}, nil
 }
 
 func (jkvs *JKVS) Disconnect() error {
-	log.Println("mock_disconnected")
 	err := jkvs.Conn.Close()
 	if err != nil {
 		return fmt.Errorf("could not close connection with jkvs: %w", err)
@@ -109,7 +109,7 @@ func (jkvs *JKVS) Disconnect() error {
 	return nil
 }
 
+// Ping protocol hasn't yet been implemented on JKVS
 func (jkvs *JKVS) Ping() error {
-	log.Println("mock_ping::")
 	return nil
 }

@@ -1,0 +1,13 @@
+id = 2
+info = "id: 2, ip: redacted, generatedAt: 2026-07-19, by: dock"
+listen = "0.0.0.0:4000"
+pprof_addr = "0.0.0.0:6061"
+peers = ["redacted:4000"]
+
+[cluster_settings]
+  heartbeat = 800
+  min_interval = 1100
+  max_interval = 1500
+  [cluster_settings.topology]
+    type = "node"
+    ports = [5000, 5001, 5002, 5003]

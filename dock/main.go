@@ -1,15 +1,19 @@
+// dock is a deployment tooling for fsm. It parses 'deploy.toml' or any config
+// passed to it via the '--config' flag to generate a config for the fsm engine to run
 package dock
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/BurntSushi/toml"
+	scp "github.com/bramvdbogaerde/go-scp"
 	"golang.org/x/crypto/ssh"
 )
-
-// dock config deploy.toml
-var configFile = "deploy.toml"
 
 type Machine struct {
 	// Addr this node will listen on for incoming rpcs
@@ -69,20 +73,7 @@ type NodeConfig struct {
 	ip        string
 }
 
-func GenerateConfigFile(cfg DeployCfg) (TopologyType, error) {
-	content, err := os.ReadFile(configFile)
-	if err != nil {
-		fmt.Println("could not read config file. ", err)
-		os.Exit(1)
-	}
-
-	deployCfg := DeployCfg{}
-	_, err = toml.Decode(fmt.Sprintf("%s", content), &deployCfg)
-	if err != nil {
-		fmt.Println("could not decode toml file. ", err)
-		os.Exit(1)
-	}
-
+func GenerateConfigFile(deployCfg DeployCfg) (TopologyType, error) {
 	fmt.Println("parsed config sucessfully creating node configurations")
 
 	topologyType := deployCfg.ClusterSettings.Topology.Type
@@ -90,23 +81,17 @@ func GenerateConfigFile(cfg DeployCfg) (TopologyType, error) {
 
 	case TopologyNode:
 		configs := createTopologySingleConfig(deployCfg)
-		sshClients := []*ssh.Client{}
 
 		for _, nodeCfg := range configs {
 			nodeCfg.writeToConfigFile()
-			if deployCfg.Deploy {
-				client, err := nodeCfg.connect()
-				// bail if any dial fails
-				if err != nil {
-					fmt.Println(err)
-					os.Exit(1)
-				}
-
-				sshClients = append(sshClients, client)
-			}
-
 			fmt.Println("generated config for node", nodeCfg.Id)
 		}
+
+		if !deployCfg.Deploy {
+			return topologyType, nil
+		}
+
+		sshClients := []*ssh.Client{}
 		defer func() {
 			for _, client := range sshClients {
 				err := client.Close()
@@ -115,7 +100,31 @@ func GenerateConfigFile(cfg DeployCfg) (TopologyType, error) {
 				}
 			}
 		}()
+		for _, node := range configs {
+			client, err := node.connect()
+			if err != nil {
+				log.Fatalf("could not connect for %s. %s", node.ip, err)
+			}
+			sshClients = append(sshClients, client)
+		}
 
+		wg := sync.WaitGroup{}
+		for idx, client := range sshClients {
+			node := configs[idx]
+			configFileName := fmt.Sprintf("config-%d.toml", node.Id)
+			configFile, err := os.Open(configFileName)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			wg.Go(func() {
+				if err = startUp(client, configFile); err != nil {
+					log.Fatal(err)
+				}
+			})
+		}
+
+		wg.Wait()
 		// write configuration files
 	case TopologyCluster:
 		config := newClusterTopologyConfig(deployCfg)
@@ -193,4 +202,99 @@ func (n *NodeConfig) connect() (*ssh.Client, error) {
 	}
 
 	return conn, nil
+}
+
+func startUp(client *ssh.Client, configFile *os.File) error {
+	fmt.Println("running system update and installing openjdk-21")
+	runSystemUpdateAndInstall := "apt update && apt install -y openjdk-21-jdk"
+	if err := run(client, runSystemUpdateAndInstall, true); err != nil {
+		return fmt.Errorf("could not runSystemUpdateAndInstall. reason: %w", err)
+	}
+
+	scpClient, err := scp.NewClientBySSH(client)
+	if err != nil {
+		return fmt.Errorf("failed to create scpClient. %w", err)
+	}
+
+	jarPath := "./jkvs/jkvs/target/jkvs-server.jar"
+	jarFile, err := os.Open(jarPath)
+	if err != nil {
+		return fmt.Errorf("could not open jar file at: %w ", err)
+	}
+
+	targetFile := "/app/jkvs-server.jar"
+
+	jarInfo, _ := jarFile.Stat()
+	now := time.Now()
+	fmt.Println("copying jar file over to host")
+	if err := scpClient.Copy(context.Background(), jarFile, targetFile, "0665", jarInfo.Size()); err != nil {
+		return fmt.Errorf("could not copy over jarFile:  %w ", err)
+	}
+	fmt.Printf(" >> scp took [%s]\n\n", time.Since(now).String())
+
+	// copy over FSM binary
+	fsm, err := os.Open("fsm")
+	if err != nil {
+		return fmt.Errorf("could not open fsm binary %w", err)
+	}
+
+	fileInfo, _ := fsm.Stat()
+	fmt.Println("copying over fsm")
+	now = time.Now()
+	err = scpClient.Copy(context.Background(), fsm, "/app/fsm", "0655", fileInfo.Size())
+	if err != nil {
+		return fmt.Errorf("could not copy over fsm %w", err)
+	}
+	fmt.Printf(" >> scp took [%s]\n\n", time.Since(now).String())
+
+	// copy cluster config
+	configFileSizeInfo, _ := configFile.Stat()
+
+	fmt.Println("copying over cluster config")
+	err = scpClient.Copy(context.Background(), configFile, "/app/config.toml", "0655", configFileSizeInfo.Size())
+	if err != nil {
+		return fmt.Errorf("could not copy over cluster config %w", err)
+	}
+	fmt.Printf(" >> scp took [%s]\n\n", time.Since(now).String())
+
+	// err = scpClient.Copy(context.Background(), configFile, "/app/config.toml", "0665", fileInfo.Size())
+
+	fmt.Println("running jkvs application")
+	runJKVS := "java -jar /app/jkvs-server.jar &"
+	if err := run(client, runJKVS, true); err != nil {
+		return fmt.Errorf("could not runJKVS. reason: %w", err)
+	}
+
+	// running FSM
+	fmt.Println("running topology node")
+	runFSMBinary := "./fsm --topology node --config config.toml &"
+	if err := run(client, runFSMBinary, true); err != nil {
+		return fmt.Errorf("could not runFSMBinary. reason: %w", err)
+	}
+
+	return nil
+}
+
+func run(client *ssh.Client, cmd string, showOut bool) error {
+	session, err := client.NewSession()
+	if err != nil {
+		return err
+	}
+	start := time.Now()
+	content, err := session.CombinedOutput(cmd)
+	if err != nil {
+		return err
+	}
+	done := time.Since(start)
+
+	if showOut {
+		fmt.Println(string(content))
+		fmt.Printf("\n  $[%s] took :%s\n", cmd, done.String())
+	}
+
+	// if err := session.Run(cmd); err != nil {
+	// 	return err
+	// }
+	return nil
+
 }
