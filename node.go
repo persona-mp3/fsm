@@ -315,11 +315,6 @@ func (n *Node) addRPCPeer(peers ...*Peer) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	n.rpcPeers = peers
-	// for _, p := range peers {
-	// 	if p != nil && !slices.Contains(n.rpcPeers, p) {
-	// 		n.rpcPeers = append(n.rpcPeers, p)
-	// 	}
-	// }
 }
 
 func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger rlog.RLogger) Action {
@@ -405,6 +400,7 @@ func (n *Node) handleVoteRequest(req VoteRequest, replyCh chan RPCReply, logger 
 
 	return action
 }
+
 
 // Diagnostics returns all revelevant information for this Node, including who it's
 // votedFor, current term, and what state it's in

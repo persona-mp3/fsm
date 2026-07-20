@@ -2,6 +2,7 @@ package main
 
 import (
 	rlog "fsm/raftlogger"
+	"log/slog"
 	"time"
 )
 
@@ -22,6 +23,8 @@ func (n *Node) runFollower() {
 		logger.Println("follower mode exited successfully", n.Diagnostics())
 	}()
 
+	slogger := slog.New(slog.NewJSONHandler(n.log.Out(), nil))
+	handler := NewFollowerHandler(n.id, slogger)
 	for {
 		select {
 		case <-n.stateCtx.Done():
@@ -34,25 +37,38 @@ func (n *Node) runFollower() {
 			switch req.kind {
 			case AppendEntry:
 				request, ok := req.payload.(AppendEntryRequest)
-				// no point in relaying respose backup to the server because the server will still
-				// invalidate it and panic
+				action := handler.HandleAppendEntry(
+					request,
+					n.raft.getTerm(),
+					n.raft.getCurrentLeader(),
+					req.reply,
+				)
+
 				if !ok {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
-				action := n.handleAppendEntry(request, req.reply, logger.Inherit("handleAE"))
 				if !action.action {
 					continue
 				}
 
-				// TODO: The leader can send the same entry as long as it wants? But we'd need to distinguish if
-				// we already have this entry the leader has sent, by simply checking against the [Entry.Idx],and [Entry.Term]
 				if request.Entry != nil {
-					if !n.logs.Contains(request.Entry.Idx, request.Entry.Term) {
-						logger.Println("CONSTRUCTION:FOLLOWER_ received a new entry from leader", request.Entry, n.logs.Contains(request.Entry.Idx, request.Entry.Term))
+					if !n.logs.Contains(request.Entry) {
+						slogger.Info(
+							"IN_PROGRESS: received new entry from leader",
+							slog.Group("details",
+								slog.Any("entry", request.Entry),
+								slog.Bool("available", n.logs.Contains(request.Entry)),
+							),
+						)
 						n.logs.Append(request.Entry)
+						slog.Info("append new log to entry", slog.Bool("appended", n.logs.Contains(request.Entry)))
 					} else {
-						logger.Println("entry already exists", request.Entry, n.logs.Contains(request.Entry.Idx, request.Entry.Term))
+						slogger.Info(
+							"entry in request already exists",
+							slog.Any("entry", request.Entry),
+							slog.String("currentLogs", n.logs.String()),
+						)
 					}
 
 				}
@@ -61,11 +77,13 @@ func (n *Node) runFollower() {
 				logger.UpdateTerm(action.newTerm)
 				logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
 				ticker.Reset(n.raft.electionTimeout)
+				slogger.Info(
+					"updated term and reset timeout",
+					slog.String("diagnostics", n.Diagnostics()),
+				)
 
 			case Vote:
 				request, ok := req.payload.(VoteRequest)
-				// no point in relaying respose backup to the server because the server will still
-				// invalidate it and panic
 				if !ok {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
