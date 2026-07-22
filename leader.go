@@ -178,11 +178,11 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 		case replicate := <-peer.replicateCh:
 			logger.Println("recvd entry::", replicate)
 			req := AppendEntryRequest{
-				Id:           n.id,
-				Term:         n.raft.Term(),
-				Message:      "This is a new entry",
-				LastCommited: n.logs.LastCommited(),
-				Entry:        &replicate.entry,
+				Id:              n.id,
+				Term:            n.raft.Term(),
+				Message:         "This is a new entry",
+				LastCommitIndex: n.logs.LastCommited(),
+				Entry:           &replicate.entry,
 			}
 			req.Entry = &replicate.entry
 			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
@@ -207,11 +207,11 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 
 		case replicate := <-peer.replicateCh:
 			req := AppendEntryRequest{
-				Id:           n.id,
-				Term:         n.raft.Term(),
-				Message:      "This is a new entry",
-				LastCommited: n.logs.LastCommited(),
-				Entry:        &replicate.entry,
+				Id:              n.id,
+				Term:            n.raft.Term(),
+				Message:         "This is a new entry",
+				LastCommitIndex: n.logs.LastCommited(),
+				Entry:           &replicate.entry,
 			}
 
 			logger.Println("recvd entry::", replicate)
@@ -231,10 +231,10 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 
 		case <-ticker.C:
 			req := AppendEntryRequest{
-				Id:           n.id,
-				Term:         n.raft.Term(),
-				Message:      "This is a heartbeat message",
-				LastCommited: n.logs.LastCommited(),
+				Id:              n.id,
+				Term:            n.raft.Term(),
+				Message:         "This is a heartbeat message",
+				LastCommitIndex: n.logs.LastCommited(),
 			}
 			logger.Println("sending heartbeatRPC")
 			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {

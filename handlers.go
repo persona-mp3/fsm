@@ -1,21 +1,23 @@
 package main
 
-import "log/slog"
+import (
+	"fmt"
+	"log/slog"
+)
+
+type VoteAction struct {
+	termVoted   uint64
+	votedFor    string
+	grantedVote bool
+}
 
 type Handler interface {
 	HandleAppendEntry(
-		req AppendEntryRequest,
-		term uint64,
-		lastCommitIndex int,
-		logSize int,
-		leader string,
-		ch chan RPCReply,
+		req AppendEntryRequest, currentTerm uint64, leader string, lastCommitIndex, logSize int, ch chan RPCReply,
 	) Action
 
 	HandleVoteRPC(
-		req VoteRequest,
-		raft *Raft,
-		ch chan<- RPCReply,
+		req VoteRequest, votedFor string, currentTerm uint64, ch chan<- RPCReply,
 	) VoteAction
 }
 
@@ -31,108 +33,21 @@ func NewFollowerHandler(id string, logger *slog.Logger) Handler {
 	}
 }
 
-func (f FollowerHandler) HandleAppendEntry(
-	req AppendEntryRequest,
-	term uint64,
-	lastCommitIndex int,
-	logSize int,
-	leader string,
-	ch chan RPCReply,
-) Action {
-
-	reply := &AppendEntryReply{
-		Id:   f.Id,
-		Term: term,
-	}
-	action := Action{}
-
-	if req.Term > term {
-		reply.Acked = true
-		reply.Message = "Acknowledged as new leader for new term"
-		reply.Term = req.Term
-
-		action.action = true
-		action.newTerm = req.Term
-		action.newLeader = req.Id
-		f.logger.Info("received append entry from a new node due to higher rpc",
-			slog.Uint64("currentTerm", term),
-			slog.Uint64("newTerm", req.Term),
-			slog.Any("payload", req),
-		)
-
-		action.newLeader = req.Id
-
-	} else if req.Term < term {
-		reply.Acked = false
-		reply.Message = "Obsolete leader, you are no longer recognized as leader"
-
-		action.action = false
-		action.newTerm = term
-		action.newLeader = leader
-
-		f.logger.Info("received append entry from a lower term",
-			slog.Uint64("currentTerm", term),
-			slog.Any("payload", req),
-		)
-	} else if req.Term == term && req.LastCommited >= lastCommitIndex && req.LogSize >= logSize {
-		// todo(daniel): Need to check if this is actually our leader instead of assuming anyone w the same term and log is our leader.
-		reply.Acked = true
-		reply.Message = "Acknowledged as leader for current term"
-
-		action.action = true
-		action.newTerm = term
-		action.newLeader = leader
-		f.logger.Info("received append entry from valid leader. Logs match and are up to date",
-			slog.Uint64("currentTerm", term),
-			slog.Any("payload", req),
-		)
-		action.newLeader = req.Id
-
-	} else if req.Term == term && req.Id != leader {
-		reply.Acked = false
-		reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
-
-		action.action = false
-		action.newTerm = term
-		action.newLeader = leader
-		f.logger.Info("received append entry from an illegitimate leader for current term",
-			slog.Uint64("currentTerm", term),
-			slog.Any("payload", req),
-		)
-	} else if req.Term == term && (req.LastCommited < lastCommitIndex || req.LogSize < logSize) {
-		reply.Acked = false
-		reply.Message = "Unacknowledged as a leader of current term. logs and last commited are not up to date"
-
-		action.action = false
-		action.newTerm = term
-		action.newLeader = leader
-		f.logger.Info("received append entry from an leader with incomplete logs",
-			slog.Uint64("currentTerm", term), slog.Any("payload", req),
-		)
-	}
-
-	ch <- RPCReply{
-		kind:    AppendEntry,
-		payload: reply,
-	}
-
-	return action
-}
-
-type VoteAction struct {
-	grantedVote bool
-	termVoted   uint64
-	votedFor    string
-}
-
+// HandleVoteRPC grants a vote to a Candidate client on the following conditions
+//
+//   - The voteRPC comes from a higher term
+//   - The rpc's logs are up to date or with this node's logs (not fully impl for log matching)
+//
+// When these conditions are met, the caller has to update their raft state with the
+// [VoteAction.votedFor] and [VoteAction.termVoted] fields.
+// The response is sent through the reply channel to the server so callers do not need
+// to send through it
 func (f FollowerHandler) HandleVoteRPC(
 	req VoteRequest,
-	raft *Raft,
+	votedFor string,
+	currentTerm uint64,
 	ch chan<- RPCReply,
 ) VoteAction {
-
-	votedFor := raft.VotedFor()
-	currentTerm := raft.Term()
 
 	action := VoteAction{
 		grantedVote: false,
@@ -169,9 +84,6 @@ func (f FollowerHandler) HandleVoteRPC(
 		reply.Term = req.Term
 
 		currentTerm = req.Term
-
-		raft.GiveVote(req.Term, req.Id)
-
 		action.termVoted = currentTerm
 		action.votedFor = req.Id
 		action.grantedVote = true
@@ -189,4 +101,144 @@ func (f FollowerHandler) HandleVoteRPC(
 		slog.Any("reply", reply),
 	)
 	return action
+}
+
+// HandleAppendEntry accepts an appendEntryRPC based on the following conditions
+//   - Comes from a node who has a higher term and logs are up to date
+//   - Comes from a node who has the same term, and the node has not identified its leader
+//   - Comes from a node who has the same term and the node has identified it as its leader
+//   - Comes from a node
+func (f FollowerHandler) HandleAppendEntry(
+	req AppendEntryRequest, currentTerm uint64, leader string, lastCommitIndex, logSize int, ch chan RPCReply,
+) Action {
+	reply := AppendEntryReply{}
+	action := Action{}
+
+	switch {
+	case req.Term < currentTerm:
+		action, reply = f.rejectAppendEntry(&req, currentTerm, lastCommitIndex, logSize)
+	case req.Term > currentTerm:
+		action, reply = f.acceptNewTerm(&req, lastCommitIndex, logSize)
+	case req.Term == currentTerm:
+		action, reply = f.proceessAppendEntry(&req, currentTerm, leader, lastCommitIndex, logSize)
+	}
+
+	ch <- RPCReply{kind: AppendEntry, payload: &reply}
+	return action
+}
+
+func (f FollowerHandler) rejectAppendEntry(
+	req *AppendEntryRequest, currentTerm uint64, lastCommitIndex, logSize int,
+) (Action, AppendEntryReply) {
+	reply := AppendEntryReply{
+		Id:           f.Id,
+		Acked:        false,
+		Term:         currentTerm,
+		Message:      "Rejected due to lower term",
+		LastCommited: lastCommitIndex,
+		LogSize:      logSize,
+	}
+
+	action := Action{
+		action: false,
+	}
+
+	f.logger.Info("rejecting appendEntry due to lower term",
+		slog.Uint64("currentTerm", currentTerm),
+		slog.Int("lastCommitIndex", lastCommitIndex),
+		slog.Int("logSize", logSize),
+		slog.Any("appendEntryRPC", req),
+	)
+	return action, reply
+}
+
+func (f FollowerHandler) acceptNewTerm(
+	req *AppendEntryRequest, lastCommitIndex, logSize int,
+) (Action, AppendEntryReply) {
+	// TODO: fail fast
+	// logsMatch := req.LogSize >= logSize && req.LastCommitIndex >= lastCommitIndex
+	action := Action{}
+	reply := AppendEntryReply{}
+
+	action.action = true
+	action.newLeader = req.Id
+	action.newTerm = req.Term
+
+	reply.Id = f.Id
+	reply.Acked = true
+	reply.Message = "Acknowledged as leader"
+	reply.Term = req.Term
+
+	return action, reply
+}
+
+// currentLeader, logsMatch
+func (f FollowerHandler) proceessAppendEntry(
+	req *AppendEntryRequest, currentTerm uint64, currentLeader string, lastCommitIndex, logSize int,
+) (Action, AppendEntryReply) {
+	action := Action{}
+
+	reply := AppendEntryReply{}
+	reply.Id = f.Id
+	reply.Term = currentTerm
+	reply.LastCommited = lastCommitIndex
+	reply.LogSize = logSize
+
+	// TODO: we can just fail fast here if the logs don't match
+	logsMatch := req.LastCommitIndex >= lastCommitIndex && req.LogSize >= logSize
+
+	switch {
+
+	case currentLeader == "" && logsMatch:
+		reply.Acked = true
+		reply.Message = "Acknowledged you as new leader"
+		reply.Term = req.Term
+
+		action.action = true
+		action.newLeader = req.Id
+		action.newTerm = req.Term
+
+		f.logger.Info(
+			fmt.Sprintf("due to absent leader, recognizing peer %s as leader", req.Id),
+			slog.Any("appendEntryRPC", req),
+		)
+
+	case currentLeader == req.Id:
+		reply.Acked = true
+		reply.Message = "Recognized as original leader for current term"
+		reply.Term = req.Term
+
+		action.action = true
+		action.newLeader = req.Id
+		action.newTerm = req.Term
+
+		f.logger.Info("appendEntry came from a recognized leader",
+			slog.String("currentLeader", currentLeader),
+			slog.Any("appendEntryRPC", req))
+
+	case currentLeader == "" && !logsMatch:
+		reply.Acked = false
+		reply.Message = "what are you doing?"
+
+		action.action = false
+		f.logger.Info("appendEntry came from an node claiming to be leader with mismatched logs",
+			slog.Uint64("currentTerm", currentTerm),
+			slog.String("currentLeader", currentLeader),
+			slog.Int("lastCommitIndex", lastCommitIndex),
+			slog.Int("logSize", logSize),
+			slog.Any("appendEntryRPC", req),
+		)
+	default:
+		f.logger.Info("unforseen circumstance, printing dump before panic",
+			slog.Uint64("currentTerm", currentTerm),
+			slog.String("currentLeader", currentLeader),
+			slog.Int("lastCommitIndex", lastCommitIndex),
+			slog.Int("logSize", logSize),
+			slog.Any("appendEntryRPC", req),
+		)
+
+		panic("up above there^^^")
+	}
+
+	return action, reply
 }

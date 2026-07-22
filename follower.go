@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	rlog "fsm/raftlogger"
 	"log/slog"
 	"time"
@@ -44,51 +45,66 @@ func (n *Node) runFollower() {
 				action := handler.HandleAppendEntry(
 					request,
 					n.raft.Term(),
+					n.raft.CurrentLeader(),
 					n.logs.LastCommited(),
 					n.logs.Size(),
-					n.raft.CurrentLeader(),
 					req.reply,
 				)
 
+				fmt.Printf("\n\n\nACTION:%+v\n\n\n", action)
 				if !action.action {
 					continue
 				}
 
-				if request.Entry != nil {
-					if !n.logs.Contains(request.Entry) {
-						slogger.Info(
-							"IN_PROGRESS: received new entry from leader",
-							slog.Group("details",
-								slog.Any("entry", request.Entry),
-								slog.Bool("available", n.logs.Contains(request.Entry)),
-							),
-						)
-						n.logs.Append(request.Entry)
-						slog.Info("append new log to entry", slog.Bool("appended", n.logs.Contains(request.Entry)))
-					} else {
-						slogger.Info(
-							"entry in request already exists",
+				if request.Entry != nil && !n.logs.Contains(request.Entry) {
+					slogger.Info(
+						"IN_PROGRESS: received new entry from leader",
+						slog.Group("details",
 							slog.Any("entry", request.Entry),
-							slog.String("currentLogs", n.logs.String()),
-						)
-					}
+							slog.Bool("available", n.logs.Contains(request.Entry)),
+						),
+					)
+					n.logs.Append(request.Entry)
+					slog.Info("append new log to entry", slog.Bool("appended", n.logs.Contains(request.Entry)))
+				} else {
+					slogger.Info(
+						"entry in request already exists",
+						slog.Any("entry", request.Entry),
+						slog.String("currentLogs", n.logs.String()),
+					)
+				}
 
+				currentLeader := n.raft.CurrentLeader()
+				if currentLeader == action.newLeader {
+					n.raft.UpdateTerm(action.newTerm, action.newLeader)
+					slogger.Info("reseting timer, heartbeat arrived",
+						slog.String("diagnostics", n.Diagnostics()),
+						slog.Any("action_took", action),
+					)
+					ticker.Reset(n.raft.electionTimeout)
+					continue
 				}
 
 				n.raft.UpdateTerm(action.newTerm, action.newLeader)
 				ticker.Reset(n.raft.electionTimeout)
-				slogger.Info(
-					"updated term and reset timeout",
+				slogger.Info("new leader and term updated timeout",
+					slog.Uint64("newTerm", action.newTerm),
+					slog.String("newLeader", action.newLeader),
 					slog.String("diagnostics", n.Diagnostics()),
 				)
 
 			case Vote:
 				request, ok := req.payload.(VoteRequest)
 				if !ok {
-					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
+					logger.Panic("received wrong rpcRequest payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
-				handler.HandleVoteRPC(request, n.raft, req.reply)
+				votedFor := n.raft.VotedFor()
+				currentTerm := n.raft.Term()
+				voteAction := handler.HandleVoteRPC(request, votedFor, currentTerm, req.reply)
+				if voteAction.grantedVote {
+					n.raft.GiveVote(voteAction.termVoted, voteAction.votedFor)
+				}
 
 			case ClientCommand:
 				slogger.Info("in follower state, need to forward request to leader")

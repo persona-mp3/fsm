@@ -30,8 +30,8 @@ type AppendEntryRequest struct {
 	Message string
 	Entry   *Entry
 	// temp
-	LastCommited int
-	LogSize      int
+	LastCommitIndex int
+	LogSize         int
 }
 
 type AppendEntryReply struct {

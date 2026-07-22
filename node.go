@@ -27,6 +27,14 @@ type Peer struct {
 	replicateCh chan replicate
 }
 
+// Action represents what operation or next step action the current state, should take.
+type Action struct {
+	// represents if the state should ignore the request
+	action    bool
+	newTerm   uint64
+	newLeader string
+}
+
 func (p *Peer) Close() error {
 	return p.rpcConn.Close()
 }
@@ -201,14 +209,6 @@ func (n *Node) Run(parentCtx context.Context) error {
 			}
 		}
 	}
-}
-
-// Action represents what operation or next step action the current state, should take.
-type Action struct {
-	// represents if the state should ignore the request
-	action    bool
-	newTerm   uint64
-	newLeader string
 }
 
 // handleAppendEntryRequest handles the incoming RPC request
