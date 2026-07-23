@@ -33,15 +33,6 @@ func NewFollowerHandler(id string, logger *slog.Logger) Handler {
 	}
 }
 
-// HandleVoteRPC grants a vote to a Candidate client on the following conditions
-//
-//   - The voteRPC comes from a higher term
-//   - The rpc's logs are up to date or with this node's logs (not fully impl for log matching)
-//
-// When these conditions are met, the caller has to update their raft state with the
-// [VoteAction.votedFor] and [VoteAction.termVoted] fields.
-// The response is sent through the reply channel to the server so callers do not need
-// to send through it
 func (f FollowerHandler) HandleVoteRPC(
 	req VoteRequest,
 	votedFor string,
@@ -168,6 +159,8 @@ func (f FollowerHandler) acceptNewTerm(
 	reply.Acked = true
 	reply.Message = "Acknowledged as leader"
 	reply.Term = req.Term
+  reply.LastCommited = lastCommitIndex
+  reply.LogSize = logSize
 
 	return action, reply
 }
@@ -184,6 +177,9 @@ func (f FollowerHandler) proceessAppendEntry(
 	reply.LastCommited = lastCommitIndex
 	reply.LogSize = logSize
 
+	action.newLeader = currentLeader
+	action.newTerm = currentTerm
+
 	// TODO: we can just fail fast here if the logs don't match
 	logsMatch := req.LastCommitIndex >= lastCommitIndex && req.LogSize >= logSize
 
@@ -191,7 +187,7 @@ func (f FollowerHandler) proceessAppendEntry(
 
 	case currentLeader == "" && logsMatch:
 		reply.Acked = true
-		reply.Message = "Acknowledged you as new leader"
+		reply.Message = "Acknowledged as new leader for new term"
 		reply.Term = req.Term
 
 		action.action = true
@@ -218,7 +214,7 @@ func (f FollowerHandler) proceessAppendEntry(
 
 	case currentLeader == "" && !logsMatch:
 		reply.Acked = false
-		reply.Message = "what are you doing?"
+		reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
 
 		action.action = false
 		f.logger.Info("appendEntry came from an node claiming to be leader with mismatched logs",
@@ -228,6 +224,17 @@ func (f FollowerHandler) proceessAppendEntry(
 			slog.Int("logSize", logSize),
 			slog.Any("appendEntryRPC", req),
 		)
+	case currentLeader != "" && req.Id != currentLeader:
+		reply.Acked = false
+		reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
+		action.action = false
+		f.logger.Info(
+			"appendEntry came from a node claiming to be a leader while i have a leader",
+			slog.Uint64("currentTerm", currentTerm),
+			slog.String("currentLeader", currentLeader),
+			slog.Any("appendEntryRPC", req),
+		)
+
 	default:
 		f.logger.Info("unforseen circumstance, printing dump before panic",
 			slog.Uint64("currentTerm", currentTerm),
