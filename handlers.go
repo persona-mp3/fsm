@@ -159,8 +159,8 @@ func (f FollowerHandler) acceptNewTerm(
 	reply.Acked = true
 	reply.Message = "Acknowledged as leader"
 	reply.Term = req.Term
-  reply.LastCommited = lastCommitIndex
-  reply.LogSize = logSize
+	reply.LastCommited = lastCommitIndex
+	reply.LogSize = logSize
 
 	return action, reply
 }
