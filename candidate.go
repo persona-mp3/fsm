@@ -12,10 +12,10 @@ import (
 )
 
 func (n *Node) runCandidate(logger rlog.RLogger) {
-	n.raft.incrementTerm()
-	logger.UpdateTerm(n.raft.getTerm())
-	n.raft.clearLeader()
-	newTimeout := n.raft.resetElectionTimeout()
+	n.raft.IncrementTerm()
+	logger.UpdateTerm(n.raft.Term())
+	n.raft.ClearLeader()
+	newTimeout := n.raft.ResetElectionTimeout()
 
 	logger.Println("candidate state succesfully initiated", n.Diagnostics())
 	logger.Println("running for election")
@@ -65,7 +65,6 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 	done := make(chan struct{})
 	go func() {
 		wg.Wait()
-		// done <- struct{}{}
 		close(done)
 	}()
 
@@ -92,7 +91,7 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 					continue
 				}
 
-				n.raft.updateTerm(action.newTerm, action.newLeader)
+				n.raft.UpdateTerm(action.newTerm, action.newLeader)
 				logger.Println("succesfully updated term, dropping down to Follower", n.Diagnostics())
 				n.closeConnections()
 				logger.Println("closed connections")
@@ -101,23 +100,32 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 
 			case Vote:
 				request, ok := req.payload.(VoteRequest)
-				// no point in relaying respose backup to the server because the server will still
-				// invalidate it and panic
 				if !ok {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
-				action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
-				if !action.action {
-					continue
+				// Once in Candidate state, VoteRPCs are automatically rejected as this node has used 
+				// it's vote for itself. 
+				req.reply <- RPCReply{
+					kind: Vote,
+					payload: &VoteReply{
+						Id:       n.id,
+						Term:     n.raft.Term(),
+						VotedFor: false,
+						Message:  "I am candidate, i cannot give my vote",
+					},
 				}
-
-				n.raft.updateTerm(action.newTerm, action.newLeader)
-				logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
-				n.closeConnections()
-				logger.Println("closed connections")
-				n.transition <- Follower
-				return
+				// action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
+				// if !action.action {
+				// 	continue
+				// }
+				//
+				// n.raft.UpdateTerm(action.newTerm, action.newLeader)
+				// logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
+				// n.closeConnections()
+				// logger.Println("closed connections")
+				// n.transition <- Follower
+				// return
 
 			case ClientCommand:
 				logger.Println("in candidate_state, need to forward request to leader")
@@ -179,7 +187,7 @@ func dialPeers(network string, peers []string, logger rlog.RLogger) ([]*Peer, in
 func (n *Node) collectVote(peer *Peer, voteCount *atomic.Int64, logger rlog.RLogger) {
 	req := VoteRequest{
 		Id:      n.id,
-		Term:    n.raft.getTerm(),
+		Term:    n.raft.Term(),
 		Message: "Give me your vote",
 	}
 

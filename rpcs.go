@@ -1,7 +1,7 @@
 package main
 
 import (
-  db "fsm/database"
+	db "fsm/database"
 )
 
 // RPCKind singifies that kind of payload the RPCRequest is and the expected Reply
@@ -29,6 +29,9 @@ type AppendEntryRequest struct {
 	Term    uint64
 	Message string
 	Entry   *Entry
+	// temp
+	LastCommitIndex int
+	LogSize         int
 }
 
 type AppendEntryReply struct {
@@ -36,6 +39,9 @@ type AppendEntryReply struct {
 	Term    uint64
 	Acked   bool
 	Message string
+	// temp
+	LastCommited int
+	LogSize      int
 }
 
 type VoteRequest struct {
@@ -74,7 +80,7 @@ type CommandReply struct {
 
 func (s *Server) AppendEntryRPC(req AppendEntryRequest, res *AppendEntryReply) error {
 	s.log.Println("forwarding appendRPC to node")
-	reply := make(chan RPCReply)
+	reply := make(chan RPCReply, 1)
 	s.incoming <- RPC{kind: AppendEntry, payload: req, reply: reply}
 
 	response := <-reply
@@ -94,7 +100,7 @@ func (s *Server) AppendEntryRPC(req AppendEntryRequest, res *AppendEntryReply) e
 
 func (s *Server) VoteRequestRPC(req VoteRequest, res *VoteReply) error {
 	s.log.Println("forwarding voteRPC to node")
-	reply := make(chan RPCReply)
+	reply := make(chan RPCReply, 1)
 	s.incoming <- RPC{kind: Vote, payload: req, reply: reply}
 
 	response := <-reply

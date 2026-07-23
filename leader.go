@@ -79,7 +79,7 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 					continue
 				}
 
-				n.raft.updateTerm(action.newTerm, action.newLeader)
+				n.raft.UpdateTerm(action.newTerm, action.newLeader)
 				logger.Println("leader dropping down to follower succesfully updated term, timeout reset", n.Diagnostics())
 				n.transition <- Follower
 				return
@@ -94,7 +94,7 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 
 				logger.Println("begin sending out appendRPCs")
 				entry := Entry{}
-				entry.Term = n.raft.getTerm()
+				entry.Term = n.raft.Term()
 				entry.Operation = payload.Operation
 				entry.Key = payload.Key
 				entry.Value = payload.Value
@@ -121,15 +121,42 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
-				action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
-				if !action.action {
-					continue
+				if request.Term > n.raft.Term() {
+					req.reply <- RPCReply{
+						kind: Vote,
+						payload: &VoteReply{
+							Id:       n.id,
+							Term:     request.Term,
+							VotedFor: true,
+							Message:  "Ye was a leader, now sunderring",
+						},
+					}
+					n.raft.GiveVote(request.Term, request.Id)
+					n.transition <- Follower
+					return
 				}
 
-				n.raft.updateTerm(action.newTerm, action.newLeader)
-				logger.Println("succesfully updated term, dropping back to follower", n.Diagnostics())
-				n.transition <- Follower
-				return
+				// TODO(persona) will need to do a check here in the event that two nodes might 
+				// think they're a leader. We then compare against their logs
+				req.reply <- RPCReply{
+					kind: Vote,
+					payload: &VoteReply{
+						Id:       n.id,
+						Term:     request.Term,
+						VotedFor: false,
+						Message:  "Coportate espionage is punishable just so you know",
+					},
+				}
+
+				// action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
+				// if !action.action {
+				// 	continue
+				// }
+				//
+				// n.raft.UpdateTerm(action.newTerm, action.newLeader)
+				// logger.Println("succesfully updated term, dropping back to follower", n.Diagnostics())
+				// n.transition <- Follower
+				// return
 
 			default:
 				logger.Panic("Unhandled RPC Not yet implemented:", req.payload, n.Diagnostics())
@@ -147,18 +174,19 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 		logger.Println("returning back to parent")
 	}()
 
-	req := AppendEntryRequest{
-		Id:      n.id,
-		Term:    n.raft.getTerm(),
-		Message: "This is a heartbeat message",
-	}
-
 	reply := AppendEntryReply{}
 
 	for {
 		select {
 		case replicate := <-peer.replicateCh:
 			logger.Println("recvd entry::", replicate)
+			req := AppendEntryRequest{
+				Id:              n.id,
+				Term:            n.raft.Term(),
+				Message:         "This is a new entry",
+				LastCommitIndex: n.logs.LastCommited(),
+				Entry:           &replicate.entry,
+			}
 			req.Entry = &replicate.entry
 			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
 				logger.Println("Failed to send appendEntry with data", err, peer.id, peer.addr, req)
@@ -181,6 +209,14 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 			return
 
 		case replicate := <-peer.replicateCh:
+			req := AppendEntryRequest{
+				Id:              n.id,
+				Term:            n.raft.Term(),
+				Message:         "This is a new entry",
+				LastCommitIndex: n.logs.LastCommited(),
+				Entry:           &replicate.entry,
+			}
+
 			logger.Println("recvd entry::", replicate)
 			req.Entry = &replicate.entry
 			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
@@ -197,6 +233,12 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 			continue
 
 		case <-ticker.C:
+			req := AppendEntryRequest{
+				Id:              n.id,
+				Term:            n.raft.Term(),
+				Message:         "This is a heartbeat message",
+				LastCommitIndex: n.logs.LastCommited(),
+			}
 			logger.Println("sending heartbeatRPC")
 			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
 				logger.Println("Failed to send heartbeat", err, peer.id, peer.addr)

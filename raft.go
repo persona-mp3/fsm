@@ -5,7 +5,6 @@ import (
 	rlog "fsm/raftlogger"
 	"os"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -29,15 +28,23 @@ type Raft struct {
 	state RaftState
 
 	// term is the internal clock for the node
-	term atomic.Uint64
-
-	leaderLock sync.Mutex
+	// term atomic.Uint64
+	//
+	// leaderLock sync.Mutex
 	// votedFor is the [Leader] this node voted for, for this [Raft.term]
-	votedFor string
 
 	electionTimeout time.Duration
 
+	termInfo *TermInfo
+
 	log rlog.RLogger
+}
+
+type TermInfo struct {
+	term     uint64
+	votedFor string
+	leader   string
+	hasVoted bool
 }
 
 func NewRaft(id string) *Raft {
@@ -47,13 +54,18 @@ func NewRaft(id string) *Raft {
 	// raftLogger := log.New(os.Stdout, prefix, log.Ldate|log.Lmicroseconds|log.Lmsgprefix)
 	raftLogger := rlog.NewHumaneLogger(id, "raft", 0, os.Stdout)
 
+	termInfo := TermInfo{
+		term:     0,
+		votedFor: "",
+		leader:   "",
+		hasVoted: false,
+	}
+
 	return &Raft{
 		id:              id,
 		mu:              sync.RWMutex{},
 		state:           Follower,
-		term:            atomic.Uint64{},
-		leaderLock:      sync.Mutex{},
-		votedFor:        "",
+		termInfo:        &termInfo,
 		electionTimeout: initialTimeout,
 		log:             raftLogger,
 	}
@@ -61,40 +73,59 @@ func NewRaft(id string) *Raft {
 
 // incrementTerm atomically updates the currentTerm of this Node by 1
 // This is usually called when the Node transists into a [Candidate] state.
-func (r *Raft) incrementTerm() {
-	r.term.Add(1)
+func (r *Raft) IncrementTerm() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.termInfo.term++
 }
 
-// getTerm returns the current [Raft.term] of this Node
-func (r *Raft) getTerm() uint64 {
-	return r.term.Load()
-}
-
-// updateTerm updates the current raftTerm and who the new [Leader] of the
-// for this term is
-func (r *Raft) updateTerm(term uint64, votedFor string) {
+func (r *Raft) GiveVote(term uint64, votedFor string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.term.Store(term)
-	r.votedFor = votedFor
+	r.termInfo.term = term
+	r.termInfo.votedFor = votedFor
+	r.termInfo.hasVoted = true
+}
+
+// UpdateTerm updates the current raftTerm and who the new [Leader] of the
+// for this term is
+func (r *Raft) UpdateTerm(term uint64, leader string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.termInfo.term = term
+	r.termInfo.leader = leader
+}
+
+// Term returns the current [Raft.term] of this Node
+func (r *Raft) Term() uint64 {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.termInfo.term
+}
+
+func (r *Raft) HasVoted() bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.termInfo.hasVoted
 }
 
 // updateState updates the [Raft.state] to the state provided
-func (r *Raft) updateState(to RaftState) {
+func (r *Raft) UpdateState(to RaftState) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.state = to
 
 }
 
-func (r *Raft) getState() RaftState {
+func (r *Raft) State() RaftState {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.state
 }
 
-func (r *Raft) resetElectionTimeout() time.Duration {
+func (r *Raft) ResetElectionTimeout() time.Duration {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -103,16 +134,22 @@ func (r *Raft) resetElectionTimeout() time.Duration {
 	return dur
 }
 
-func (r *Raft) getCurrentLeader() string {
+func (r *Raft) CurrentLeader() string {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	return r.votedFor
+	return r.termInfo.leader
 }
 
-func (r *Raft) clearLeader() {
+func (r *Raft) ClearLeader() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.votedFor = ""
+	r.termInfo.leader = ""
+}
+
+func (r *Raft) VotedFor() string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.termInfo.votedFor
 }
 
 func (rs RaftState) String() string {
