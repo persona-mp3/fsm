@@ -100,12 +100,12 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 
 			case Vote:
 				request, ok := req.payload.(VoteRequest)
-				// no point in relaying respose backup to the server because the server will still
-				// invalidate it and panic
 				if !ok {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
+				// Once in Candidate state, VoteRPCs are automatically rejected as this node has used 
+				// it's vote for itself. 
 				req.reply <- RPCReply{
 					kind: Vote,
 					payload: &VoteReply{

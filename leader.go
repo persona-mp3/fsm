@@ -136,6 +136,8 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 					return
 				}
 
+				// TODO(persona) will need to do a check here in the event that two nodes might 
+				// think they're a leader. We then compare against their logs
 				req.reply <- RPCReply{
 					kind: Vote,
 					payload: &VoteReply{
@@ -145,6 +147,7 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 						Message:  "Coportate espionage is punishable just so you know",
 					},
 				}
+
 				// action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
 				// if !action.action {
 				// 	continue

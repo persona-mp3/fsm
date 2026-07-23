@@ -100,13 +100,13 @@ func (r *Raft) UpdateTerm(term uint64, leader string) {
 
 // Term returns the current [Raft.term] of this Node
 func (r *Raft) Term() uint64 {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	return r.termInfo.term
 }
 
 func (r *Raft) HasVoted() bool {
-	r.mu.Lock()
+	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.termInfo.hasVoted
 }
@@ -147,8 +147,8 @@ func (r *Raft) ClearLeader() {
 }
 
 func (r *Raft) VotedFor() string {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	return r.termInfo.votedFor
 }
 
