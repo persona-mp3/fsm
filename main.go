@@ -157,8 +157,6 @@ func runClusterTopology(ctx context.Context, cfg *dock.SingleClusterConfig) erro
 
 		initialTimeout := randomTimeout(time.Millisecond)
 		node, err := NewNode(id, addr, peers, initialTimeout, out)
-		fmt.Printf("t-%s-> %s\n", node.id, initialTimeout)
-
 		nodes = append(nodes, node)
 		if err != nil {
 			log.Fatal(err)

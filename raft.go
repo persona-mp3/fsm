@@ -27,12 +27,6 @@ type Raft struct {
 	// state represents the current [RaftState] of this node
 	state RaftState
 
-	// term is the internal clock for the node
-	// term atomic.Uint64
-	//
-	// leaderLock sync.Mutex
-	// votedFor is the [Leader] this node voted for, for this [Raft.term]
-
 	electionTimeout time.Duration
 
 	termInfo *TermInfo
@@ -67,7 +61,7 @@ func NewRaft(id string, initialTimeout time.Duration) *Raft {
 	}
 }
 
-// incrementTerm atomically updates the currentTerm of this Node by 1
+// IncrementTerm atomically updates the currentTerm of this Node by 1
 // This is usually called when the Node transists into a [Candidate] state.
 func (r *Raft) IncrementTerm() {
 	r.mu.Lock()
@@ -107,7 +101,7 @@ func (r *Raft) HasVoted() bool {
 	return r.termInfo.hasVoted
 }
 
-// updateState updates the [Raft.state] to the state provided
+// UpdateState updates the [Raft.state] to the state provided
 func (r *Raft) UpdateState(to RaftState) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
