@@ -1,0 +1,36 @@
+# src: https://docs.github.com/en/actions/tutorials/build-and-test-code/go
+name: Go 
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setting up environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+
+      - name: Checking Go version
+        run: go version
+
+      - name: Installing dependencies
+        run: |
+          go get .
+      - name: Building application
+        run: go build -vo fsm .
+      - name: Running tests
+        run: go test -json > TestReultsFSM.json
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-test-results
+          path: TestResultsFSM.json
+
+
