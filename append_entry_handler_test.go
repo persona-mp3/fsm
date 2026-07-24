@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"testing"
 
@@ -99,5 +100,40 @@ func TestFollowerHandlerRejectsUnrecognizedLeader(t *testing.T) {
 
 	assert.False(t, action.action, "expected action.action returned from handler to be true for higher term")
 	assert.Equal(t, action.newLeader, currentLeaderId, "expected action.newLeader returned from handler to match leader from new term")
+	assert.Equal(t, action.newTerm, currentTerm, "expected action.newTerm returned from hadler to match higher term")
+}
+
+
+
+func TestFollowerHandlerAcceptsLeader(t *testing.T) {
+  nodeId, handler := newTestFollowerHandler(t)
+
+	currentLeader := fmt.Sprintf("test-leader-%s", t.Name())
+	currentTerm := uint64(40)
+
+	req := AppendEntryRequest{
+		Id:      currentLeader,
+		Term:    currentTerm,
+		Message: "this is a hearbeat message",
+		Entry:   nil,
+	}
+
+	reply := make(chan RPCReply, 1)
+	action := handler.HandleAppendEntry(req, currentTerm, currentLeader, 100, 101, reply)
+
+	expectedReply := &AppendEntryReply{
+		Id:           nodeId,
+		Term:         currentTerm,
+		Acked:        true,
+		Message:      "Recognized as original leader for current term",
+		LastCommited: 100,
+		LogSize:      101,
+	}
+
+	actualReply := <-reply
+	assert.Equal(t, actualReply.payload, expectedReply, "expected appendEntryHandler accepts recognized leader")
+
+	assert.True(t, action.action, "expected action.action returned from handler to be true for same term leader")
+	assert.Equal(t, action.newLeader, currentLeader, "expected action.newLeader returned from handler to match leader from new term")
 	assert.Equal(t, action.newTerm, currentTerm, "expected action.newTerm returned from hadler to match higher term")
 }

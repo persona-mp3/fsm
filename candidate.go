@@ -31,7 +31,7 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 	connectedPeers := n.getRPCPeers()
 
 	if len(connectedPeers) == 0 {
-		logger.Println("YOO, WE DONT HAVE RECONNECTED PEERS")
+		logger.Println("no connected peers have been established, dialing new peers")
 		successfulDials, failedCount := dialPeers("tcp", n.peers, logger.Inherit("dialPeers"))
 		if failedCount == len(n.peers) || len(successfulDials) == 0 {
 			// TODO: Worth adding Shutdown state because of these kind of variants, instead of hard panics
@@ -115,17 +115,6 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 						Message:  "I am candidate, i cannot give my vote",
 					},
 				}
-				// action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
-				// if !action.action {
-				// 	continue
-				// }
-				//
-				// n.raft.UpdateTerm(action.newTerm, action.newLeader)
-				// logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
-				// n.closeConnections()
-				// logger.Println("closed connections")
-				// n.transition <- Follower
-				// return
 
 			case ClientCommand:
 				logger.Println("in candidate_state, need to forward request to leader")
@@ -144,7 +133,7 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 		case <-done:
 			totalVotes := voteCount.Load()
 			logger.Println("all vote routines have finshed, totalVotes:", totalVotes)
-			if totalVotes > int64((len(connectedPeers)/2)+1) {
+			if totalVotes > int64((len(n.peers)/2)+1) {
 				logger.Println("recvd majority, becoming Leader with total votes of", totalVotes)
 				n.transition <- Leader
 				return

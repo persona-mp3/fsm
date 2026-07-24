@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	db "fsm/database"
 	rlog "fsm/raftlogger"
-	"math/rand/v2"
+	"math/big"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -253,9 +254,15 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 }
 
 func randomTimeout(d time.Duration) time.Duration {
-	n := rand.IntN(maxInterval-minInterval) + minInterval
+	// crypto/rand requires a *big.Int for limits
+	limit := big.NewInt(int64(maxInterval - minInterval + 1))
+	n, _ := rand.Int(rand.Reader, limit)
 
-	return d * time.Duration(n)
+	actualInterval := n.Int64() + int64(minInterval)
+	return d * time.Duration(actualInterval)
+	// n := rand.IntN(maxInterval-minInterval) + minInterval
+	//
+	// return d * time.Duration(n)
 }
 
 // TODO: Commit command to database
@@ -270,7 +277,6 @@ func randomTimeout(d time.Duration) time.Duration {
 // One issue i have w this approach is that already sending to a cluster from a client's perspective
 // is already slow. Sending to cluster, getting quorum, executing to database, and getting result from
 // db and sending back to client is a long trip. If anything, i think this increases latency painfully
-
 func (n *Node) commitFunc(payload CommandReq, entry Entry, reply chan RPCReply, logger rlog.RLogger) {
 	// send new entries to all workers
 	numPeers := len(n.rpcPeers)

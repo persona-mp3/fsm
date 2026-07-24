@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync/atomic"
 )
 
 type Operation string
@@ -111,5 +112,41 @@ func (jkvs *JKVS) Disconnect() error {
 
 // Ping protocol hasn't yet been implemented on JKVS
 func (jkvs *JKVS) Ping() error {
+	return nil
+}
+
+type TestDatabase struct {
+	Network   string
+	Addr      string
+	Conn      net.Conn
+	Connected atomic.Bool
+	Commits   []any
+}
+
+func NewTestDatabase(network, addr string, conn net.Conn) Database {
+	return &TestDatabase{
+		Network:   network,
+		Addr:      addr,
+		Conn:      conn,
+		Connected: atomic.Bool{},
+	}
+}
+
+func (td *TestDatabase) Commit(cmd Command) (*Response, error) {
+	td.Commits = append(td.Commits, cmd)
+	return &Response{}, nil
+}
+
+func (td *TestDatabase) Connect() error {
+	td.Connected.Store(true)
+	return nil
+}
+
+func (td *TestDatabase) Disconnect() error {
+	td.Connected.Store(false)
+	return nil
+}
+
+func (td *TestDatabase) Ping() error {
 	return nil
 }

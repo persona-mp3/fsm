@@ -51,9 +51,9 @@ func (f FollowerHandler) HandleVoteRPC(
 		Term: currentTerm,
 	}
 
-	if req.Term <= currentTerm {
+	if req.Term < currentTerm {
 		reply.VotedFor = false
-		reply.Message = "already voted for current term"
+		reply.Message = "vote not granted due to lower term"
 
 		ch <- RPCReply{
 			kind:    Vote,
@@ -68,10 +68,27 @@ func (f FollowerHandler) HandleVoteRPC(
 		return action
 	}
 
+	if req.Term == currentTerm && votedFor != "" {
+		reply.VotedFor = false
+		reply.Message = "vote not granted. already voted for current term"
+
+		ch <- RPCReply{
+			kind:    Vote,
+			payload: reply,
+		}
+
+		f.logger.Info("received voteRPC request for current term, rejecting request since vote has already been given out",
+			slog.Uint64("currentTerm", currentTerm),
+			slog.Any("payload", req),
+		)
+
+		return action
+	}
+
 	// we can only vote for them not acknowledge them as leader
 	if req.Term > currentTerm {
 		reply.VotedFor = true
-		reply.Message = "I have grant ye my vote"
+		reply.Message = "Vote Granted"
 		reply.Term = req.Term
 
 		currentTerm = req.Term
