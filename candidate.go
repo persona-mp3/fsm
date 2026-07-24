@@ -104,8 +104,8 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
-				// Once in Candidate state, VoteRPCs are automatically rejected as this node has used 
-				// it's vote for itself. 
+				// Once in Candidate state, VoteRPCs are automatically rejected as this node has used
+				// it's vote for itself.
 				req.reply <- RPCReply{
 					kind: Vote,
 					payload: &VoteReply{

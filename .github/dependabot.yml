@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    groups:
+      action-updates:
+        patterns:
+          - "*" # group all action updates into a singlePR
+
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 8
+    assignees:
+      - "persona-mp3"
+    labels:
+      - "dependencies"
+    groups:
+      go-dependencies:
+        patterns:
+          - "*"
