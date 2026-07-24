@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-  db "fsm/database"
+	db "fsm/database"
 	"strings"
 	"sync"
 )
@@ -16,9 +16,10 @@ type Entry struct {
 }
 
 type Logs struct {
-	rw             sync.RWMutex
-	entries        []*Entry
-	latestCommited int
+	rw           sync.RWMutex
+	entries      []*Entry
+	lastCommited int
+	size         int
 }
 
 func (l *Logs) Append(e *Entry) int {
@@ -27,19 +28,32 @@ func (l *Logs) Append(e *Entry) int {
 	idx := len(l.entries)
 	e.Idx = idx
 	l.entries = append(l.entries, e)
-  return idx
+	return idx
 }
 
-func (l *Logs) Contains(idx int, term uint64) bool {
+func (l *Logs) LastCommited() int {
+	l.rw.RLock()
+	defer l.rw.RUnlock()
+	return l.lastCommited
+}
+
+func (l *Logs) Size() int {
+	l.rw.RLock()
+	defer l.rw.RUnlock()
+	return len(l.entries)
+}
+
+func (l *Logs) Contains(e *Entry) bool {
+	// idx int, term uint64
 	l.rw.RLock()
 	defer l.rw.RUnlock()
 
-	if len(l.entries) <= idx {
+	if len(l.entries) <= e.Idx {
 		return false
 	}
 
-	target := l.entries[idx]
-	if target.Term == term {
+	target := l.entries[e.Idx]
+	if target.Term == e.Term {
 		return true
 	}
 

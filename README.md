@@ -7,46 +7,57 @@ along the way instead of following the full spec.  For more information about th
 visit [JKVS Database](https://github.com/persona-mp3/jkvs.git)
 
 
-Run a cluster
+FSM is the replication engine that powers JKVS, implementing the [Raft Consensus Algorithm](https://raft.github.io/raft.pdf).
+It handles leader election, log replication and failure recovery, so the cluster keeps serving reads 
+and writes provided majority of the nodes are healthy. 
+
+FSM follows the original raft paper. The underlying database is inspired by PingCAP's TiKV Talent plan, 
+though implementation details have diverged into it's own architecture either for performance or tailored needs
+
+
+Running FSM
 ---
-### Configuration
-By default a cluster of three nodes are created for a consensus system to work. It reads the `config_cluster.toml`
-file to parse the config and recreate the nodes. You can extend the number of nodes you want in cluster by providing 
-the local addresses you want them to bind and listen to 
-
-
-To run a cluster of 5 nodes on ports 4001-4005, simply add this to the config_cluster.toml
-```toml
-addresses = ["localhost:4001", "localhost:4002", "localhost:4003", "localhost:4004", "localhost:4005"]
-```
-
-To run an isolated node where it cannot contact other nodes and provide at least one port for a peer
-```toml
-[cluster_settings.topology]
-type = "node"
-ports = [5000, 5001, 5002, 5003]
-```
-
-### Run the application
-#### Requirements
+#### You need
 - [Apache Maven](https://maven.apache.org/) 
-- Java installed, at least from version 21 
+- Java at least version 21 (virtual threads)
 - [Go](https://go.dev/doc/install) at least version 1.26.3
 
+Like most databases, FSM follows a server-client model, where many clients connect to (potentially 
+distributed) server. The server in this case is JKVS. By running the jar file `target/jkvs/jkvs-server.jar`. The database 
+must be started before FSM can work. To automate this, simply run the `setup.sh` script.
 
-Get the database and start executing it. Clones the database repository in the current directory 
-builds it using mvn and executes the jar file. By default the database server runs on port 9090
-and this is where the raft nodes expect to contact the database
-```bash
-bash setup.sh
+#### Run the database
+```sh
+~/jkvs/jkvs $ mvn package 
+~/jkvs/jkvs $ java -jar ./target/jkvs-server
 ```
 
-Run the raft engine
-```bash
+To run the raft layer, you need to have Go installed to build the binary or simply run it
+#### Run the program
+```go
 go run .
-
 ```
-To generate a specific kind of cluster please see the `deploy.toml` for more information
+
+#### To execute it as a standalone binary
+```go
+go build -o fsm . 
+./fsm
+```
+
+FSM will connect to the jkvs server before starting up,  otherwise it fails to run
+FSM can be confgiured to run in a set number of ways including deployment via ssh. You can read more about that on [docs/configuration](./docs/configuration.md)
+
+
+Interacting with FSM
+---
+At the moment, there is only one way to interact with FSM and that is through a simulation repl
+```go
+go run simulation/repl.go
+```
+
+It allows to send commands JKVS supports, `get`, `set` and `rm`. Since this is still in 
+development, it is not polished. For testing, we use the the `simulation/client-request.go` instead
+
 
 Observability and Tooling
 ---
@@ -63,56 +74,39 @@ named with prefix `log-file-node-id`
 
 To be able to understand the logs,
 ```
-[time.ms] (nodeId:owner:term) Information
+[time.ms] (nodeId:state:term) Information
 ```
 
 An example logs as such
 ```
 21:48:40.123340 (1:node:0) successfully connected to database
+# This node with an id of 1, the current point of execution is within the node component of the application, and is in it's 0th term
 ```
-Should be read as 
-`This node with an id of 1, the current point of execution is within the node component of the application, and is in it's 0th term`
+``
 
 ```
 21:48:41.543572 (1:leader:2) leader state transitioned successfully diagnostics: { id: 1, term: 2, state: Leader, votedFor|leader: , logs:  }
+# This node with an id of 1, is the leader for the current term and it just started
 ```
-Should be read as 
-`This node with an id of 1, is the leader for the term and it just started being a leader`
-
-There's more to this as logs are attached to the function name of their caller
 
 
-Run a simulation
+Simulation Testing 
 ---
-These serve to assert the behaviour we expect as writing tests are hard without introducing dataraces on the test itself or messing 
-with the internal concurrent structure of the code. Another pending refactor will happen to be able to inject fake Clocks and networks. 
-The simulations help to describe what we expect from a healthy cluster or a single node by interrupting it. At the moment the simulations share 
-configs with the Cluster itself, `cluster_config.toml`, later on, we plan on adding more configuration 
-options for the simulations
-```bash
-# enforces the cluster to acknowledge it as the leader, you can set this 
-# under the force_term attribute in the cluster_config.toml
-go run simulation/single-leader.go 
-```
+Testing a running cluster is done via the [test.toml](./test.toml) config. This is more emphasized over
+unit tests to help tweak behaviours and match against behaviours that are expected in a cluster, as it 
+helps with dynamic configuration, leans towards property-based testing.  The development for this 
+is still ongoing, so it's not yet polished. To run a test, the test.toml must be present and a cluster must 
+be active
 
+```go
+go run simulation/lead.go
+```
 
 
 Architecture
 ---
-FSM sits between the clients and the database. 
-A client sends a `CommandRPC` via TCP (eventually other protocols will be suppoted). 
-If the node in the cluster that receives this commandRPC is the Leader, it sends 
-this command to the whole of the cluster to be replicated. It only waits for a majority of the 
-Followers to say that they've appended this log, before proceeding to execute the command locally 
-in it's database. The Node does this by sending the command to the database via tcp and 
-a simple binary protocol, that [jkvs](https://github.com/persona-mp3/jkvs.git) uses. This 
-is typically a prefixed 4byte header for a packet and a `\r\n` delimiter for parts of the payload.
-This was chosen for the database because JSON marshalling is expensive. At this point of development 
-using Protobufs were over-engineering, especially since the protocol wasn't complex and is very simple.
-When the database replies, the leader forwards the response from the underlying database back to the client
+See [architecture](./docs/architecture.md)
 
-If the Leader does not receive a majority before a hard set timeout of 180ms, it fails to 
-execute the command of the client. 
 
 Constraints
 ---
@@ -135,7 +129,7 @@ talks to one server
 
 
 
-Bug Documentation and Testing
+Bug Documentation 
 ---
 Most of the tests are simulation tests where they are ran against an active cluster
 to assert correct behaviour. This was preferred in favor of normal-unit tests as faults are 
@@ -202,7 +196,7 @@ Done
 - [X] Implement custom logger
 - [X] Adding tests
 - [X] Implementing simulation testing
-- [X] Starting cluster from a config file,  `cluster_config.toml` with default number of nodes 3
+- [X] Starting cluster from a config file,  `cluster-config.toml` with default number of nodes 3
 - [X] Leader Election
     - [X] Refactor Follower 
     - [X] Refactor Leader
@@ -212,3 +206,7 @@ Done
 Contribute
 ---
 Feel free to contribute
+
+Liscense
+---
+MIT
