@@ -53,7 +53,7 @@ func (f FollowerHandler) HandleVoteRPC(
 
 	if req.Term <= currentTerm {
 		reply.VotedFor = false
-		reply.Message = "already voted for current term"
+		reply.Message = "vote not granted due to lower term"
 
 		ch <- RPCReply{
 			kind:    Vote,
@@ -71,7 +71,7 @@ func (f FollowerHandler) HandleVoteRPC(
 	// we can only vote for them not acknowledge them as leader
 	if req.Term > currentTerm {
 		reply.VotedFor = true
-		reply.Message = "I have grant ye my vote"
+		reply.Message = "Vote Granted"
 		reply.Term = req.Term
 
 		currentTerm = req.Term

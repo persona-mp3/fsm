@@ -47,11 +47,7 @@ type TermInfo struct {
 	hasVoted bool
 }
 
-func NewRaft(id string) *Raft {
-	initialTimeout := randomTimeout(time.Millisecond)
-	// prefix := fmt.Sprintf("(%s:raft) ", id)
-
-	// raftLogger := log.New(os.Stdout, prefix, log.Ldate|log.Lmicroseconds|log.Lmsgprefix)
+func NewRaft(id string, initialTimeout time.Duration) *Raft {
 	raftLogger := rlog.NewHumaneLogger(id, "raft", 0, os.Stdout)
 
 	termInfo := TermInfo{

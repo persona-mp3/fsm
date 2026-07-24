@@ -112,7 +112,9 @@ func runSingleTopology(ctx context.Context, cfg *dock.NodeConfig) {
 		log.Println("could not create logFile for node", cfg.Id)
 		out = nil
 	}
-	node, err := NewNode(fmt.Sprintf("%d", cfg.Id), cfg.Listen, cfg.Peers, out)
+	initialTimeout := randomTimeout(time.Millisecond)
+	node, err := NewNode(fmt.Sprintf("%d", cfg.Id), cfg.Listen, cfg.Peers, initialTimeout, out)
+
 	if err != nil {
 		log.Println(err)
 		return
@@ -152,7 +154,10 @@ func runClusterTopology(ctx context.Context, cfg *dock.SingleClusterConfig) erro
 			log.Println("could not create logFile for node", id)
 			out = nil
 		}
-		node, err := NewNode(id, addr, peers, out)
+
+		initialTimeout := randomTimeout(time.Millisecond)
+		node, err := NewNode(id, addr, peers, initialTimeout, out)
+		fmt.Printf("t-%s-> %s\n", node.id, initialTimeout)
 
 		nodes = append(nodes, node)
 		if err != nil {

@@ -31,7 +31,7 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 	connectedPeers := n.getRPCPeers()
 
 	if len(connectedPeers) == 0 {
-		logger.Println("YOO, WE DONT HAVE RECONNECTED PEERS")
+		logger.Println("no connected peers have been established, dialing new peers")
 		successfulDials, failedCount := dialPeers("tcp", n.peers, logger.Inherit("dialPeers"))
 		if failedCount == len(n.peers) || len(successfulDials) == 0 {
 			// TODO: Worth adding Shutdown state because of these kind of variants, instead of hard panics

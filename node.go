@@ -10,6 +10,7 @@ import (
 	"os"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 // Peer has the underlying rpc connection to a raft peer alongside
@@ -94,8 +95,11 @@ const (
 	defaultChanBuffer = 1
 )
 
-func NewNode(id string, address string, peers []string, out io.Writer) (*Node, error) {
-	raft := NewRaft(id)
+func NewNode(
+	id string, address string, peers []string, initialTimeout time.Duration, out io.Writer,
+) (*Node, error) {
+
+	raft := NewRaft(id, initialTimeout)
 	incoming := make(chan RPC, defaultChanBuffer)
 
 	// purposely left unbuffered to enforce one state transition at a time
