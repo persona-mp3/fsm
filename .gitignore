@@ -11,3 +11,4 @@ my-deploy.toml
 bin/
 fsm
 *.zip
+config-*

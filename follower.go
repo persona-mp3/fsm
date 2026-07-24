@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	rlog "fsm/raftlogger"
 	"log/slog"
 	"time"
@@ -51,7 +50,6 @@ func (n *Node) runFollower() {
 					req.reply,
 				)
 
-				fmt.Printf("\n\n\nACTION:%+v\n\n\n", action)
 				if !action.action {
 					continue
 				}
