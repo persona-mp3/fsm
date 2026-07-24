@@ -115,17 +115,6 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 						Message:  "I am candidate, i cannot give my vote",
 					},
 				}
-				// action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
-				// if !action.action {
-				// 	continue
-				// }
-				//
-				// n.raft.UpdateTerm(action.newTerm, action.newLeader)
-				// logger.Println("succesfully updated term, timeout reset", n.Diagnostics())
-				// n.closeConnections()
-				// logger.Println("closed connections")
-				// n.transition <- Follower
-				// return
 
 			case ClientCommand:
 				logger.Println("in candidate_state, need to forward request to leader")
@@ -144,7 +133,7 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 		case <-done:
 			totalVotes := voteCount.Load()
 			logger.Println("all vote routines have finshed, totalVotes:", totalVotes)
-			if totalVotes > int64((len(connectedPeers)/2)+1) {
+			if totalVotes > int64((len(n.peers)/2)+1) {
 				logger.Println("recvd majority, becoming Leader with total votes of", totalVotes)
 				n.transition <- Leader
 				return
