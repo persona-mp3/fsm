@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"log/slog"
+	"math/big"
 	"time"
 )
 
 const (
 	MAX_RPC_CALL_RETRIALS = 5
-	WORKER_CHAN_BUFFER     = 100
+	WORKER_CHAN_BUFFER    = 100
 )
 
 func NewWorker(id int, initialCommit uint64, logger *slog.Logger) *Worker {
@@ -27,16 +29,9 @@ func (w *Worker) Run(
 	ticker := time.NewTicker(heartbeat)
 	defer ticker.Stop()
 
-	var leaderCommit uint64 = w.leaderCommit
-	var failedCalls int
+	leaderCommit := w.leaderCommit
 
 	for {
-		if failedCalls == MAX_RPC_CALL_RETRIALS {
-			w.logger.Info("max rpc call retrials reached, worker exiting",
-				slog.Int("failedCalls", failedCalls),
-			)
-			return
-		}
 		select {
 		case newCommit := <-w.leaderCommitCh:
 			leaderCommit = newCommit
@@ -44,31 +39,13 @@ func (w *Worker) Run(
 
 		case replica := <-w.replicateCh:
 			req := AppendEntryRequest{}
-			reply := AppendEntryReply{}
-
 			req.Id = leaderId
 			req.Term = currentTerm
-			req.Entry = &replica.entry
 			req.LeaderCommit = leaderCommit
-			req.Message = "Replicate appendEntryRPC"
 
-			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
-				w.logger.Info("failed to Call Server.AppendEntryRPC for heartbeats.",
-					slog.String("error", err.Error()), slog.Int("peerId", peer.id),
-				)
-				failedCalls++
-				continue
+			if !attemptSend(req, peer, replica, w.logger.With()) {
+				return
 			}
-
-			failedCalls = 0
-			if !reply.Acked {
-				replica.done <- false
-				w.logger.Info("follower did not ack log replication", slog.Any("appendEntryReply", reply))
-				continue
-			}
-			replica.done <- true
-			replica.success.Add(1)
-			w.logger.Info("sent replication acked back to producer")
 			ticker.Reset(heartbeatInterval)
 		default:
 		}
@@ -82,34 +59,17 @@ func (w *Worker) Run(
 
 		case replica := <-w.replicateCh:
 			req := AppendEntryRequest{}
-			reply := AppendEntryReply{}
-
 			req.Id = leaderId
 			req.Term = currentTerm
-			req.Entry = &replica.entry
 			req.LeaderCommit = leaderCommit
-			req.Message = "Replicate appendEntryRPC"
 
-			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
-				w.logger.Info("failed to Call Server.AppendEntryRPC for heartbeats.",
-					slog.String("error", err.Error()), slog.Int("peerId", peer.id),
-				)
-				failedCalls++
-				continue
+			if !attemptSend(req, peer, replica, w.logger.With()) {
+				return
 			}
-
-			failedCalls = 0
-			if !reply.Acked {
-				replica.done <- false
-				w.logger.Info("follower did not ack log replication", slog.Any("appendEntryReply", reply))
-				continue
-			}
-			replica.done <- true
-			replica.success.Add(1)
-			w.logger.Info("sent replication acked back to producer")
 			ticker.Reset(heartbeatInterval)
 
 		case <-ticker.C:
+			var failedCalls int
 			req := AppendEntryRequest{}
 			req.Id = leaderId
 			req.LeaderCommit = leaderCommit
@@ -133,4 +93,48 @@ func (w *Worker) Run(
 			ticker.Reset(heartbeat)
 		}
 	}
+}
+
+func attemptSend(
+	req AppendEntryRequest, peer *Peer, replica replicate, logger *slog.Logger,
+) bool {
+	var failedCalls int
+	reply := AppendEntryReply{}
+	req.Entry = &replica.entry
+	req.Message = "Replicate appendEntryRPC"
+
+	for failedCalls < MAX_RPC_CALL_RETRIALS {
+		if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
+			logger.Info("failed to Call Server.AppendEntryRPC for heartbeats.",
+				slog.String("error", err.Error()), slog.Int("peerId", peer.id),
+			)
+			failedCalls++
+			continue
+		}
+		break
+	}
+
+	if failedCalls == MAX_RPC_CALL_RETRIALS {
+		logger.Warn("max fail calls reached", slog.Int("totalFailed", failedCalls))
+		return false
+	}
+
+	if !reply.Acked {
+		replica.done <- false
+		logger.Info("follower did not ack log replication", slog.Any("appendEntryReply", reply))
+		return false
+	}
+	replica.done <- true
+	replica.success.Add(1)
+	logger.Info("sent replication acked back to producer")
+	return true
+}
+
+func randomTimeout(d time.Duration) time.Duration {
+	// crypto/rand requires a *big.Int for limits
+	limit := big.NewInt(int64(maxInterval - minInterval + 1))
+	n, _ := rand.Int(rand.Reader, limit)
+
+	actualInterval := n.Int64() + int64(minInterval)
+	return d * time.Duration(actualInterval)
 }

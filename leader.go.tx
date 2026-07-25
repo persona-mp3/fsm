@@ -242,18 +242,6 @@ func (n *Node) sendHeartBeat(ctx context.Context, peer *Peer, interval time.Dura
 	}
 }
 
-func randomTimeout(d time.Duration) time.Duration {
-	// crypto/rand requires a *big.Int for limits
-	limit := big.NewInt(int64(maxInterval - minInterval + 1))
-	n, _ := rand.Int(rand.Reader, limit)
-
-	actualInterval := n.Int64() + int64(minInterval)
-	return d * time.Duration(actualInterval)
-	// n := rand.IntN(maxInterval-minInterval) + minInterval
-	//
-	// return d * time.Duration(n)
-}
-
 // TODO: Commit command to database
 //
 // CONTEMPLATION:: Usually, I'm looking for a way to get the workers to comms

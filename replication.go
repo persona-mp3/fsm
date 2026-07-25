@@ -176,6 +176,8 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 						return
 					}
 				}(entry, req.reply, allWorkers)
+
+				logger.Info("current_diagnostics", slog.Any("diagnostics", n.Diagnostics()))
 			}
 		}
 	}
