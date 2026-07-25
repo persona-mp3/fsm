@@ -22,10 +22,19 @@ func (n *Node) handleRPC(req AppendEntryRPC) (*AppendEntryReplyRPC, Status) {
 		return nil, StatusOutOfSyncLogs
 	}
 
+	// if a new log is inside payload
+	// n.appendLogs(&entry)
+
 	if n.leaderCommit == req.PrevLog.LeaderCommit {
 		return nil, StatusLogsMatch
 	}
-	entry := n.applyCommitsTill(req.PrevLog.LeaderCommit)
+
+	var entry Entry
+
+	if n.leaderCommit > req.PrevLog.LeaderCommit {
+		entry = n.applyCommitsTill(req.PrevLog.LeaderCommit)
+	}
+
 	return &AppendEntryReplyRPC{
 		From: n.id,
 		LogProperties: LogProperties{
@@ -34,10 +43,14 @@ func (n *Node) handleRPC(req AppendEntryRPC) (*AppendEntryReplyRPC, Status) {
 			LeaderCommit: entry.Idx,
 		},
 	}, StatusLogsMatch
+
+}
+
+func (n *Node) appendLogs(log *Entry) {
 }
 
 func (n *Node) applyCommitsTill(stopCommit int) Entry {
 	_ = stopCommit
-  n.db.Commit("set username ballon_dior")
+	n.db.Commit("set username ballon_dior")
 	return Entry{}
 }
