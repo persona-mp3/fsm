@@ -41,10 +41,11 @@ func (n *Node) runFollower() {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
+				currentLeader := n.raft.CurrentLeader()
 				action := handler.HandleAppendEntry(
 					request,
 					n.raft.Term(),
-					n.raft.CurrentLeader(),
+					currentLeader,
 					n.logs.LastCommited(),
 					n.logs.Size(),
 					req.reply,
@@ -54,16 +55,16 @@ func (n *Node) runFollower() {
 					continue
 				}
 
-				if request.Entry != nil && !n.logs.Contains(request.Entry) {
+				if request.Entry != nil && !n.logs.HasEntry(request.Entry) {
 					slogger.Info(
 						"IN_PROGRESS: received new entry from leader",
 						slog.Group("details",
 							slog.Any("entry", request.Entry),
-							slog.Bool("available", n.logs.Contains(request.Entry)),
+							slog.Bool("available", n.logs.HasEntry(request.Entry)),
 						),
 					)
 					n.logs.Append(request.Entry)
-					slog.Info("append new log to entry", slog.Bool("appended", n.logs.Contains(request.Entry)))
+					slog.Info("append new log to entry", slog.Bool("appended", n.logs.HasEntry(request.Entry)))
 				} else {
 					slogger.Info(
 						"entry in request already exists",
@@ -72,7 +73,6 @@ func (n *Node) runFollower() {
 					)
 				}
 
-				currentLeader := n.raft.CurrentLeader()
 				if currentLeader == action.newLeader {
 					n.raft.UpdateTerm(action.newTerm, action.newLeader)
 					slogger.Info("reseting timer, heartbeat arrived",

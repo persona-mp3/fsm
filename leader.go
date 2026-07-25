@@ -70,7 +70,6 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 			switch req.kind {
 			case AppendEntry:
 				request, ok := req.payload.(AppendEntryRequest)
-				// no point in relaying response backup to the server because the server will still invalidate it and panic
 				if !ok {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
@@ -88,7 +87,7 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 			case ClientCommand:
 				logger.Println("in leader state, received command request from a client", req.payload)
 
-				payload, ok := req.payload.(CommandReq)
+				payload, ok := req.payload.(CommandRequest)
 				if !ok {
 					logger.Panic("expected CommandReq as payload got:", payload)
 				}
@@ -148,16 +147,6 @@ func (n *Node) runLeader(logger rlog.RLogger) {
 						Message:  "Coportate espionage is punishable just so you know",
 					},
 				}
-
-				// action := n.handleVoteRequest(request, req.reply, logger.Inherit("handleVoteRequest"))
-				// if !action.action {
-				// 	continue
-				// }
-				//
-				// n.raft.UpdateTerm(action.newTerm, action.newLeader)
-				// logger.Println("succesfully updated term, dropping back to follower", n.Diagnostics())
-				// n.transition <- Follower
-				// return
 
 			default:
 				logger.Panic("Unhandled RPC Not yet implemented:", req.payload, n.Diagnostics())
@@ -277,7 +266,7 @@ func randomTimeout(d time.Duration) time.Duration {
 // One issue i have w this approach is that already sending to a cluster from a client's perspective
 // is already slow. Sending to cluster, getting quorum, executing to database, and getting result from
 // db and sending back to client is a long trip. If anything, i think this increases latency painfully
-func (n *Node) commitFunc(payload CommandReq, entry Entry, reply chan RPCReply, logger rlog.RLogger) {
+func (n *Node) commitFunc(payload CommandRequest, entry Entry, reply chan RPCReply, logger rlog.RLogger) {
 	// send new entries to all workers
 	numPeers := len(n.rpcPeers)
 	done := make(chan bool, numPeers)

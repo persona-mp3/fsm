@@ -13,7 +13,7 @@ type VoteAction struct {
 
 type Handler interface {
 	HandleAppendEntry(
-		req AppendEntryRequest, currentTerm uint64, leader string, lastCommitIndex, logSize int, ch chan RPCReply,
+		req AppendEntryRequest, currentTerm uint64, leader string, lastCommitIndex uint64, logSize int, ch chan RPCReply,
 	) Action
 
 	HandleVoteRPC(
@@ -117,7 +117,7 @@ func (f FollowerHandler) HandleVoteRPC(
 //   - Comes from a node who has the same term and the node has identified it as its leader
 //   - Comes from a node
 func (f FollowerHandler) HandleAppendEntry(
-	req AppendEntryRequest, currentTerm uint64, leader string, lastCommitIndex, logSize int, ch chan RPCReply,
+	req AppendEntryRequest, currentTerm uint64, leader string, lastCommitIndex uint64, logSize int, ch chan RPCReply,
 ) Action {
 	reply := AppendEntryReply{}
 	action := Action{}
@@ -136,7 +136,7 @@ func (f FollowerHandler) HandleAppendEntry(
 }
 
 func (f FollowerHandler) rejectAppendEntry(
-	req *AppendEntryRequest, currentTerm uint64, lastCommitIndex, logSize int,
+	req *AppendEntryRequest, currentTerm uint64, lastCommitIndex uint64, logSize int,
 ) (Action, AppendEntryReply) {
 	reply := AppendEntryReply{
 		Id:           f.Id,
@@ -153,7 +153,7 @@ func (f FollowerHandler) rejectAppendEntry(
 
 	f.logger.Info("rejecting appendEntry due to lower term",
 		slog.Uint64("currentTerm", currentTerm),
-		slog.Int("lastCommitIndex", lastCommitIndex),
+		slog.Uint64("lastCommitIndex", lastCommitIndex),
 		slog.Int("logSize", logSize),
 		slog.Any("appendEntryRPC", req),
 	)
@@ -161,7 +161,7 @@ func (f FollowerHandler) rejectAppendEntry(
 }
 
 func (f FollowerHandler) acceptNewTerm(
-	req *AppendEntryRequest, lastCommitIndex, logSize int,
+	req *AppendEntryRequest, lastCommitIndex uint64, logSize int,
 ) (Action, AppendEntryReply) {
 	// TODO: fail fast
 	// logsMatch := req.LogSize >= logSize && req.LastCommitIndex >= lastCommitIndex
@@ -184,7 +184,7 @@ func (f FollowerHandler) acceptNewTerm(
 
 // currentLeader, logsMatch
 func (f FollowerHandler) proceessAppendEntry(
-	req *AppendEntryRequest, currentTerm uint64, currentLeader string, lastCommitIndex, logSize int,
+	req *AppendEntryRequest, currentTerm uint64, currentLeader string, lastCommitIndex uint64, logSize int,
 ) (Action, AppendEntryReply) {
 	action := Action{}
 
@@ -211,10 +211,12 @@ func (f FollowerHandler) proceessAppendEntry(
 		action.newLeader = req.Id
 		action.newTerm = req.Term
 
-		f.logger.Info(
-			fmt.Sprintf("due to absent leader, recognizing peer %s as leader", req.Id),
-			slog.Any("appendEntryRPC", req),
-		)
+		if !logsMatch {
+			f.logger.Info(
+				fmt.Sprintf("due to absent leader, recognizing peer %s as leader", req.Id),
+				slog.Any("appendEntryRPC", req),
+			)
+		}
 
 	case currentLeader == req.Id:
 		reply.Acked = true
@@ -227,7 +229,10 @@ func (f FollowerHandler) proceessAppendEntry(
 
 		f.logger.Info("appendEntry came from a recognized leader",
 			slog.String("currentLeader", currentLeader),
-			slog.Any("appendEntryRPC", req))
+			slog.Any("appendEntryRPC", req),
+		)
+
+		f.logger.Warn("LEADER LOGS AND FOLLOWER LOGS DONT MATCH YET. STILL IN IMPL", slog.Any("appendRPC", req))
 
 	case currentLeader == "" && !logsMatch:
 		reply.Acked = false
@@ -237,7 +242,7 @@ func (f FollowerHandler) proceessAppendEntry(
 		f.logger.Info("appendEntry came from an node claiming to be leader with mismatched logs",
 			slog.Uint64("currentTerm", currentTerm),
 			slog.String("currentLeader", currentLeader),
-			slog.Int("lastCommitIndex", lastCommitIndex),
+			slog.Uint64("lastCommitIndex", lastCommitIndex),
 			slog.Int("logSize", logSize),
 			slog.Any("appendEntryRPC", req),
 		)
@@ -256,7 +261,7 @@ func (f FollowerHandler) proceessAppendEntry(
 		f.logger.Info("unforseen circumstance, printing dump before panic",
 			slog.Uint64("currentTerm", currentTerm),
 			slog.String("currentLeader", currentLeader),
-			slog.Int("lastCommitIndex", lastCommitIndex),
+			slog.Uint64("lastCommitIndex", lastCommitIndex),
 			slog.Int("logSize", logSize),
 			slog.Any("appendEntryRPC", req),
 		)

@@ -16,7 +16,7 @@ func TestFollowerHandlerRejectsLowerTerm(t *testing.T) {
 		Term:  0,
 		Entry: nil,
 	}
-	lastCommitIdx := 4
+	lastCommitIdx := uint64(4)
 	logSize := 10
 	reply := make(chan RPCReply, 1)
 
@@ -103,10 +103,8 @@ func TestFollowerHandlerRejectsUnrecognizedLeader(t *testing.T) {
 	assert.Equal(t, action.newTerm, currentTerm, "expected action.newTerm returned from hadler to match higher term")
 }
 
-
-
 func TestFollowerHandlerAcceptsLeader(t *testing.T) {
-  nodeId, handler := newTestFollowerHandler(t)
+	nodeId, handler := newTestFollowerHandler(t)
 
 	currentLeader := fmt.Sprintf("test-leader-%s", t.Name())
 	currentTerm := uint64(40)

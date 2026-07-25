@@ -18,7 +18,7 @@ type Entry struct {
 type Logs struct {
 	rw           sync.RWMutex
 	entries      []*Entry
-	lastCommited int
+	lastCommited uint64
 	size         int
 }
 
@@ -31,7 +31,7 @@ func (l *Logs) Append(e *Entry) int {
 	return idx
 }
 
-func (l *Logs) LastCommited() int {
+func (l *Logs) LastCommited() uint64 {
 	l.rw.RLock()
 	defer l.rw.RUnlock()
 	return l.lastCommited
@@ -43,24 +43,26 @@ func (l *Logs) Size() int {
 	return len(l.entries)
 }
 
-func (l *Logs) Contains(e *Entry) bool {
-	// idx int, term uint64
-	l.rw.RLock()
-	defer l.rw.RUnlock()
-
-	if len(l.entries) <= e.Idx {
-		return false
-	}
-
-	target := l.entries[e.Idx]
-	if target.Term == e.Term {
-		return true
-	}
-
-	return false
-}
+// func (l *Logs) Contains(e *Entry) bool {
+// 	// idx int, term uint64
+// 	l.rw.RLock()
+// 	defer l.rw.RUnlock()
+//
+// 	if len(l.entries) <= e.Idx {
+// 		return false
+// 	}
+//
+// 	target := l.entries[e.Idx]
+// 	if target.Term == e.Term {
+// 		return true
+// 	}
+//
+// 	return false
+// }
 
 func (l *Logs) HasEntry(entry *Entry) bool {
+	l.rw.RLock()
+	defer l.rw.RUnlock()
 	for _, e := range l.entries {
 		if e.Term == entry.Term &&
 			e.Operation == entry.Operation &&
@@ -70,6 +72,19 @@ func (l *Logs) HasEntry(entry *Entry) bool {
 		}
 	}
 	return false
+}
+
+// todo: will want to do this in reverse instead
+func (l *Logs) Get(ops db.Operation, key string) (string, bool) {
+	l.rw.RLock()
+	defer l.rw.RUnlock()
+	for _, e := range l.entries {
+		if e.Operation == ops && e.Key == key {
+			return e.Value, true
+		}
+	}
+
+	return "", false
 }
 
 func (l *Logs) String() string {
