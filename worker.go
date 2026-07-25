@@ -27,7 +27,14 @@ func (w *Worker) Run(
 	ctx context.Context, leaderId string, peer *Peer, currentTerm uint64, heartbeat time.Duration,
 ) {
 	ticker := time.NewTicker(heartbeat)
-	defer ticker.Stop()
+	defer func() {
+		ticker.Stop()
+		if peer.rpcConn != nil {
+			peer.rpcConn.Close()
+		}
+		w.logger.Info("worker exiting, closed connection")
+
+	}()
 
 	leaderCommit := w.leaderCommit
 
