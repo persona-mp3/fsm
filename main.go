@@ -25,12 +25,12 @@ var (
 	// heartbeatInterval is the rate at which the node when in a [Leader] state sends
 	// out heartbeats to follower in a cluster. At the moment, this is set to be 200 which
 	// is roughly half the minimum election timeout interval
-	heartbeatInterval = time.Millisecond * 200
+	HeartBeatInterval = time.Millisecond * 200
 
 	// According to the Raft Paper, it's recommended for timeouts(election) to range from 100-500ms, but
 	// we're increasing it because that's too aggressive
-	minInterval = 500
-	maxInterval = 1200
+	MinInterval = 500
+	MaxInterval = 1200
 )
 
 func main() {
@@ -57,9 +57,9 @@ func parseConfig() error {
 			return fmt.Errorf("could not parse cluster config: %w", err)
 		}
 
-		minInterval = cfg.ClusterSettings.MinInterval
-		maxInterval = cfg.ClusterSettings.MaxInterval
-		heartbeatInterval = time.Millisecond * time.Duration(cfg.ClusterSettings.Heartbeat)
+		MinInterval = cfg.ClusterSettings.MinInterval
+		MaxInterval = cfg.ClusterSettings.MaxInterval
+		HeartBeatInterval = time.Millisecond * time.Duration(cfg.ClusterSettings.Heartbeat)
 
 		log.Println("running cluster in 'cluster' mode with total of", len(cfg.Peers), cfg.Peers)
 		go func() {
@@ -90,9 +90,9 @@ func parseConfig() error {
 			}
 		}()
 
-		minInterval = cfg.ClusterSettings.MinInterval
-		maxInterval = cfg.ClusterSettings.MaxInterval
-		heartbeatInterval = time.Millisecond * time.Duration(cfg.ClusterSettings.Heartbeat)
+		MinInterval = cfg.ClusterSettings.MinInterval
+		MaxInterval = cfg.ClusterSettings.MaxInterval
+		HeartBeatInterval = time.Millisecond * time.Duration(cfg.ClusterSettings.Heartbeat)
 
 		runSingleTopology(ctx, &cfg)
 

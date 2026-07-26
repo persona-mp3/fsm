@@ -30,8 +30,10 @@ type AppendEntryRequest struct {
 	Message string
 	Entry   *Entry
 	// temp
-	LastCommitIndex int
+	LastCommitIndex uint64
 	LogSize         int
+
+	LeaderCommit uint64
 }
 
 type AppendEntryReply struct {
@@ -40,7 +42,7 @@ type AppendEntryReply struct {
 	Acked   bool
 	Message string
 	// temp
-	LastCommited int
+	LastCommited uint64
 	LogSize      int
 }
 
@@ -65,7 +67,7 @@ const (
 	Remove Operation = "rm"
 )
 
-type CommandReq struct {
+type CommandRequest struct {
 	From      string
 	Operation db.Operation
 	Key       string
@@ -118,7 +120,7 @@ func (s *Server) VoteRequestRPC(req VoteRequest, res *VoteReply) error {
 	return nil
 }
 
-func (s *Server) CommandRPC(req CommandReq, res *CommandReply) error {
+func (s *Server) CommandRPC(req CommandRequest, res *CommandReply) error {
 	s.log.Println("forwarding commandRPC to node")
 	reply := make(chan RPCReply)
 	s.incoming <- RPC{kind: ClientCommand, payload: req, reply: reply}

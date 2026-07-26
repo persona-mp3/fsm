@@ -6,6 +6,7 @@ import (
 	db "fsm/database"
 	rlog "fsm/raftlogger"
 	"io"
+	"log/slog"
 	"net/rpc"
 	"os"
 	"sync"
@@ -72,6 +73,7 @@ type Node struct {
 	// a [Leader] or [Candidate]. This shoudl be accessed safely
 	rpcPeers []*Peer
 
+	workers []*Worker
 	// stateCtx cancels the active [Raft.State] listening when an the [Node] needs to
 	// shutdown. To cancel, call [Raft.stateCtxCancel]. After every cancel, a new ctx
 	// needs to be created for the state to be ran
@@ -91,8 +93,8 @@ type Node struct {
 }
 
 const (
-	// defaultChanBuffer is used for the Node's incoming chan
-	defaultChanBuffer = 1
+	// defaultChanBuffer is used for the Node's incoming network
+	NETWORK_CHAN_BUFFER = 100
 )
 
 func NewNode(
@@ -100,7 +102,7 @@ func NewNode(
 ) (*Node, error) {
 
 	raft := NewRaft(id, initialTimeout)
-	incoming := make(chan RPC, defaultChanBuffer)
+	incoming := make(chan RPC, NETWORK_CHAN_BUFFER)
 
 	// purposely left unbuffered to enforce one state transition at a time
 	transition := make(chan RaftState)
@@ -193,8 +195,9 @@ func (n *Node) Run(parentCtx context.Context) error {
 				n.stateCtxCancel()
 				n.newContext(ctx)
 
-				rlog := rlog.NewHumaneLogger(n.id, "leader", n.raft.Term(), n.log.Out())
-				go n.runLeader(rlog)
+				// rlog := rlog.NewHumaneLogger(n.id, "leader", n.raft.Term(), n.log.Out())
+				// go n.runLeader(rlog)
+				go n.StartLeader(slog.New(slog.NewJSONHandler(n.log.Out(), nil)))
 			case Candidate:
 				if n.raft.State() == Candidate {
 					n.log.Panic(`recvd transition into Candidate while in Candidate state`, n.Diagnostics())

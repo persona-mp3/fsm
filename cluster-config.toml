@@ -1,12 +1,12 @@
 peers = [
 "localhost:5001", 
 "localhost:5002", 
-"localhost:5003",
+"localhost:5003", 
 ]
 pprof_addr = "localhost:6061"
 
 [cluster_settings]
-  heartbeat = 50
+  heartbeat = 500
   min_interval = 800
   max_interval = 1200
   [cluster_settings.topology]
