@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"fsm/raftlogger"
 	"log/slog"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 func (n *Node) StartLeader(logger *slog.Logger) {
@@ -30,8 +30,8 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 	}
 
 	currentTerm := n.raft.Term()
-	// to track number of workers still active
 
+	// to track number of workers still active
 	wg := sync.WaitGroup{}
 	allWorkers := []*Worker{}
 	for _, peer := range connectedPeers {
@@ -43,7 +43,7 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 		allWorkers = append(allWorkers, worker)
 
 		wg.Go(func() {
-			worker.Run(ctx, n.id, peer, currentTerm, heartbeatInterval)
+			worker.Run(ctx, n.id, peer, currentTerm, HeartBeatInterval)
 		})
 	}
 
@@ -95,35 +95,43 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 					panic("recvd wrong payload ^^")
 				}
 
-				if request.Term > currentTerm {
+				switch {
+				case request.Term > currentTerm:
 					req.reply <- RPCReply{
 						kind: Vote,
 						payload: &VoteReply{
 							Id:       n.id,
 							Term:     request.Term,
 							VotedFor: true,
-							Message:  "Ye was a leader, now sunderring",
+							Message:  "retreating back to leader",
 						},
 					}
+
+					n.raft.GiveVote(request.Term, request.Id)
 					logger.Info("leader dropping down to follower succesfully updated term due to higher term",
 						slog.Any("voteRPC", request),
 						slog.Any("diagnostics", n.Diagnostics()),
 					)
-					n.raft.GiveVote(request.Term, request.Id)
 					n.transition <- Follower
 					return
-				}
 
 				// TODO(persona) will need to do a check here in the event that two nodes might
 				// think they're a leader. We then compare against their logs
-				req.reply <- RPCReply{
-					kind: Vote,
-					payload: &VoteReply{
-						Id:       n.id,
-						Term:     request.Term,
-						VotedFor: false,
-						Message:  "Coportate espionage is punishable just so you know",
-					},
+				default:
+					req.reply <- RPCReply{
+						kind: Vote,
+						payload: &VoteReply{
+							Id:       n.id,
+							Term:     request.Term,
+							VotedFor: false,
+							Message:  "Coportate espionage is punishable just so you know",
+						},
+					}
+					logger.Info(
+						"rejecting voteRPC from a node without a higher term",
+						slog.Uint64("currentTerm", n.raft.Term()),
+						slog.Any("voteRPC", req),
+					)
 				}
 
 			case ClientCommand:
@@ -143,24 +151,19 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 						kind: ClientCommand,
 						payload: &CommandReply{
 							From:   n.id,
-							Result: "LEADER_STUB: I gave you this before, where did you keep it?",
+							Result: fmt.Sprintf("cached::%s", value),
 						},
 					}
-					logger.Info("entry already existed, not repeating duplicate logs",
-						slog.Any("entry", entry),
-						slog.Bool("exists", exists), slog.String("value", value),
-						slog.String("diagnostics", n.Diagnostics()),
-					)
 					continue
 				}
 				// replicate entry accross workers
 				go func(entry Entry, replyCh chan RPCReply, workers []*Worker) {
-					safe := replicateEntry(entry, workers, len(n.peers), logger.With())
+					safeForReplication := replicateEntry(entry, workers, len(n.peers), logger.With())
 					reply := CommandReply{
 						From:   "fsm-leader",
 						Result: "quorum not reached please try again later",
 					}
-					if !safe {
+					if !safeForReplication {
 						select {
 						case replyCh <- RPCReply{kind: ClientCommand, payload: &reply}:
 						default:
@@ -169,7 +172,7 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 						return
 					}
 
-					reply.Result = "mock: not applied commitment yet as mid refactor"
+					reply.Result = "mock: not applied commit yet as mid refactor"
 					select {
 					case replyCh <- RPCReply{kind: ClientCommand, payload: &reply}:
 					default:
@@ -177,7 +180,7 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 					}
 				}(entry, req.reply, allWorkers)
 
-				logger.Info("current_diagnostics", slog.Any("diagnostics", n.Diagnostics()))
+				logger.Info("leader inspection", slog.Any("diagnostics", n.Diagnostics()))
 			}
 		}
 	}
@@ -198,18 +201,6 @@ func HandleCommandRPC(req *CommandRequest, currentTerm uint64, logs *Logs) (Entr
 	logs.Append(&entry)
 	return entry, false
 }
-
-// todo: not sure of this yet
-type Worker struct {
-	id           int
-	replicateCh  chan replicate
-	leaderCommit uint64
-	// for new changes to recent commits to keep in sync
-	leaderCommitCh <-chan uint64
-	logger         *slog.Logger
-}
-
-const replicaTimeout = time.Millisecond * 180
 
 // replicateEntry tries to send the new entry to all the workers. If a majority of the workers
 // are able to send out their RPC with the new entry, repliacteEntry returns true signalling that
@@ -241,7 +232,7 @@ func replicateEntry(
 		}
 	}
 
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), replicaTimeout)
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), WORKER_SEND_TIMEOUT)
 	defer cancel()
 
 	quorumTarget := (clusterSize / 2) + 1

@@ -43,23 +43,6 @@ func (l *Logs) Size() int {
 	return len(l.entries)
 }
 
-// func (l *Logs) Contains(e *Entry) bool {
-// 	// idx int, term uint64
-// 	l.rw.RLock()
-// 	defer l.rw.RUnlock()
-//
-// 	if len(l.entries) <= e.Idx {
-// 		return false
-// 	}
-//
-// 	target := l.entries[e.Idx]
-// 	if target.Term == e.Term {
-// 		return true
-// 	}
-//
-// 	return false
-// }
-
 func (l *Logs) HasEntry(entry *Entry) bool {
 	l.rw.RLock()
 	defer l.rw.RUnlock()

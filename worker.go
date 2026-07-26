@@ -2,16 +2,35 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
 	"log/slog"
-	"math/big"
 	"time"
 )
 
 const (
+	// MAX_RPC_CALL_RETRIALS is the maxium amout of time a [Worker] can dial a peer for sending rpcs
+	// before exiting
 	MAX_RPC_CALL_RETRIALS = 5
-	WORKER_CHAN_BUFFER    = 100
+
+	// WORKER_CHAN_BUFFER is the maximum amount of packets a worker can receive before being blocked
+	// This is tuned to the same level as [NETWORK_CHAN_BUFFER]
+	WORKER_CHAN_BUFFER = 100
+
+	// WORKER_SEND_TIMEOUT is the maximum waiting time for a worker to receive a packet via
+	// it's [Worker] via it's channels.
+	WORKER_SEND_TIMEOUT = time.Millisecond * 180
 )
+
+// Worker is used by the leader to send heatbeats to the followers. If the leader
+// decides to send out new [AppendEntries] for the cluster to replicate it uses
+// the [Worker.replicateCh] to do this
+type Worker struct {
+	id           int
+	replicateCh  chan replicate
+	leaderCommit uint64
+	// for new changes to recent commits to keep in sync
+	leaderCommitCh <-chan uint64
+	logger         *slog.Logger
+}
 
 func NewWorker(id int, initialCommit uint64, logger *slog.Logger) *Worker {
 	return &Worker{
@@ -38,7 +57,12 @@ func (w *Worker) Run(
 
 	leaderCommit := w.leaderCommit
 
+	var failedCalls int
 	for {
+		if failedCalls == MAX_RPC_CALL_RETRIALS {
+			w.logger.Warn("max retrials reached for rpcClient. worker exiting")
+			return
+		}
 		select {
 		case newCommit := <-w.leaderCommitCh:
 			leaderCommit = newCommit
@@ -53,7 +77,7 @@ func (w *Worker) Run(
 			if !attemptSend(req, peer, replica, w.logger.With()) {
 				return
 			}
-			ticker.Reset(heartbeatInterval)
+			ticker.Reset(HeartBeatInterval)
 		default:
 		}
 		select {
@@ -73,10 +97,9 @@ func (w *Worker) Run(
 			if !attemptSend(req, peer, replica, w.logger.With()) {
 				return
 			}
-			ticker.Reset(heartbeatInterval)
+			ticker.Reset(HeartBeatInterval)
 
 		case <-ticker.C:
-			var failedCalls int
 			req := AppendEntryRequest{}
 			req.Id = leaderId
 			req.LeaderCommit = leaderCommit
@@ -116,6 +139,13 @@ func attemptSend(
 				slog.String("error", err.Error()), slog.Int("peerId", peer.id),
 			)
 			failedCalls++
+
+			delay := randomTimeout(time.Millisecond)
+			logger.Warn("failed to attemptSend appendEntry to client",
+				slog.Any("timeout before calling again", delay),
+				slog.Int("failedCalls", failedCalls),
+			)
+			time.Sleep(delay)
 			continue
 		}
 		break
@@ -135,13 +165,4 @@ func attemptSend(
 	replica.success.Add(1)
 	logger.Info("sent replication acked back to producer")
 	return true
-}
-
-func randomTimeout(d time.Duration) time.Duration {
-	// crypto/rand requires a *big.Int for limits
-	limit := big.NewInt(int64(maxInterval - minInterval + 1))
-	n, _ := rand.Int(rand.Reader, limit)
-
-	actualInterval := n.Int64() + int64(minInterval)
-	return d * time.Duration(actualInterval)
 }
