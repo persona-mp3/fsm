@@ -176,18 +176,30 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 
 					// TODO: continue
 					// At this point, we'll need to send the database the command that came from the client
-					// The order in which the requests came in, will be the order in which they will 
+					// The order in which the requests came in, will be the order in which they will
 					// enter the log, be replicated among the cluster and applied to the database
 					// But since the network channel only has one person recieving on it, there's an
-					// assistance for serializablity and ordered operations. 
+					// assistance for serializablity and ordered operations.
 					// A client that makes concurrent requests will still land as unique requests so
-					// we don't need to worry about that. 
+					// we don't need to worry about that.
 					// But question
 					// ----
 					// we'll actually want the database to commit from our logs not really as per-requests
-					// so we could have a method like 
+					// so we could have a method like
 					// n.logs.Append(entry)
 					// n.logs.Flush()? where flush keeps track of the last commited entry and commits them
+					// And what of logs that were not able to acheive replication majority? Are they stored
+					// in the leader's logs as is? Or removed?
+					// and what is Flush() supposed to return? all the results of all entries or the most
+					// recent one? Or does flush simply append the result to each Entry?
+					// type Entry struct {
+					// 		Idx       int
+					// 		Term      uint64
+					//		Operation db.Ops
+					//		Key       string
+					//		Value     string
+					//		result    string
+					//   }
 					reply.Result = "mock: not applied commit yet as mid refactor"
 					select {
 					case replyCh <- RPCReply{kind: ClientCommand, payload: &reply}:
