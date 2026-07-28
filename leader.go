@@ -156,6 +156,7 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 					}
 					continue
 				}
+
 				// replicate entry accross workers
 				go func(entry Entry, replyCh chan RPCReply, workers []*Worker) {
 					safeForReplication := replicateEntry(entry, workers, len(n.peers), logger.With())
@@ -163,6 +164,7 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 						From:   "fsm-leader",
 						Result: "quorum not reached please try again later",
 					}
+
 					if !safeForReplication {
 						select {
 						case replyCh <- RPCReply{kind: ClientCommand, payload: &reply}:
@@ -172,6 +174,17 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 						return
 					}
 
+					// TODO: continue
+					// At this point, we'll need to send the database the command that came from the client
+					// The order in which the requests came in, will be the order in which they will 
+					// enter the log, be replicated among the cluster and applied to the database
+					// But since the network channel only has one person recieving on it, there's an
+					// assistance for serializablity and ordered operations. 
+					// A client that makes concurrent requests will still land as unique requests so
+					// we don't need to worry about that. 
+					// 
+					// 
+					// 
 					reply.Result = "mock: not applied commit yet as mid refactor"
 					select {
 					case replyCh <- RPCReply{kind: ClientCommand, payload: &reply}:
