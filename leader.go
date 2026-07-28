@@ -182,9 +182,12 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 					// assistance for serializablity and ordered operations. 
 					// A client that makes concurrent requests will still land as unique requests so
 					// we don't need to worry about that. 
-					// 
-					// 
-					// 
+					// But question
+					// ----
+					// we'll actually want the database to commit from our logs not really as per-requests
+					// so we could have a method like 
+					// n.logs.Append(entry)
+					// n.logs.Flush()? where flush keeps track of the last commited entry and commits them
 					reply.Result = "mock: not applied commit yet as mid refactor"
 					select {
 					case replyCh <- RPCReply{kind: ClientCommand, payload: &reply}:
