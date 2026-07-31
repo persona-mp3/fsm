@@ -255,7 +255,6 @@ func replicateEntry(
 		select {
 		case worker.replicateCh <- replica:
 		default:
-			done <- false
 			logger.Warn("dropped replica packet because worker is blocked")
 		}
 	}
