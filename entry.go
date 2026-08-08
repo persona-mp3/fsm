@@ -5,6 +5,7 @@ import (
 	db "fsm/database"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
 type Entry struct {
@@ -18,7 +19,7 @@ type Entry struct {
 type Logs struct {
 	rw           sync.RWMutex
 	entries      []*Entry
-	lastCommited uint64
+	lastCommited *atomic.Uint64
 	size         int
 }
 
@@ -31,9 +32,12 @@ func (l *Logs) Append(e *Entry) int {
 	return idx
 }
 
+// should we get this to return an atomic pointer
 func (l *Logs) LastCommited() uint64 {
-	l.rw.RLock()
-	defer l.rw.RUnlock()
+	return l.lastCommited.Load()
+}
+
+func (l *Logs) getAtomicCommit() *atomic.Uint64 {
 	return l.lastCommited
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"sync/atomic"
 	"time"
 )
 
@@ -26,19 +27,17 @@ const (
 type Worker struct {
 	id           int
 	replicateCh  chan replicate
-	leaderCommit uint64
+	leaderCommit *atomic.Uint64
 	// for new changes to recent commits to keep in sync
-	leaderCommitCh <-chan uint64
-	logger         *slog.Logger
+	logger *slog.Logger
 }
 
-func NewWorker(id int, initialCommit uint64, logger *slog.Logger) *Worker {
+func NewWorker(id int, leaderCommit *atomic.Uint64, logger *slog.Logger) *Worker {
 	return &Worker{
-		id:             id,
-		replicateCh:    make(chan replicate, WORKER_CHAN_BUFFER),
-		leaderCommit:   initialCommit,
-		leaderCommitCh: make(chan uint64, WORKER_CHAN_BUFFER),
-		logger:         logger,
+		id:           id,
+		replicateCh:  make(chan replicate, WORKER_CHAN_BUFFER),
+		leaderCommit: leaderCommit,
+		logger:       logger,
 	}
 }
 
@@ -55,8 +54,6 @@ func (w *Worker) Run(
 
 	}()
 
-	leaderCommit := w.leaderCommit
-
 	var failedCalls int
 	for {
 		if failedCalls == MAX_RPC_CALL_RETRIALS {
@@ -64,63 +61,63 @@ func (w *Worker) Run(
 			return
 		}
 		select {
-		case newCommit := <-w.leaderCommitCh:
-			leaderCommit = newCommit
-			w.logger.Info("new leader commit recvd", slog.Uint64("leaderCommit", leaderCommit))
+		// case newCommit := <-w.leaderCommitCh:
+		// 	leaderCommit = newCommit
+		// 	w.logger.Info("new leader commit recvd", slog.Uint64("leaderCommit", leaderCommit))
 
 		case replica := <-w.replicateCh:
 			req := AppendEntryRequest{}
 			req.Id = leaderId
 			req.Term = currentTerm
-			req.LeaderCommit = leaderCommit
+			req.LeaderCommit = w.leaderCommit.Load()
 
 			if !attemptSend(req, peer, replica, w.logger.With()) {
 				return
 			}
 			ticker.Reset(HeartBeatInterval)
 		default:
-		}
-		select {
-		case <-ctx.Done():
-			return
-
-		case newCommit := <-w.leaderCommitCh:
-			leaderCommit = newCommit
-			w.logger.Info("new leader commit recvd", slog.Uint64("leaderCommit", leaderCommit))
-
-		case replica := <-w.replicateCh:
-			req := AppendEntryRequest{}
-			req.Id = leaderId
-			req.Term = currentTerm
-			req.LeaderCommit = leaderCommit
-
-			if !attemptSend(req, peer, replica, w.logger.With()) {
+			select {
+			case <-ctx.Done():
 				return
-			}
-			ticker.Reset(HeartBeatInterval)
 
-		case <-ticker.C:
-			req := AppendEntryRequest{}
-			req.Id = leaderId
-			req.LeaderCommit = leaderCommit
-			req.Term = currentTerm
+			// case newCommit := <-w.leaderCommitCh:
+			// 	leaderCommit = newCommit
+			// 	w.logger.Info("new leader commit recvd", slog.Uint64("leaderCommit", leaderCommit))
 
-			reply := AppendEntryReply{}
-			if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
-				w.logger.Info("failed to Call Server.AppendEntryRPC for heartbeats.",
-					slog.String("error", err.Error()), slog.Int("peerId", peer.id),
-				)
-				failedCalls++
-				continue
-			}
-			failedCalls = 0
-			if !reply.Acked {
-				w.logger.Info("reply from heartbeatRPC was not recognized by follower exiting", slog.Int("workerId", w.id), slog.Any("heartbeatRPC", reply))
-				return
-			}
+			case replica := <-w.replicateCh:
+				req := AppendEntryRequest{}
+				req.Id = leaderId
+				req.Term = currentTerm
+				req.LeaderCommit = w.leaderCommit.Load()
 
-			w.logger.Info("reply from heartbeatRPC was recognized by follower", slog.Int("workerId", w.id), slog.Any("heartbeatRPC", reply))
-			ticker.Reset(heartbeat)
+				if !attemptSend(req, peer, replica, w.logger.With()) {
+					return
+				}
+				ticker.Reset(HeartBeatInterval)
+
+			case <-ticker.C:
+				req := AppendEntryRequest{}
+				req.Id = leaderId
+				req.LeaderCommit = w.leaderCommit.Load()
+				req.Term = currentTerm
+
+				reply := AppendEntryReply{}
+				if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
+					w.logger.Info("failed to Call Server.AppendEntryRPC for heartbeats.",
+						slog.String("error", err.Error()), slog.Int("peerId", peer.id),
+					)
+					failedCalls++
+					continue
+				}
+				failedCalls = 0
+				if !reply.Acked {
+					w.logger.Info("reply from heartbeatRPC was not recognized by follower exiting", slog.Int("workerId", w.id), slog.Any("heartbeatRPC", reply))
+					return
+				}
+
+				w.logger.Info("reply from heartbeatRPC was recognized by follower", slog.Int("workerId", w.id), slog.Any("heartbeatRPC", reply))
+				ticker.Reset(heartbeat)
+			}
 		}
 	}
 }
