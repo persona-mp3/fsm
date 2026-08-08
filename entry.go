@@ -28,7 +28,7 @@ func (l *Logs) Append(e *Entry) int {
 	defer l.rw.Unlock()
 
 	idx := len(l.entries)
-	e.Idx = idx
+	e.Idx = idx+1
 	l.entries = append(l.entries, e)
 	return idx
 }

@@ -23,9 +23,9 @@ const (
 )
 
 type Command struct {
-	Ops   Operation
-	Key   string
-	Value string
+	Operation Operation
+	Key       string
+	Value     string
 }
 
 type Reply struct {
@@ -95,16 +95,16 @@ func parseInput(input string) (*Command, error) {
 	switch result[0] {
 	case OperationGet.String():
 		key := result[1]
-		cmd.Ops = OperationGet
+		cmd.Operation = OperationGet
 		cmd.Key = key
 	case OperationRemove.String():
 		key := result[1]
-		cmd.Ops = OperationGet
+		cmd.Operation = OperationGet
 		cmd.Key = key
 	case OperationSet.String():
 		key := result[1]
 		value := result[2]
-		cmd.Ops = OperationSet
+		cmd.Operation = OperationSet
 		cmd.Key = key
 		cmd.Value = value
 

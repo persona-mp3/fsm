@@ -210,8 +210,12 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 				// we should typically not log or replicate 'GET' commands
 				// as jkvs itself does not either. It just causes noise and extra
 				// stuff when debugging
-				n.Apply(entry)
-				reply.Result = "mock: not applied commit yet as mid refactor"
+				dbResponse, err := n.Apply(entry)
+				if err != nil {
+					reply.Result = err.Error()
+				} else {
+					reply.Result = dbResponse.Message
+				}
 				select {
 				case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
 				default:
