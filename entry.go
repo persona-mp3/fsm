@@ -17,7 +17,7 @@ type Entry struct {
 }
 
 type Logs struct {
-	rw           sync.RWMutex
+	rw           sync.Mutex
 	entries      []*Entry
 	lastCommited *atomic.Uint64
 	size         int
@@ -26,6 +26,7 @@ type Logs struct {
 func (l *Logs) Append(e *Entry) int {
 	l.rw.Lock()
 	defer l.rw.Unlock()
+
 	idx := len(l.entries)
 	e.Idx = idx
 	l.entries = append(l.entries, e)
@@ -42,14 +43,14 @@ func (l *Logs) getAtomicCommit() *atomic.Uint64 {
 }
 
 func (l *Logs) Size() int {
-	l.rw.RLock()
-	defer l.rw.RUnlock()
+	l.rw.Lock()
+	defer l.rw.Unlock()
 	return len(l.entries)
 }
 
 func (l *Logs) HasEntry(entry *Entry) bool {
-	l.rw.RLock()
-	defer l.rw.RUnlock()
+	l.rw.Lock()
+	defer l.rw.Unlock()
 	for _, e := range l.entries {
 		if e.Term == entry.Term &&
 			e.Operation == entry.Operation &&
@@ -63,8 +64,8 @@ func (l *Logs) HasEntry(entry *Entry) bool {
 
 // todo: will want to do this in reverse instead
 func (l *Logs) Get(ops db.Operation, key string) (string, bool) {
-	l.rw.RLock()
-	defer l.rw.RUnlock()
+	l.rw.Lock()
+	defer l.rw.Unlock()
 	for _, e := range l.entries {
 		if e.Operation == ops && e.Key == key {
 			return e.Value, true
@@ -75,8 +76,8 @@ func (l *Logs) Get(ops db.Operation, key string) (string, bool) {
 }
 
 func (l *Logs) String() string {
-	l.rw.RLock()
-	defer l.rw.RUnlock()
+	l.rw.Lock()
+	defer l.rw.Unlock()
 
 	sb := strings.Builder{}
 	for _, e := range l.entries {
@@ -85,3 +86,4 @@ func (l *Logs) String() string {
 
 	return sb.String()
 }
+

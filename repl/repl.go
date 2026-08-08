@@ -12,7 +12,7 @@ import (
 
 const MIN_LENGTH = 5
 
-var raftLeaderAddr = "localhost:5003"
+var raftLeaderAddr = "localhost:5001"
 
 type Operation string
 

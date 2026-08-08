@@ -158,55 +158,66 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 				}
 
 				// replicate entry accross workers
-				go func(entry Entry, replyCh chan RPCReply, workers []*Worker) {
-					safeForReplication := replicateEntry(entry, workers, len(n.peers), logger.With())
-					reply := CommandReply{
-						From:   "fsm-leader",
-						Result: "quorum not reached please try again later",
-					}
+				// go func(entry Entry, replyCh chan RPCReply, workers []*Worker) {
+				safeForReplication := replicateEntry(entry, allWorkers, len(n.peers), logger.With())
+				reply := CommandReply{
+					From:   "fsm-leader",
+					Result: "quorum not reached please try again later",
+				}
 
-					if !safeForReplication {
-						select {
-						case replyCh <- RPCReply{kind: ClientCommand, payload: &reply}:
-						default:
-							return
-						}
-						return
-					}
-
-					// TODO: continue
-					// At this point, we'll need to send the database the command that came from the client
-					// The order in which the requests came in, will be the order in which they will
-					// enter the log, be replicated among the cluster and applied to the database
-					// But since the network channel only has one person recieving on it, there's an
-					// assistance for serializablity and ordered operations.
-					// A client that makes concurrent requests will still land as unique requests so
-					// we don't need to worry about that.
-					// But question
-					// ----
-					// we'll actually want the database to commit from our logs not really as per-requests
-					// so we could have a method like
-					// n.logs.Append(entry)
-					// n.logs.Flush()? where flush keeps track of the last commited entry and commits them
-					// And what of logs that were not able to acheive replication majority? Are they stored
-					// in the leader's logs as is? Or removed?
-					// and what is Flush() supposed to return? all the results of all entries or the most
-					// recent one? Or does flush simply append the result to each Entry?
-					// type Entry struct {
-					// 		Idx       int
-					// 		Term      uint64
-					//		Operation db.Ops
-					//		Key       string
-					//		Value     string
-					//		result    string
-					//   }
-					reply.Result = "mock: not applied commit yet as mid refactor"
+				if !safeForReplication {
 					select {
-					case replyCh <- RPCReply{kind: ClientCommand, payload: &reply}:
+					case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
 					default:
 						return
 					}
-				}(entry, req.reply, allWorkers)
+					return
+				}
+
+				// TODO: continue
+				// At this point, we'll need to send the database the command that came from the client
+				// The order in which the requests came in, will be the order in which they will
+				// enter the log, be replicated among the cluster and applied to the database
+				// But since the network channel only has one person recieving on it, there's an
+				// assistance for serializablity and ordered operations.
+				// A client that makes concurrent requests will still land as unique requests so
+				// we don't need to worry about that.
+				// But question
+				// ----
+				// we'll actually want the database to commit from our logs not really as per-requests
+				// so we could have a method like
+				// n.logs.Append(entry)
+				// n.logs.Flush()? where flush keeps track of the last commited entry and commits them
+				// And what of logs that were not able to acheive replication majority? Are they stored
+				// in the leader's logs as is? Or removed?
+				// and what is Flush() supposed to return? all the results of all entries or the most
+				// recent one? Or does flush simply append the result to each Entry?
+				// type Entry struct {
+				// 		Idx       int
+				// 		Term      uint64
+				//		Operation db.Ops
+				//		Key       string
+				//		Value     string
+				//		result    string
+				//   }
+				// POF:
+				// i'd want to run this sequentially asif it were on a single thread
+				// such that for every incoming commandRPC, we
+				// - append to log
+				// - replicate across cluster
+				// - send it to the database and forward results
+				// NOTE:
+				// we should typically not log or replicate 'GET' commands
+				// as jkvs itself does not either. It just causes noise and extra
+				// stuff when debugging
+				n.Apply(entry)
+				reply.Result = "mock: not applied commit yet as mid refactor"
+				select {
+				case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
+				default:
+					return
+				}
+				// }(entry, req.reply, allWorkers)
 
 				logger.Info("leader inspection", slog.Any("diagnostics", n.Diagnostics()))
 			}
