@@ -30,9 +30,8 @@ type AppendEntryRequest struct {
 	Message string
 	Entry   *Entry
 	// temp
-	LastCommitIndex uint64
-	LogSize         int
-
+	PreviousLogIndex uint64
+	LogSize int
 	LeaderCommit uint64
 }
 
@@ -42,8 +41,9 @@ type AppendEntryReply struct {
 	Acked   bool
 	Message string
 	// temp
-	LastCommited uint64
-	LogSize      int
+	PreviousLogIndex uint64
+	LastCommited     uint64
+	LogSize          int
 }
 
 type VoteRequest struct {

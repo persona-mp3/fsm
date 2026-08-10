@@ -25,19 +25,20 @@ const (
 // decides to send out new [AppendEntries] for the cluster to replicate it uses
 // the [Worker.replicateCh] to do this
 type Worker struct {
-	id           int
-	replicateCh  chan replicate
-	leaderCommit *atomic.Uint64
-	// for new changes to recent commits to keep in sync
-	logger *slog.Logger
+	id               int
+	replicateCh      chan replicate
+	leaderCommit     *atomic.Uint64
+	previousLogIndex *atomic.Uint64
+	logger           *slog.Logger
 }
 
-func NewWorker(id int, leaderCommit *atomic.Uint64, logger *slog.Logger) *Worker {
+func NewWorker(id int, leaderCommit, previousLogIndex *atomic.Uint64, logger *slog.Logger) *Worker {
 	return &Worker{
-		id:           id,
-		replicateCh:  make(chan replicate, WORKER_CHAN_BUFFER),
-		leaderCommit: leaderCommit,
-		logger:       logger,
+		id:               id,
+		replicateCh:      make(chan replicate, WORKER_CHAN_BUFFER),
+		leaderCommit:     leaderCommit,
+		previousLogIndex: previousLogIndex,
+		logger:           logger,
 	}
 }
 
@@ -61,15 +62,12 @@ func (w *Worker) Run(
 			return
 		}
 		select {
-		// case newCommit := <-w.leaderCommitCh:
-		// 	leaderCommit = newCommit
-		// 	w.logger.Info("new leader commit recvd", slog.Uint64("leaderCommit", leaderCommit))
-
 		case replica := <-w.replicateCh:
 			req := AppendEntryRequest{}
 			req.Id = leaderId
 			req.Term = currentTerm
 			req.LeaderCommit = w.leaderCommit.Load()
+			req.PreviousLogIndex = w.previousLogIndex.Load()
 
 			if !attemptSend(req, peer, replica, w.logger.With()) {
 				return
@@ -79,16 +77,12 @@ func (w *Worker) Run(
 			select {
 			case <-ctx.Done():
 				return
-
-			// case newCommit := <-w.leaderCommitCh:
-			// 	leaderCommit = newCommit
-			// 	w.logger.Info("new leader commit recvd", slog.Uint64("leaderCommit", leaderCommit))
-
 			case replica := <-w.replicateCh:
 				req := AppendEntryRequest{}
 				req.Id = leaderId
 				req.Term = currentTerm
 				req.LeaderCommit = w.leaderCommit.Load()
+				req.PreviousLogIndex = w.previousLogIndex.Load()
 
 				if !attemptSend(req, peer, replica, w.logger.With()) {
 					return
@@ -100,6 +94,8 @@ func (w *Worker) Run(
 				req.Id = leaderId
 				req.LeaderCommit = w.leaderCommit.Load()
 				req.Term = currentTerm
+				req.LeaderCommit = w.leaderCommit.Load()
+				req.PreviousLogIndex = w.previousLogIndex.Load()
 
 				reply := AppendEntryReply{}
 				if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {

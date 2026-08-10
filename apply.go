@@ -18,7 +18,8 @@ func (n *Node) Apply(e Entry) (*database.Response, error) {
 	// and what we have left
 	// where -1 is this actual log we have to apply
 	remainderLogs := logSize - int(leaderCommit)
-	if remainderLogs == 0 {
+	// if remainderLogs == 0 {
+	if logSize == int(leaderCommit) {
 
 		// then commit it
 		cmd := database.Command{
@@ -31,7 +32,9 @@ func (n *Node) Apply(e Entry) (*database.Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		n.logs.lastCommited.Store(uint64(e.Idx))
+		n.logs.lastCommited.Add(1)
+		fmt.Printf("\n\nlastCommitedLeader::%d\n\n", n.logs.lastCommited.Load())
+
 		logger.Info(
 			fmt.Sprintf("we can proceed with applyingd %d directly as all logs have been applied", e.Idx),
 			slog.Int("logSize", n.logs.Size()),

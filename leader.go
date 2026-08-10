@@ -39,7 +39,7 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 			continue
 		}
 
-		worker := NewWorker(peer.id, n.logs.getAtomicCommit(), logger.With())
+		worker := NewWorker(peer.id, n.logs.getAtomicCommit(), n.logs.PreviousLogIndex, logger.With())
 		allWorkers = append(allWorkers, worker)
 
 		wg.Go(func() {
@@ -203,6 +203,8 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 	}
 }
 
+// HandleCommandRPC checks if the request already exists in this nodes logs. If it exists in it's logs
+// it returns the log and true, otherwise it appends it to the node's logs and returns false
 func HandleCommandRPC(req *CommandRequest, currentTerm uint64, logs *Logs) (Entry, bool) {
 	entry := Entry{
 		Operation: req.Operation,
@@ -210,6 +212,7 @@ func HandleCommandRPC(req *CommandRequest, currentTerm uint64, logs *Logs) (Entr
 		Key:       req.Key,
 		Value:     req.Value,
 	}
+
 
 	if logs.HasEntry(&entry) {
 		return entry, true

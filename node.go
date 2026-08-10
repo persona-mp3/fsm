@@ -128,7 +128,7 @@ func NewNode(
 		rpcPeers:   []*Peer{},
 		database:   jkvsDatabase,
 		log:        logger,
-		logs:       Logs{lastCommited: &atomic.Uint64{}},
+		logs:       NewLogs(),
 	}, nil
 }
 
