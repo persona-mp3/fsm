@@ -96,7 +96,7 @@ func (l *Logs) String() string {
 	return sb.String()
 }
 
-// we assume that the stopCommit is the exact index of the last log the leader applied to it's 
+// we assume that the stopCommit is the exact index of the last log the leader applied to it's
 // database, so we can just search for that.
 // NOTE: We might also need the *TERM* of the commmit not sure yet but since the commit only
 // ever increases, ie it syncs with the term, and this nodes [PreviousLogIndex] matches with
@@ -125,6 +125,9 @@ func (l *Logs) FlushTill(stopCommit uint64) error {
 	l.rw.Lock()
 	defer l.rw.Unlock()
 
+	// CURRENTLY:
+	// At this point, we are to apply these to the database. A docker application will need to be
+	// setup so the behaviour can be tested appropriately.
 	fmt.Println("flushing------")
 	for idx := lastCommited; idx < stopCommit; idx++ {
 		lo := l.entries[idx]
