@@ -127,9 +127,8 @@ func (l *Logs) FlushTill(stopCommit uint64) error {
 	defer l.rw.Unlock()
 	// o-based indexing
 	// [0, 1, 2, 3, 4, 5, 6, 7]
-	//     ^                 *
-	// log.Size - stopCommit
-
+	//     ^              *   
+	// 1, 6
 	fmt.Println("flushing------")
 	for idx := lastCommited; idx < stopCommit; idx++ {
 		lo := l.entries[idx]
