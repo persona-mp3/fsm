@@ -195,7 +195,6 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 				default:
 					return
 				}
-				// }(entry, req.reply, allWorkers)
 
 				logger.Info("leader inspection", slog.Any("diagnostics", n.Diagnostics()))
 			}

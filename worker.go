@@ -107,11 +107,19 @@ func (w *Worker) Run(
 				}
 				failedCalls = 0
 				if !reply.Acked {
-					w.logger.Info("reply from heartbeatRPC was not recognized by follower exiting", slog.Int("workerId", w.id), slog.Any("heartbeatRPC", reply))
+					w.logger.Info(
+						"reply from heartbeatRPC was not recognized by follower exiting",
+						slog.Int("workerId", w.id),
+						slog.Any("heartbeatRPC", reply),
+					)
 					return
 				}
 
-				w.logger.Info("reply from heartbeatRPC was recognized by follower", slog.Int("workerId", w.id), slog.Any("heartbeatRPC", reply))
+				w.logger.Info(
+					"reply from heartbeatRPC was recognized by follower",
+					slog.Int("workerId", w.id),
+					slog.Any("heartbeatRPC", reply),
+				)
 				ticker.Reset(heartbeat)
 			}
 		}

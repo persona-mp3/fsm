@@ -96,14 +96,13 @@ func (l *Logs) String() string {
 	return sb.String()
 }
 
-// we assume that the stopCommit is the exact index of the last
-// log the leader applied to it's database, so we can just search for
-// that. NOTE: We might also need the *TERM* of the commmit not sure yet but since the commit only
-// ever increases, ie it syncs with the term, and this nodes [PreviousLogIndex] matches with the leader
-// it should not be a problem or need
+// we assume that the stopCommit is the exact index of the last log the leader applied to it's 
+// database, so we can just search for that.
+// NOTE: We might also need the *TERM* of the commmit not sure yet but since the commit only
+// ever increases, ie it syncs with the term, and this nodes [PreviousLogIndex] matches with
+// the leader  it should not be a problem or need
 func (l *Logs) FlushTill(stopCommit uint64) error {
 	fmt.Println("flushing...")
-	// check our last commited log
 	lastCommited := l.lastCommited.Load()
 	// apply all logs till stopCommit,
 	// check if we have up to size stopCommitLogs
@@ -125,10 +124,7 @@ func (l *Logs) FlushTill(stopCommit uint64) error {
 
 	l.rw.Lock()
 	defer l.rw.Unlock()
-	// o-based indexing
-	// [0, 1, 2, 3, 4, 5, 6, 7]
-	//     ^              *   
-	// 1, 6
+
 	fmt.Println("flushing------")
 	for idx := lastCommited; idx < stopCommit; idx++ {
 		lo := l.entries[idx]
@@ -137,7 +133,7 @@ func (l *Logs) FlushTill(stopCommit uint64) error {
 		l.lastCommited.Add(1)
 	}
 
-	fmt.Println("done flushing")
+	fmt.Println("-------flushed")
 	return nil
 }
 

@@ -33,13 +33,6 @@ func (n *Node) Apply(e Entry) (*database.Response, error) {
 			return nil, err
 		}
 		n.logs.lastCommited.Add(1)
-		fmt.Printf("\n\nlastCommitedLeader::%d\n\n", n.logs.lastCommited.Load())
-
-		logger.Info(
-			fmt.Sprintf("we can proceed with applyingd %d directly as all logs have been applied", e.Idx),
-			slog.Int("logSize", n.logs.Size()),
-			slog.Uint64("leaderCommit", n.logs.lastCommited.Load()),
-		)
 		return res, nil
 
 	} else {
