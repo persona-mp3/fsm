@@ -101,8 +101,7 @@ func (l *Logs) String() string {
 // NOTE: We might also need the *TERM* of the commmit not sure yet but since the commit only
 // ever increases, ie it syncs with the term, and this nodes [PreviousLogIndex] matches with
 // the leader  it should not be a problem or need
-func (l *Logs) FlushTill(stopCommit uint64) error {
-	fmt.Println("flushing...")
+func (l *Logs) FlushTill(stopCommit uint64, jkvs db.Database) error {
 	lastCommited := l.lastCommited.Load()
 	// apply all logs till stopCommit,
 	// check if we have up to size stopCommitLogs
@@ -130,10 +129,21 @@ func (l *Logs) FlushTill(stopCommit uint64) error {
 	// setup so the behaviour can be tested appropriately.
 	fmt.Println("flushing------")
 	for idx := lastCommited; idx < stopCommit; idx++ {
-		lo := l.entries[idx]
+		entry := l.entries[idx]
 		fmt.Println()
-		fmt.Printf("(%d) %+v\n\n", idx, lo)
+		fmt.Printf("(%d) %+v\n\n", idx, entry)
+		res, err := jkvs.Commit(db.Command{
+			Operation: entry.Operation,
+			Key:       entry.Key,
+			Value:     entry.Value,
+		})
 		l.lastCommited.Add(1)
+		if err != nil {
+			fmt.Printf("could not apply: (%d). Reason: %s\n", idx, err)
+			continue
+		}
+
+		fmt.Printf("(%d) response: %+v\n", idx, res)
 	}
 
 	fmt.Println("-------flushed")
@@ -142,7 +152,7 @@ func (l *Logs) FlushTill(stopCommit uint64) error {
 
 func (e *Entry) String() string {
 	return fmt.Sprintf(
-		"Entry: { idx: %d, operation: %s, key: %s, value: %s }",
+		"Entry: { Idx: %d, Operation: %s, Key: %s, Value: %s }",
 		e.Idx, e.Operation, e.Key, e.Value,
 	)
 }

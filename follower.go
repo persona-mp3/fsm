@@ -98,10 +98,10 @@ func (n *Node) runFollower() {
               however, this has not been implemented and needs to be implemented.
               `)
 						case request.LeaderCommit == n.logs.LastCommited():
-              debugLogger.Info("commits match")
+							debugLogger.Info("commits match")
 							continue
 						default:
-							err := n.logs.FlushTill(request.LeaderCommit)
+							err := n.logs.FlushTill(request.LeaderCommit, n.database)
 							if err != nil {
 								slogger.Error(err.Error())
 							}
