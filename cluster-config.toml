@@ -1,8 +1,8 @@
 peers = [
-"localhost:5001", 
-"localhost:5002", 
+"0.0.0.0:5001", 
+"0.0.0.0:5002", 
 ]
-pprof_addr = "localhost:6061"
+pprof_addr = "0.0.0.0:6061"
 
 [cluster_settings]
   heartbeat = 800

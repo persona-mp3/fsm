@@ -58,6 +58,10 @@ func startRepl(conn *rpc.Client) error {
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
+		if conn == nil {
+			return fmt.Errorf("connection has possibly been closed?")
+		}
+
 		if scanner.Err() != nil {
 			return scanner.Err()
 		}
