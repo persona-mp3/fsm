@@ -92,7 +92,6 @@ func (w *Worker) Run(
 			case <-ticker.C:
 				req := AppendEntryRequest{}
 				req.Id = leaderId
-				req.LeaderCommit = w.leaderCommit.Load()
 				req.Term = currentTerm
 				req.LeaderCommit = w.leaderCommit.Load()
 				req.PreviousLogIndex = w.previousLogIndex.Load()
