@@ -98,7 +98,7 @@ const (
 )
 
 func NewNode(
-	id string, address string, peers []string, initialTimeout time.Duration, out io.Writer,
+	id string, address, dbAddress string, peers []string, initialTimeout time.Duration, out io.Writer,
 ) (*Node, error) {
 
 	raft := NewRaft(id, initialTimeout)
@@ -110,11 +110,12 @@ func NewNode(
 	if out == nil {
 		out = os.Stdout
 	}
+
 	logger := rlog.NewHumaneLogger(id, "node", 0, out)
 	sl := rlog.NewHumaneLogger(id, "server", 0, out)
 	server := NewServer(id, address, incoming, sl)
 
-	jkvsDatabase := db.NewJKVSDatabase("tcp", "localhost:9090")
+	jkvsDatabase := db.NewJKVSDatabase("tcp", dbAddress)
 
 	return &Node{
 		mu:         sync.Mutex{},
@@ -128,6 +129,7 @@ func NewNode(
 		rpcPeers:   []*Peer{},
 		database:   jkvsDatabase,
 		log:        logger,
+		logs:       NewLogs(),
 	}, nil
 }
 

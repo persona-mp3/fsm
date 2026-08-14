@@ -3,6 +3,7 @@ package main
 import (
 	rlog "fsm/raftlogger"
 	"log/slog"
+	"os"
 	"time"
 )
 
@@ -73,13 +74,39 @@ func (n *Node) runFollower() {
 					)
 				}
 
+				debugLogger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 				if currentLeader == action.newLeader {
 					n.raft.UpdateTerm(action.newTerm, action.newLeader)
 					slogger.Info("reseting timer, heartbeat arrived",
 						slog.String("diagnostics", n.Diagnostics()),
 						slog.Any("action_took", action),
 					)
+
 					ticker.Reset(n.raft.electionTimeout)
+
+					if request.LeaderCommit != n.logs.LastCommited() {
+						// check if the prevLogIndex matches ours
+						switch {
+						case request.PreviousLogIndex != n.logs.PreviousLogIndex.Load():
+							debugLogger.Info("prevLogIndexes don't match",
+								"leader", request.PreviousLogIndex,
+								"node", n.logs.PreviousLogIndex.Load(),
+							)
+							panic(`
+              - Log Matching Property
+              previous log indexes don't match that means this nodes needs to sync up with the leader
+              however, this has not been implemented and needs to be implemented.
+              `)
+						case request.LeaderCommit == n.logs.LastCommited():
+							debugLogger.Info("commits match")
+							continue
+						default:
+							err := n.logs.FlushTill(request.LeaderCommit, n.database)
+							if err != nil {
+								slogger.Error(err.Error())
+							}
+						}
+					}
 					continue
 				}
 

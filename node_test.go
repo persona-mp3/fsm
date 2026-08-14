@@ -10,6 +10,6 @@ import (
 func TestDefaultStateIsFollower(t *testing.T) {
 	initialTimeout := randomTimeout(time.Millisecond)
 
-	node, _ := NewNode(t.Name(), "test-addr", []string{}, initialTimeout, t.Output())
+	node, _ := NewNode(t.Name(), "test-addr", "localhost:9090", []string{}, initialTimeout, t.Output())
 	assert.Equal(t, Follower, node.raft.State())
 }

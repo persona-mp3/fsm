@@ -20,6 +20,7 @@ import (
 
 var clusterConfig = "cluster-config.toml"
 var topology = "cluster"
+var dbAddress = "localhost:9090"
 
 var (
 	// heartbeatInterval is the rate at which the node when in a [Leader] state sends
@@ -42,6 +43,7 @@ func main() {
 func parseConfig() error {
 	flag.StringVar(&topology, "topology", topology, "type of topology")
 	flag.StringVar(&clusterConfig, "config", clusterConfig, "path to cluster configuration file")
+	flag.StringVar(&dbAddress, "db", dbAddress, "port database is listening on")
 	flag.Parse()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGKILL)
@@ -113,7 +115,7 @@ func runSingleTopology(ctx context.Context, cfg *dock.NodeConfig) {
 		out = nil
 	}
 	initialTimeout := randomTimeout(time.Millisecond)
-	node, err := NewNode(fmt.Sprintf("%d", cfg.Id), cfg.Listen, cfg.Peers, initialTimeout, out)
+	node, err := NewNode(fmt.Sprintf("%d", cfg.Id), cfg.Listen, dbAddress, cfg.Peers, initialTimeout, out)
 
 	if err != nil {
 		log.Println(err)
@@ -156,7 +158,7 @@ func runClusterTopology(ctx context.Context, cfg *dock.SingleClusterConfig) erro
 		}
 
 		initialTimeout := randomTimeout(time.Millisecond)
-		node, err := NewNode(id, addr, peers, initialTimeout, out)
+		node, err := NewNode(id, addr, dbAddress, peers, initialTimeout, out)
 		nodes = append(nodes, node)
 		if err != nil {
 			log.Fatal(err)

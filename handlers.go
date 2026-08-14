@@ -198,7 +198,7 @@ func (f FollowerHandler) proceessAppendEntry(
 	action.newTerm = currentTerm
 
 	// TODO: we can just fail fast here if the logs don't match
-	logsMatch := req.LastCommitIndex >= lastCommitIndex && req.LogSize >= logSize
+	logsMatch := req.LeaderCommit >= lastCommitIndex && req.LogSize >= logSize
 
 	switch {
 

@@ -39,7 +39,7 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 			continue
 		}
 
-		worker := NewWorker(peer.id, n.logs.LastCommited(), logger.With())
+		worker := NewWorker(peer.id, n.logs.getAtomicCommit(), n.logs.PreviousLogIndex, logger.With())
 		allWorkers = append(allWorkers, worker)
 
 		wg.Go(func() {
@@ -156,29 +156,45 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 					}
 					continue
 				}
-				// replicate entry accross workers
-				go func(entry Entry, replyCh chan RPCReply, workers []*Worker) {
-					safeForReplication := replicateEntry(entry, workers, len(n.peers), logger.With())
-					reply := CommandReply{
-						From:   "fsm-leader",
-						Result: "quorum not reached please try again later",
-					}
-					if !safeForReplication {
-						select {
-						case replyCh <- RPCReply{kind: ClientCommand, payload: &reply}:
-						default:
-							return
-						}
-						return
-					}
 
-					reply.Result = "mock: not applied commit yet as mid refactor"
+				// replicate entry accross workers
+				// go func(entry Entry, replyCh chan RPCReply, workers []*Worker) {
+				safeForReplication := replicateEntry(entry, allWorkers, len(n.peers), logger.With())
+				reply := CommandReply{
+					From:   "fsm-leader",
+					Result: "quorum not reached please try again later",
+				}
+
+				if !safeForReplication {
 					select {
-					case replyCh <- RPCReply{kind: ClientCommand, payload: &reply}:
+					case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
 					default:
 						return
 					}
-				}(entry, req.reply, allWorkers)
+					return
+				}
+
+				// POC:
+				// i'd want to run this sequentially asif it were on a single thread
+				// such that for every incoming commandRPC, we
+				// - append to log
+				// - replicate across cluster
+				// - send it to the database and forward results
+				// NOTE:
+				// we should typically not log or replicate 'GET' commands
+				// as jkvs itself does not either. It just causes noise and extra
+				// stuff when debugging
+				dbResponse, err := n.Apply(entry)
+				if err != nil {
+					reply.Result = err.Error()
+				} else {
+					reply.Result = dbResponse.Message
+				}
+				select {
+				case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
+				default:
+					return
+				}
 
 				logger.Info("leader inspection", slog.Any("diagnostics", n.Diagnostics()))
 			}
@@ -186,6 +202,8 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 	}
 }
 
+// HandleCommandRPC checks if the request already exists in this nodes logs. If it exists in it's logs
+// it returns the log and true, otherwise it appends it to the node's logs and returns false
 func HandleCommandRPC(req *CommandRequest, currentTerm uint64, logs *Logs) (Entry, bool) {
 	entry := Entry{
 		Operation: req.Operation,
@@ -193,6 +211,7 @@ func HandleCommandRPC(req *CommandRequest, currentTerm uint64, logs *Logs) (Entr
 		Key:       req.Key,
 		Value:     req.Value,
 	}
+
 
 	if logs.HasEntry(&entry) {
 		return entry, true
@@ -227,7 +246,6 @@ func replicateEntry(
 		select {
 		case worker.replicateCh <- replica:
 		default:
-			done <- false
 			logger.Warn("dropped replica packet because worker is blocked")
 		}
 	}
