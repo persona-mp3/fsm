@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 FROM golang:1.26.4 as go-builder
 
 WORKDIR /usr/raft-application/
@@ -13,15 +12,11 @@ COPY . .
 
 RUN CGO_ENABLED=0 go build -v -o fsm .
 
-
-
-
 # Build Java
 FROM maven:3.9-eclipse-temurin-21 AS java-builder
 
 WORKDIR /usr/jkvs-app/
 
-# copy into /usr/jkvs from ./jkvs
 COPY ./jkvs .
 
 RUN pwd 
@@ -43,5 +38,7 @@ COPY entrypoint.sh /persona-mp3/jkvs-raft/entrypoint.sh
 RUN chmod +x /persona-mp3/jkvs-raft/entrypoint.sh
 RUN ls 
 RUN pwd
-EXPOSE 5001 5002 6060 6061 9090
+
+# ports are described in the cluster-config.toml
+EXPOSE 5001 5002 6061 9090
 ENTRYPOINT ["./entrypoint.sh"]
