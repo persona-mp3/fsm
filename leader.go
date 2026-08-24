@@ -39,7 +39,13 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 			continue
 		}
 
-		worker := NewWorker(peer.id, n.logs.getAtomicCommit(), n.logs.PreviousLogIndex, logger.With())
+		worker := NewWorker(
+			peer.id,
+			n.logs.getAtomicCommit(),
+			n.logs.PreviousLogIndex,
+			&n.logs,
+			logger.With(),
+		)
 		allWorkers = append(allWorkers, worker)
 
 		wg.Go(func() {

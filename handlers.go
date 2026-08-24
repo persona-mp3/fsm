@@ -219,7 +219,7 @@ func (f FollowerHandler) proceessAppendEntry(
 		}
 
 	case currentLeader == req.Id:
-		reply.Result = RaftResultAcked
+		reply.Result = RaftResultLogsOutOfSync
 		reply.Message = "Recognized as original leader for current term"
 		reply.Term = req.Term
 

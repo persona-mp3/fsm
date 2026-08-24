@@ -30,10 +30,17 @@ type Worker struct {
 	replicateCh      chan replicate
 	leaderCommit     *atomic.Uint64
 	previousLogIndex *atomic.Uint64
+	logEntries       *Logs
 	logger           *slog.Logger
 }
 
-func NewWorker(id int, leaderCommit, previousLogIndex *atomic.Uint64, logger *slog.Logger) *Worker {
+func NewWorker(
+	id int,
+	leaderCommit *atomic.Uint64,
+	previousLogIndex *atomic.Uint64,
+	logEntries *Logs,
+	logger *slog.Logger,
+) *Worker {
 	logger.Info("starting woker with following config:",
 		slog.Int("id", id),
 		slog.Uint64("leaderCommit: ", leaderCommit.Load()),
@@ -44,6 +51,7 @@ func NewWorker(id int, leaderCommit, previousLogIndex *atomic.Uint64, logger *sl
 		leaderCommit:     leaderCommit,
 		previousLogIndex: previousLogIndex,
 		logger:           logger,
+		logEntries:       logEntries,
 	}
 }
 
@@ -74,7 +82,7 @@ func (w *Worker) Run(
 			req.LeaderCommit = w.leaderCommit.Load()
 			req.PreviousLogIndex = w.previousLogIndex.Load()
 
-			if !attemptSend(req, peer, replica, w.logger.With()) {
+			if !w.attemptSend(req, peer, replica, w.logger.With()) {
 				return
 			}
 			ticker.Reset(HeartBeatInterval)
@@ -89,7 +97,7 @@ func (w *Worker) Run(
 				req.LeaderCommit = w.leaderCommit.Load()
 				req.PreviousLogIndex = w.previousLogIndex.Load()
 
-				if !attemptSend(req, peer, replica, w.logger.With()) {
+				if !w.attemptSend(req, peer, replica, w.logger.With()) {
 					return
 				}
 				ticker.Reset(HeartBeatInterval)
@@ -111,7 +119,7 @@ func (w *Worker) Run(
 				}
 				failedCalls = 0
 
-				if !handleReply(w.logger, currentTerm, reply) {
+				if !handleReply(w.logger, currentTerm, w.logEntries, reply) {
 					w.logger.Info(
 						"reply from heartbeatRPC was not recognized by follower exiting",
 						slog.Int("workerId", w.id),
@@ -131,7 +139,7 @@ func (w *Worker) Run(
 	}
 }
 
-func attemptSend(
+func (w *Worker) attemptSend(
 	req AppendEntryRequest, peer *Peer, replica replicate, logger *slog.Logger,
 ) bool {
 	var failedCalls int
@@ -167,7 +175,7 @@ func attemptSend(
 	// 	logger.Info("follower did not ack log replication", slog.Any("appendEntryReply", reply))
 	// 	return false
 	// }
-	if !handleReply(logger, req.Term, reply) {
+	if !handleReply(logger, req.Term, w.logEntries, reply) {
 		replica.done <- false
 		return false
 	}
@@ -180,6 +188,7 @@ func attemptSend(
 func handleReply(
 	logger *slog.Logger,
 	currentTerm uint64,
+	logEntries *Logs,
 	reply AppendEntryReply,
 ) bool {
 	result := true
@@ -225,7 +234,13 @@ func handleReply(
 			slog.Uint64("currentTerm", currentTerm),
 			slog.Uint64("followerPrevLogIndex", reply.PreviousLogIndex),
 		)
-		getSnapshotFrom(reply.PreviousLogIndex)
+		snapshot, err := logEntries.SnapshotFrom(reply.PreviousLogIndex)
+		if err != nil {
+			panic(fmt.Sprintf("could not get snapshot of logs. Reason: %d\n", err))
+		}
+
+		// Again, would we want to actually make a new RPC from here?
+		fmt.Printf("%s\n", fmt.Sprintf("this is good panic;; we got snapshot;; %+v\n", snapshot))
 
 	case RaftResultUnknownUnhandled:
 		logger.Warn(
@@ -246,8 +261,4 @@ func handleReply(
 	}
 
 	return result
-}
-
-func getSnapshotFrom(prevLogIdx uint64) {
-	panic("getSnapshotFrom not impl yet")
 }

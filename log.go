@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	db "fsm/database"
 	"strings"
@@ -17,7 +18,7 @@ type Entry struct {
 }
 
 type Logs struct {
-	rw               sync.Mutex
+	mu               sync.Mutex
 	entries          []*Entry
 	lastCommited     *atomic.Uint64
 	PreviousLogIndex *atomic.Uint64
@@ -26,14 +27,35 @@ type Logs struct {
 
 func NewLogs() Logs {
 	return Logs{
+		mu:               sync.Mutex{},
 		lastCommited:     &atomic.Uint64{},
 		PreviousLogIndex: &atomic.Uint64{},
 	}
 }
 
+var ErrLogNotFound = errors.New("log with index not found")
+
+// SnapshotFrom returns a slice of logs that  start from `startIndex` provided. If the logs
+// are not up to that index, it returns an [ErrLogNotFound]
+func (l *Logs) SnapshotFrom(startIndex uint64) ([]Entry, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if startIndex > uint64(len(l.entries)) {
+		return []Entry{}, ErrLogNotFound
+	}
+
+	rest := uint64(len(l.entries)) - startIndex
+	buff := make([]Entry, rest)
+	for i := startIndex; i < rest; i++ {
+		clone := *l.entries[i]
+		buff = append(buff, clone)
+	}
+	return buff, nil
+}
+
 func (l *Logs) Append(e *Entry) int {
-	l.rw.Lock()
-	defer l.rw.Unlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
 	idx := len(l.entries)
 	l.PreviousLogIndex.Store(uint64(idx))
@@ -52,14 +74,14 @@ func (l *Logs) getAtomicCommit() *atomic.Uint64 {
 }
 
 func (l *Logs) Size() int {
-	l.rw.Lock()
-	defer l.rw.Unlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	return len(l.entries)
 }
 
 func (l *Logs) HasEntry(entry *Entry) bool {
-	l.rw.Lock()
-	defer l.rw.Unlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	for _, e := range l.entries {
 		if e.Term == entry.Term &&
 			e.Operation == entry.Operation &&
@@ -73,8 +95,8 @@ func (l *Logs) HasEntry(entry *Entry) bool {
 
 // todo: will want to do this in reverse instead
 func (l *Logs) Get(ops db.Operation, key string) (string, bool) {
-	l.rw.Lock()
-	defer l.rw.Unlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	for _, e := range l.entries {
 		if e.Operation == ops && e.Key == key {
 			return e.Value, true
@@ -85,8 +107,8 @@ func (l *Logs) Get(ops db.Operation, key string) (string, bool) {
 }
 
 func (l *Logs) String() string {
-	l.rw.Lock()
-	defer l.rw.Unlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
 	sb := strings.Builder{}
 	for _, e := range l.entries {
@@ -121,8 +143,8 @@ func (l *Logs) FlushTill(stopCommit uint64, jkvs db.Database) error {
 		)
 	}
 
-	l.rw.Lock()
-	defer l.rw.Unlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
 	// CURRENTLY:
 	// At this point, we are to apply these to the database. A docker application will need to be
