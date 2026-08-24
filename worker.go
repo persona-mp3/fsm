@@ -177,7 +177,11 @@ func attemptSend(
 	return true
 }
 
-func handleReply(logger *slog.Logger, currentTerm uint64, reply AppendEntryReply) bool {
+func handleReply(
+	logger *slog.Logger,
+	currentTerm uint64,
+	reply AppendEntryReply,
+) bool {
 	result := true
 	switch reply.Result {
 	case RaftResultAcked:
@@ -221,6 +225,7 @@ func handleReply(logger *slog.Logger, currentTerm uint64, reply AppendEntryReply
 			slog.Uint64("currentTerm", currentTerm),
 			slog.Uint64("followerPrevLogIndex", reply.PreviousLogIndex),
 		)
+		getSnapshotFrom(reply.PreviousLogIndex)
 
 	case RaftResultUnknownUnhandled:
 		logger.Warn(
@@ -241,4 +246,8 @@ func handleReply(logger *slog.Logger, currentTerm uint64, reply AppendEntryReply
 	}
 
 	return result
+}
+
+func getSnapshotFrom(prevLogIdx uint64) {
+	panic("getSnapshotFrom not impl yet")
 }

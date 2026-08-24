@@ -59,146 +59,145 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 		case <-n.stateCtx.Done():
 			return
 		case req := <-n.incoming:
-			switch req.kind {
-			case AppendEntry:
-				request, ok := req.payload.(AppendEntryRequest)
-				if !ok {
-					logger.Warn(
-						"received wrong rpcRequet payload. Expected AppendEntry",
-						slog.Any("payload", req.payload),
-						slog.String("diagnostics", n.Diagnostics()))
-					panic("recvd wrong payload ^^")
-				}
-
-				action := n.handleAppendEntry(
-					request,
-					req.reply,
-					raftlogger.NewHumaneLogger(n.id, "AE", n.raft.Term(), nil),
-				)
-
-				if !action.action {
-					continue
-				}
-
-				n.raft.UpdateTerm(action.newTerm, action.newLeader)
-				logger.Info("leader dropping down to follower succesfully updated term", "diagnostics", n.Diagnostics())
-				n.transition <- Follower
-				return
-
-			case Vote:
-				request, ok := req.payload.(VoteRequest)
-				if !ok {
-					logger.Warn("received wrong rpcRequet payload. Expected VoteRPC",
-						slog.Any("payload", req.payload),
-						slog.String("diagnostics", n.Diagnostics()),
-					)
-					panic("recvd wrong payload ^^")
-				}
-
-				switch {
-				case request.Term > currentTerm:
-					req.reply <- RPCReply{
-						kind: Vote,
-						payload: &VoteReply{
-							Id:       n.id,
-							Term:     request.Term,
-							VotedFor: true,
-							Message:  "retreating back to leader",
-						},
-					}
-
-					n.raft.GiveVote(request.Term, request.Id)
-					logger.Info("leader dropping down to follower succesfully updated term due to higher term",
-						slog.Any("voteRPC", request),
-						slog.Any("diagnostics", n.Diagnostics()),
-					)
-					n.transition <- Follower
-					return
-
-				// TODO(persona) will need to do a check here in the event that two nodes might
-				// think they're a leader. We then compare against their logs
-				default:
-					req.reply <- RPCReply{
-						kind: Vote,
-						payload: &VoteReply{
-							Id:       n.id,
-							Term:     request.Term,
-							VotedFor: false,
-							Message:  "Coportate espionage is punishable just so you know",
-						},
-					}
-					logger.Info(
-						"rejecting voteRPC from a node without a higher term",
-						slog.Uint64("currentTerm", n.raft.Term()),
-						slog.Any("voteRPC", req),
-					)
-				}
-
-			case ClientCommand:
-				request, ok := req.payload.(CommandRequest)
-				if !ok {
-					logger.Warn("received wrong rpcRequet payload. Expected CommandRequest",
-						slog.Any("payload", req.payload),
-						slog.String("diagnostics", n.Diagnostics()),
-					)
-					panic("recvd wrong payload ^^")
-				}
-
-				entry, exists := HandleCommandRPC(&request, currentTerm, &n.logs)
-				if exists {
-					value, _ := n.logs.Get(entry.Operation, entry.Key)
-					req.reply <- RPCReply{
-						kind: ClientCommand,
-						payload: &CommandReply{
-							From:   n.id,
-							Result: fmt.Sprintf("cached::%s", value),
-						},
-					}
-					continue
-				}
-
-				// replicate entry accross workers
-				// go func(entry Entry, replyCh chan RPCReply, workers []*Worker) {
-				safeForReplication := replicateEntry(entry, allWorkers, len(n.peers), logger.With())
-				reply := CommandReply{
-					From:   "fsm-leader",
-					Result: "quorum not reached please try again later",
-				}
-
-				if !safeForReplication {
-					select {
-					case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
-					default:
-						return
-					}
-					return
-				}
-
-				// POC:
-				// i'd want to run this sequentially asif it were on a single thread
-				// such that for every incoming commandRPC, we
-				// - append to log
-				// - replicate across cluster
-				// - send it to the database and forward results
-				// NOTE:
-				// we should typically not log or replicate 'GET' commands
-				// as jkvs itself does not either. It just causes noise and extra
-				// stuff when debugging
-				dbResponse, err := n.Apply(entry)
-				if err != nil {
-					reply.Result = err.Error()
-				} else {
-					reply.Result = dbResponse.Message
-				}
-				select {
-				case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
-				default:
-					return
-				}
-
-				logger.Info("leader inspection", slog.Any("diagnostics", n.Diagnostics()))
-			}
+			n.handleIncomingPayload(req, currentTerm, logger)
 		}
+	}
+}
+
+func (n *Node) handleIncomingPayload(req RPC, currentTerm uint64, logger *slog.Logger) {
+	switch req.kind {
+	case AppendEntry:
+		request, ok := req.payload.(AppendEntryRequest)
+		if !ok {
+			logger.Warn(
+				"received wrong rpcRequet payload. Expected AppendEntry",
+				slog.Any("payload", req.payload),
+				slog.String("diagnostics", n.Diagnostics()))
+			panic("recvd wrong payload ^^")
+		}
+
+		action := n.handleAppendEntry(
+			request,
+			req.reply,
+			raftlogger.NewHumaneLogger(n.id, "AE", n.raft.Term(), nil),
+		)
+
+		if !action.action {
+			return
+		}
+
+		n.raft.UpdateTerm(action.newTerm, action.newLeader)
+		logger.Info("leader dropping down to follower succesfully updated term", "diagnostics", n.Diagnostics())
+		n.transition <- Follower
+		return
+
+	case Vote:
+		request, ok := req.payload.(VoteRequest)
+		if !ok {
+			logger.Warn("received wrong rpcRequet payload. Expected VoteRPC",
+				slog.Any("payload", req.payload),
+				slog.String("diagnostics", n.Diagnostics()),
+			)
+			panic("recvd wrong payload ^^")
+		}
+
+		switch {
+		case request.Term > currentTerm:
+			req.reply <- RPCReply{
+				kind: Vote,
+				payload: &VoteReply{
+					Id:       n.id,
+					Term:     request.Term,
+					VotedFor: true,
+					Message:  "retreating back to leader",
+				},
+			}
+
+			n.raft.GiveVote(request.Term, request.Id)
+			logger.Info("leader dropping down to follower succesfully updated term due to higher term",
+				slog.Any("voteRPC", request),
+				slog.Any("diagnostics", n.Diagnostics()),
+			)
+			n.transition <- Follower
+			return
+
+		// TODO(persona) will need to do a check here in the event that two nodes might
+		// think they're a leader. We then compare against their logs
+		default:
+			req.reply <- RPCReply{
+				kind: Vote,
+				payload: &VoteReply{
+					Id:       n.id,
+					Term:     request.Term,
+					VotedFor: false,
+					Message:  "Coportate espionage is punishable just so you know",
+				},
+			}
+			logger.Info(
+				"rejecting voteRPC from a node without a higher term",
+				slog.Uint64("currentTerm", n.raft.Term()),
+				slog.Any("voteRPC", req),
+			)
+		}
+
+	case ClientCommand:
+		request, ok := req.payload.(CommandRequest)
+		if !ok {
+			logger.Warn("received wrong rpcRequet payload. Expected CommandRequest",
+				slog.Any("payload", req.payload),
+				slog.String("diagnostics", n.Diagnostics()),
+			)
+			panic("recvd wrong payload ^^")
+		}
+
+		entry, exists := HandleCommandRPC(&request, currentTerm, &n.logs)
+		if exists {
+			value, _ := n.logs.Get(entry.Operation, entry.Key)
+			req.reply <- RPCReply{
+				kind: ClientCommand,
+				payload: &CommandReply{
+					From:   n.id,
+					Result: fmt.Sprintf("cached::%s", value),
+				},
+			}
+			return
+		}
+
+		// replicate entry accross workers
+		// go func(entry Entry, replyCh chan RPCReply, workers []*Worker) {
+		safeForReplication := replicateEntry(entry, n.workers, len(n.peers), logger.With())
+		reply := CommandReply{
+			From:   "fsm-leader",
+			Result: "quorum not reached please try again later",
+		}
+
+		if !safeForReplication {
+			select {
+			case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
+			default:
+				return
+			}
+			return
+		}
+
+		// NOTE:
+		// we should typically not log or replicate 'GET' commands
+		// as jkvs itself does not either. It just causes noise and extra
+		// stuff when debugging
+		dbResponse, err := n.Apply(entry)
+		if err != nil {
+			reply.Result = err.Error()
+		} else {
+			reply.Result = dbResponse.Message
+		}
+		select {
+		case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
+		default:
+			return
+		}
+
+		logger.Info("leader inspection", slog.Any("diagnostics", n.Diagnostics()))
+
 	}
 }
 
@@ -211,7 +210,6 @@ func HandleCommandRPC(req *CommandRequest, currentTerm uint64, logs *Logs) (Entr
 		Key:       req.Key,
 		Value:     req.Value,
 	}
-
 
 	if logs.HasEntry(&entry) {
 		return entry, true

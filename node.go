@@ -90,6 +90,7 @@ type Node struct {
 	// and previous terms. It receives these logs from clients when a leader
 	// or from the leader for the currentTerm via the AppendEntryRPCs
 	logs Logs
+
 }
 
 const (
