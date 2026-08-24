@@ -33,6 +33,10 @@ type Worker struct {
 }
 
 func NewWorker(id int, leaderCommit, previousLogIndex *atomic.Uint64, logger *slog.Logger) *Worker {
+	logger.Info("starting woker with following config:",
+		slog.Int("id", id),
+		slog.Uint64("leaderCommit: ", leaderCommit.Load()),
+	)
 	return &Worker{
 		id:               id,
 		replicateCh:      make(chan replicate, WORKER_CHAN_BUFFER),
