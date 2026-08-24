@@ -90,6 +90,7 @@ type Node struct {
 	// and previous terms. It receives these logs from clients when a leader
 	// or from the leader for the currentTerm via the AppendEntryRPCs
 	logs Logs
+
 }
 
 const (
@@ -238,7 +239,7 @@ func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, 
 			kind: AppendEntry,
 			payload: &AppendEntryReply{
 				Id:      n.id,
-				Acked:   false,
+				Result:  RaftResultLowerTerm,
 				Term:    currentTerm,
 				Message: "you have an outdated term",
 			},
@@ -253,7 +254,7 @@ func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, 
 			kind: AppendEntry,
 			payload: &AppendEntryReply{
 				Id:      n.id,
-				Acked:   true,
+				Result:  RaftResultAcked,
 				Term:    req.Term,
 				Message: "yielding to you",
 			},
@@ -271,7 +272,7 @@ func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, 
 			kind: AppendEntry,
 			payload: &AppendEntryReply{
 				Id:      n.id,
-				Acked:   true,
+				Result:  RaftResultAcked,
 				Term:    currentTerm,
 				Message: "accepting appendEntry recognised as leader",
 			},
@@ -289,7 +290,7 @@ func (n *Node) handleAppendEntry(req AppendEntryRequest, replyCh chan RPCReply, 
 		payload: &AppendEntryReply{
 			Id:      n.id,
 			Term:    currentTerm,
-			Acked:   false,
+			Result:  RaftResultRejectedLeader,
 			Message: "not accepting appendEntry",
 		},
 	}

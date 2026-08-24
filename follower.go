@@ -88,15 +88,12 @@ func (n *Node) runFollower() {
 						// check if the prevLogIndex matches ours
 						switch {
 						case request.PreviousLogIndex != n.logs.PreviousLogIndex.Load():
-							debugLogger.Info("prevLogIndexes don't match",
-								"leader", request.PreviousLogIndex,
-								"node", n.logs.PreviousLogIndex.Load(),
+							debugLogger.Warn("prevLogIndexes don't match",
+								slog.Uint64("request::leaderCommit", request.LeaderCommit),
+								slog.Uint64("self::previous_log_index::", n.logs.PreviousLogIndex.Load()),
+								slog.Uint64("request::previous_log_index", request.PreviousLogIndex),
 							)
-							panic(`
-              - Log Matching Property
-              previous log indexes don't match that means this nodes needs to sync up with the leader
-              however, this has not been implemented and needs to be implemented.
-              `)
+							println()
 						case request.LeaderCommit == n.logs.LastCommited():
 							debugLogger.Info("commits match")
 							continue

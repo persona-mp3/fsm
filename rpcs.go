@@ -25,25 +25,37 @@ type RPCReply struct {
 }
 
 type AppendEntryRequest struct {
-	Id      string
-	Term    uint64
+	// Id is the id of the current node in the cluster and is recognized by other nodes in the cluster
+	Id string
+
+	// Term denotes the current term of the sender.
+	Term uint64
+
+	// serves for debugging
 	Message string
-	Entry   *Entry
-	// temp
+
+	// Entry is a new log entry the leader has received from clients
+	Entry *Entry
+
+	// PreviousLogIndex is sent by the leader to help the Follower check if they're in sync
 	PreviousLogIndex uint64
-	LogSize int
+
+	// LeaderCommit is the most recent log index that has been applied to the database of the leader
+	// and is now safe for logs up to this point to be applied for the followers
 	LeaderCommit uint64
+
+	// TODO: Remove this later
+	LogSize int
 }
 
 type AppendEntryReply struct {
-	Id      string
-	Term    uint64
-	Acked   bool
-	Message string
-	// temp
+	Id               string
+	Term             uint64
+	Result           RaftResult
+	Message          string
 	PreviousLogIndex uint64
-	LastCommited     uint64
 	LogSize          int
+	LastCommited     uint64
 }
 
 type VoteRequest struct {

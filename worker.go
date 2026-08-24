@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"sync/atomic"
 	"time"
@@ -29,16 +30,28 @@ type Worker struct {
 	replicateCh      chan replicate
 	leaderCommit     *atomic.Uint64
 	previousLogIndex *atomic.Uint64
+	logEntries       *Logs
 	logger           *slog.Logger
 }
 
-func NewWorker(id int, leaderCommit, previousLogIndex *atomic.Uint64, logger *slog.Logger) *Worker {
+func NewWorker(
+	id int,
+	leaderCommit *atomic.Uint64,
+	previousLogIndex *atomic.Uint64,
+	logEntries *Logs,
+	logger *slog.Logger,
+) *Worker {
+	logger.Info("starting woker with following config:",
+		slog.Int("id", id),
+		slog.Uint64("leaderCommit: ", leaderCommit.Load()),
+	)
 	return &Worker{
 		id:               id,
 		replicateCh:      make(chan replicate, WORKER_CHAN_BUFFER),
 		leaderCommit:     leaderCommit,
 		previousLogIndex: previousLogIndex,
 		logger:           logger,
+		logEntries:       logEntries,
 	}
 }
 
@@ -69,7 +82,7 @@ func (w *Worker) Run(
 			req.LeaderCommit = w.leaderCommit.Load()
 			req.PreviousLogIndex = w.previousLogIndex.Load()
 
-			if !attemptSend(req, peer, replica, w.logger.With()) {
+			if !w.attemptSend(req, peer, replica, w.logger.With()) {
 				return
 			}
 			ticker.Reset(HeartBeatInterval)
@@ -84,7 +97,7 @@ func (w *Worker) Run(
 				req.LeaderCommit = w.leaderCommit.Load()
 				req.PreviousLogIndex = w.previousLogIndex.Load()
 
-				if !attemptSend(req, peer, replica, w.logger.With()) {
+				if !w.attemptSend(req, peer, replica, w.logger.With()) {
 					return
 				}
 				ticker.Reset(HeartBeatInterval)
@@ -105,7 +118,8 @@ func (w *Worker) Run(
 					continue
 				}
 				failedCalls = 0
-				if !reply.Acked {
+
+				if !handleReply(w.logger, currentTerm, w.logEntries, reply) {
 					w.logger.Info(
 						"reply from heartbeatRPC was not recognized by follower exiting",
 						slog.Int("workerId", w.id),
@@ -125,7 +139,7 @@ func (w *Worker) Run(
 	}
 }
 
-func attemptSend(
+func (w *Worker) attemptSend(
 	req AppendEntryRequest, peer *Peer, replica replicate, logger *slog.Logger,
 ) bool {
 	var failedCalls int
@@ -156,13 +170,95 @@ func attemptSend(
 		return false
 	}
 
-	if !reply.Acked {
+	// if !reply.Acked {
+	// 	replica.done <- false
+	// 	logger.Info("follower did not ack log replication", slog.Any("appendEntryReply", reply))
+	// 	return false
+	// }
+	if !handleReply(logger, req.Term, w.logEntries, reply) {
 		replica.done <- false
-		logger.Info("follower did not ack log replication", slog.Any("appendEntryReply", reply))
 		return false
 	}
 	replica.done <- true
 	replica.success.Add(1)
 	logger.Info("sent replication acked back to producer")
 	return true
+}
+
+func handleReply(
+	logger *slog.Logger,
+	currentTerm uint64,
+	logEntries *Logs,
+	reply AppendEntryReply,
+) bool {
+	result := true
+	switch reply.Result {
+	case RaftResultAcked:
+		logger.Info(
+			"reply from heartbeatRPC was recognized by follower",
+			slog.Any("heartbeatRPC", reply),
+		)
+
+	case RaftResultStaleLeader:
+		logger.Info(
+			"was tagged as stale leader",
+			slog.String("from", reply.Id),
+			slog.Uint64("replyTerm", reply.Term),
+			slog.Uint64("currentTerm", currentTerm),
+		)
+		result = false
+
+	case RaftResultLowerTerm:
+		logger.Info(
+			"recvd lower term reply from node",
+			slog.String("from", reply.Id),
+			slog.Uint64("replyTerm", reply.Term),
+			slog.Uint64("currentTerm", currentTerm),
+		)
+		result = false
+
+	case RaftResultRejectedLeader:
+		logger.Info(
+			"rejected as leader for current term",
+			slog.String("from", reply.Id),
+			slog.Uint64("replyTerm", reply.Term),
+			slog.Uint64("currentTerm", currentTerm),
+		)
+		result = false
+
+	case RaftResultLogsOutOfSync:
+		logger.Info(
+			"follower's log out of sync, preparing for snaphost",
+			slog.String("from", reply.Id),
+			slog.Uint64("replyTerm", reply.Term),
+			slog.Uint64("currentTerm", currentTerm),
+			slog.Uint64("followerPrevLogIndex", reply.PreviousLogIndex),
+		)
+		snapshot, err := logEntries.SnapshotFrom(reply.PreviousLogIndex)
+		if err != nil {
+			panic(fmt.Sprintf("could not get snapshot of logs. Reason: %d\n", err))
+		}
+
+		// Again, would we want to actually make a new RPC from here?
+		fmt.Printf("%s\n", fmt.Sprintf("this is good panic;; we got snapshot;; %+v\n", snapshot))
+
+	case RaftResultUnknownUnhandled:
+		logger.Warn(
+			"this node will panic due to an unhandled case",
+			slog.String("from", reply.Id),
+			slog.Uint64("replyTerm", reply.Term),
+			slog.Uint64("currentTerm", currentTerm),
+			slog.Uint64("followerPrevLogIndex", reply.PreviousLogIndex),
+			slog.String("message: ", reply.Message),
+		)
+		result = false
+
+	default:
+		msg := fmt.Sprintf(
+			"recvd unrecognized RaftResult: %d from node-%s\nPayload: %+v",
+			reply.Result, reply.Id, reply)
+		panic(msg)
+	}
+
+	return result
 }
