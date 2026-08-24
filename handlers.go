@@ -140,7 +140,7 @@ func (f FollowerHandler) rejectAppendEntry(
 ) (Action, AppendEntryReply) {
 	reply := AppendEntryReply{
 		Id:           f.Id,
-		Acked:        false,
+		Result:       RaftResultLowerTerm,
 		Term:         currentTerm,
 		Message:      "Rejected due to lower term",
 		LastCommited: lastCommitIndex,
@@ -173,7 +173,7 @@ func (f FollowerHandler) acceptNewTerm(
 	action.newTerm = req.Term
 
 	reply.Id = f.Id
-	reply.Acked = true
+	reply.Result = RaftResultAcked
 	reply.Message = "Acknowledged as leader"
 	reply.Term = req.Term
 	reply.LastCommited = lastCommitIndex
@@ -203,7 +203,7 @@ func (f FollowerHandler) proceessAppendEntry(
 	switch {
 
 	case currentLeader == "" && logsMatch:
-		reply.Acked = true
+		reply.Result = RaftResultAcked
 		reply.Message = "Acknowledged as new leader for new term"
 		reply.Term = req.Term
 
@@ -219,7 +219,7 @@ func (f FollowerHandler) proceessAppendEntry(
 		}
 
 	case currentLeader == req.Id:
-		reply.Acked = true
+		reply.Result = RaftResultAcked
 		reply.Message = "Recognized as original leader for current term"
 		reply.Term = req.Term
 
@@ -235,7 +235,7 @@ func (f FollowerHandler) proceessAppendEntry(
 		f.logger.Warn("LEADER LOGS AND FOLLOWER LOGS DONT MATCH YET. STILL IN IMPL", slog.Any("appendRPC", req))
 
 	case currentLeader == "" && !logsMatch:
-		reply.Acked = false
+		reply.Result = RaftResultRejectedLeader
 		reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
 
 		action.action = false
@@ -247,7 +247,7 @@ func (f FollowerHandler) proceessAppendEntry(
 			slog.Any("appendEntryRPC", req),
 		)
 	case currentLeader != "" && req.Id != currentLeader:
-		reply.Acked = false
+		reply.Result = RaftResultRejectedLeader
 		reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
 		action.action = false
 		f.logger.Info(

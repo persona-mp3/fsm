@@ -23,7 +23,7 @@ func TestFollowerHandlerRejectsLowerTerm(t *testing.T) {
 	expectedReply := &AppendEntryReply{
 		Id:           "1",
 		Term:         nodeTerm,
-		Acked:        false,
+		Result:       RaftResultLowerTerm,
 		Message:      "Rejected due to lower term",
 		LastCommited: lastCommitIdx,
 		LogSize:      logSize,
@@ -55,7 +55,7 @@ func TestFollowerHandlerAcceptsHigherTerm(t *testing.T) {
 	expectedReply := &AppendEntryReply{
 		Id:           "1",
 		Term:         higherTerm,
-		Acked:        true,
+		Result:       RaftResultAcked,
 		Message:      "Acknowledged as leader",
 		LastCommited: 100,
 		LogSize:      101,
@@ -89,7 +89,7 @@ func TestFollowerHandlerRejectsUnrecognizedLeader(t *testing.T) {
 	expectedReply := &AppendEntryReply{
 		Id:           nodeId,
 		Term:         currentTerm,
-		Acked:        false,
+		Result:       RaftResultRejectedLeader,
 		Message:      "Unacknowledged as a leader of current term. We can ban you, you know that?",
 		LastCommited: 100,
 		LogSize:      101,
@@ -122,7 +122,7 @@ func TestFollowerHandlerAcceptsLeader(t *testing.T) {
 	expectedReply := &AppendEntryReply{
 		Id:           nodeId,
 		Term:         currentTerm,
-		Acked:        true,
+		Result:       RaftResultAcked,
 		Message:      "Recognized as original leader for current term",
 		LastCommited: 100,
 		LogSize:      101,

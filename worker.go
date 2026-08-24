@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"sync/atomic"
 	"time"
@@ -109,7 +110,8 @@ func (w *Worker) Run(
 					continue
 				}
 				failedCalls = 0
-				if !reply.Acked {
+
+				if !handleReply(w.logger, currentTerm, reply) {
 					w.logger.Info(
 						"reply from heartbeatRPC was not recognized by follower exiting",
 						slog.Int("workerId", w.id),
@@ -160,13 +162,83 @@ func attemptSend(
 		return false
 	}
 
-	if !reply.Acked {
+	// if !reply.Acked {
+	// 	replica.done <- false
+	// 	logger.Info("follower did not ack log replication", slog.Any("appendEntryReply", reply))
+	// 	return false
+	// }
+	if !handleReply(logger, req.Term, reply) {
 		replica.done <- false
-		logger.Info("follower did not ack log replication", slog.Any("appendEntryReply", reply))
 		return false
 	}
 	replica.done <- true
 	replica.success.Add(1)
 	logger.Info("sent replication acked back to producer")
 	return true
+}
+
+func handleReply(logger *slog.Logger, currentTerm uint64, reply AppendEntryReply) bool {
+	result := true
+	switch reply.Result {
+	case RaftResultAcked:
+		logger.Info(
+			"reply from heartbeatRPC was recognized by follower",
+			slog.Any("heartbeatRPC", reply),
+		)
+
+	case RaftResultStaleLeader:
+		logger.Info(
+			"was tagged as stale leader",
+			slog.String("from", reply.Id),
+			slog.Uint64("replyTerm", reply.Term),
+			slog.Uint64("currentTerm", currentTerm),
+		)
+		result = false
+
+	case RaftResultLowerTerm:
+		logger.Info(
+			"recvd lower term reply from node",
+			slog.String("from", reply.Id),
+			slog.Uint64("replyTerm", reply.Term),
+			slog.Uint64("currentTerm", currentTerm),
+		)
+		result = false
+
+	case RaftResultRejectedLeader:
+		logger.Info(
+			"rejected as leader for current term",
+			slog.String("from", reply.Id),
+			slog.Uint64("replyTerm", reply.Term),
+			slog.Uint64("currentTerm", currentTerm),
+		)
+		result = false
+
+	case RaftResultLogsOutOfSync:
+		logger.Info(
+			"follower's log out of sync, preparing for snaphost",
+			slog.String("from", reply.Id),
+			slog.Uint64("replyTerm", reply.Term),
+			slog.Uint64("currentTerm", currentTerm),
+			slog.Uint64("followerPrevLogIndex", reply.PreviousLogIndex),
+		)
+
+	case RaftResultUnknownUnhandled:
+		logger.Warn(
+			"this node will panic due to an unhandled case",
+			slog.String("from", reply.Id),
+			slog.Uint64("replyTerm", reply.Term),
+			slog.Uint64("currentTerm", currentTerm),
+			slog.Uint64("followerPrevLogIndex", reply.PreviousLogIndex),
+			slog.String("message: ", reply.Message),
+		)
+		result = false
+
+	default:
+		msg := fmt.Sprintf(
+			"recvd unrecognized RaftResult: %d from node-%s\nPayload: %+v",
+			reply.Result, reply.Id, reply)
+		panic(msg)
+	}
+
+	return result
 }
