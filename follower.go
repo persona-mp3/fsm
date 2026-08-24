@@ -42,6 +42,9 @@ func (n *Node) runFollower() {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
+				// TODO: This is not safe, esp if we don't end up acking them as a Leader, this was just to
+				// stop the unneccesant RaftResultOutOfSyncLogs. This means that this place needs refactoring
+				// and better design
 				if request.Entry != nil && !n.logs.HasEntry(request.Entry) {
 					n.logs.Append(request.Entry)
 					slogger.Info(
