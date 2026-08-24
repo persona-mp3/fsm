@@ -29,7 +29,7 @@ func TestFollowerHandlerRejectsLowerTerm(t *testing.T) {
 		LogSize:      logSize,
 	}
 
-	handler.HandleAppendEntry(req, nodeTerm, "", lastCommitIdx, logSize, reply)
+	handler.HandleAppendEntry(req, nodeTerm, 0, "", lastCommitIdx, logSize, reply)
 
 	actualReply := <-reply
 	assert.Equal(t, actualReply.payload, expectedReply, "expected appendEntryHandler rejects lower term")
@@ -50,7 +50,7 @@ func TestFollowerHandlerAcceptsHigherTerm(t *testing.T) {
 	// since the node currently has no leader, it will accept this appendEntry as the new leader for
 	// it's term. Even though the logs don't match, it should still reply with it's own details to
 	// indicate it's logs are out of sync with this new leader
-	action := handler.HandleAppendEntry(req, uint64(1), "", 100, 101, reply)
+	action := handler.HandleAppendEntry(req, uint64(1), 0, "", 100, 101, reply)
 
 	expectedReply := &AppendEntryReply{
 		Id:           "1",
@@ -84,7 +84,7 @@ func TestFollowerHandlerRejectsUnrecognizedLeader(t *testing.T) {
 	}
 
 	reply := make(chan RPCReply, 1)
-	action := handler.HandleAppendEntry(req, currentTerm, currentLeaderId, 100, 101, reply)
+	action := handler.HandleAppendEntry(req, currentTerm, 0, currentLeaderId, 100, 101, reply)
 
 	expectedReply := &AppendEntryReply{
 		Id:           nodeId,
@@ -117,7 +117,7 @@ func TestFollowerHandlerAcceptsLeader(t *testing.T) {
 	}
 
 	reply := make(chan RPCReply, 1)
-	action := handler.HandleAppendEntry(req, currentTerm, currentLeader, 100, 101, reply)
+	action := handler.HandleAppendEntry(req, currentTerm, 0, currentLeader, 100, 101, reply)
 
 	expectedReply := &AppendEntryReply{
 		Id:           nodeId,

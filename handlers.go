@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	"log/slog"
 )
 
@@ -13,11 +13,20 @@ type VoteAction struct {
 
 type Handler interface {
 	HandleAppendEntry(
-		req AppendEntryRequest, currentTerm uint64, leader string, lastCommitIndex uint64, logSize int, ch chan RPCReply,
+		req AppendEntryRequest,
+		currentTerm uint64,
+		previousLogIndex uint64,
+		leader string,
+		lastCommitIndex uint64,
+		logSize int,
+		ch chan RPCReply,
 	) Action
 
 	HandleVoteRPC(
-		req VoteRequest, votedFor string, currentTerm uint64, ch chan<- RPCReply,
+		req VoteRequest,
+		votedFor string,
+		currentTerm uint64,
+		ch chan<- RPCReply,
 	) VoteAction
 }
 
@@ -117,7 +126,13 @@ func (f FollowerHandler) HandleVoteRPC(
 //   - Comes from a node who has the same term and the node has identified it as its leader
 //   - Comes from a node
 func (f FollowerHandler) HandleAppendEntry(
-	req AppendEntryRequest, currentTerm uint64, leader string, lastCommitIndex uint64, logSize int, ch chan RPCReply,
+	req AppendEntryRequest,
+	currentTerm uint64,
+	previousLogIndex uint64,
+	leader string,
+	lastCommitIndex uint64,
+	logSize int,
+	ch chan RPCReply,
 ) Action {
 	reply := AppendEntryReply{}
 	action := Action{}
@@ -128,7 +143,9 @@ func (f FollowerHandler) HandleAppendEntry(
 	case req.Term > currentTerm:
 		action, reply = f.acceptNewTerm(&req, lastCommitIndex, logSize)
 	case req.Term == currentTerm:
-		action, reply = f.proceessAppendEntry(&req, currentTerm, leader, lastCommitIndex, logSize)
+		// action, reply := f.process()
+		action, reply = f.refactor(&req, currentTerm, previousLogIndex, leader)
+
 	}
 
 	ch <- RPCReply{kind: AppendEntry, payload: &reply}
@@ -136,7 +153,10 @@ func (f FollowerHandler) HandleAppendEntry(
 }
 
 func (f FollowerHandler) rejectAppendEntry(
-	req *AppendEntryRequest, currentTerm uint64, lastCommitIndex uint64, logSize int,
+	req *AppendEntryRequest,
+	currentTerm uint64,
+	lastCommitIndex uint64,
+	logSize int,
 ) (Action, AppendEntryReply) {
 	reply := AppendEntryReply{
 		Id:           f.Id,
@@ -157,6 +177,7 @@ func (f FollowerHandler) rejectAppendEntry(
 		slog.Int("logSize", logSize),
 		slog.Any("appendEntryRPC", req),
 	)
+
 	return action, reply
 }
 
@@ -183,91 +204,189 @@ func (f FollowerHandler) acceptNewTerm(
 }
 
 // currentLeader, logsMatch
-func (f FollowerHandler) proceessAppendEntry(
-	req *AppendEntryRequest, currentTerm uint64, currentLeader string, lastCommitIndex uint64, logSize int,
+// func (f FollowerHandler) proceessAppendEntry(
+// req *AppendEntryRequest,
+// currentTerm uint64,
+// previousLogIndex uint64,
+// currentLeader string,
+// lastCommitIndex uint64,
+// logSize int,
+// ) (Action, AppendEntryReply) {
+// 	action := Action{}
+//
+// 	reply := AppendEntryReply{}
+// 	reply.Id = f.Id
+// 	reply.Term = currentTerm
+// 	reply.LastCommited = lastCommitIndex
+// 	reply.LogSize = logSize
+//
+// 	action.newLeader = currentLeader
+// 	action.newTerm = currentTerm
+//
+// 	// TODO: we can just fail fast here if the logs don't match
+// 	logsMatch := req.PreviousLogIndex == previousLogIndex
+//
+// 	switch {
+//
+// 	// if this node has no leader but the logs match this is a new leader
+// 	// from an election we didn't directly witness
+// 	case currentLeader == "" && logsMatch:
+// 		reply.Result = RaftResultAcked
+// 		reply.Message = "Acknowledged as new leader for new term"
+// 		reply.Term = req.Term
+//
+// 		action.action = true
+// 		action.newLeader = req.Id
+// 		action.newTerm = req.Term
+//
+// 		if !logsMatch {
+// 			f.logger.Info(
+// 				fmt.Sprintf("due to absent leader, recognizing peer %s as leader", req.Id),
+// 				slog.Any("appendEntryRPC", req),
+// 			)
+// 		}
+//
+// 	case currentLeader == req.Id && !logsMatch:
+// 		reply.Result = RaftResultLogsOutOfSync
+// 		reply.Message = "Recognized as original leader for current term, but logs don't match"
+// 		reply.Term = req.Term
+//
+// 		action.action = true
+// 		action.newLeader = req.Id
+// 		action.newTerm = req.Term
+//
+// 		f.logger.Info("appendEntry came from a recognized leader",
+// 			slog.String("currentLeader", currentLeader),
+// 			slog.Any("appendEntryRPC", req),
+// 		)
+//
+// 		f.logger.Warn("LEADER LOGS AND FOLLOWER LOGS DONT MATCH YET. STILL IN IMPL", slog.Any("appendRPC", req))
+//
+// 	case currentLeader == "" && !logsMatch:
+// 		reply.Result = RaftResultRejectedLeader
+// 		reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
+//
+// 		action.action = false
+// 		f.logger.Info("appendEntry came from an node claiming to be leader with mismatched logs",
+// 			slog.Uint64("currentTerm", currentTerm),
+// 			slog.String("currentLeader", currentLeader),
+// 			slog.Uint64("lastCommitIndex", lastCommitIndex),
+// 			slog.Int("logSize", logSize),
+// 			slog.Any("appendEntryRPC", req),
+// 		)
+// 	case currentLeader != "" && req.Id != currentLeader:
+// 		reply.Result = RaftResultRejectedLeader
+// 		reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
+// 		action.action = false
+//
+// 		f.logger.Info(
+// 			"appendEntry came from a node claiming to be a leader while i have a leader",
+// 			slog.Uint64("currentTerm", currentTerm),
+// 			slog.String("currentLeader", currentLeader),
+// 			slog.Any("appendEntryRPC", req),
+// 		)
+//
+// 	default:
+// 		f.logger.Info("unforseen circumstance, printing dump before panic",
+// 			slog.Uint64("currentTerm", currentTerm),
+// 			slog.String("currentLeader", currentLeader),
+// 			slog.Uint64("lastCommitIndex", lastCommitIndex),
+// 			slog.Int("logSize", logSize),
+// 			slog.Any("appendEntryRPC", req),
+// 		)
+//
+// 		panic("up above there^^^")
+// 	}
+//
+// 	return action, reply
+// }
+
+func (f FollowerHandler) refactor(
+	req *AppendEntryRequest,
+	currentTerm uint64,
+	previousLogIndex uint64,
+	currentLeader string,
 ) (Action, AppendEntryReply) {
+
 	action := Action{}
+	logsMatch := req.PreviousLogIndex == previousLogIndex
+	logsGreater := previousLogIndex > req.PreviousLogIndex
 
 	reply := AppendEntryReply{}
 	reply.Id = f.Id
-	reply.Term = currentTerm
-	reply.LastCommited = lastCommitIndex
-	reply.LogSize = logSize
+	if logsMatch {
+		// check if we they're are our leader
+		switch {
+		case req.Id == currentLeader:
+			reply.Result = RaftResultAcked
+			reply.Term = currentTerm
+			reply.PreviousLogIndex = previousLogIndex
+			reply.Message = "Recognized as original leader for current term, and logs match"
+			f.logger.Info("request came from acknowleged leader with matching logs")
 
-	action.newLeader = currentLeader
-	action.newTerm = currentTerm
+			action.action = true
+			action.newLeader = req.Id
+			action.newTerm = req.Term
+		// if this node does not have a leader, but logs match it's safe to assume that this is the leader
+		case currentLeader == "":
+			reply.Result = RaftResultAcked
+			reply.Message = "Acknowledged as new leader for new term"
+			reply.PreviousLogIndex = previousLogIndex
+			reply.Term = req.Term
+			f.logger.Info("accepting new leader due to empty leader and logs match",
+				slog.String("newLeader", req.Id),
+			)
 
-	// TODO: we can just fail fast here if the logs don't match
-	logsMatch := req.LeaderCommit >= lastCommitIndex && req.LogSize >= logSize
-
-	switch {
-
-	case currentLeader == "" && logsMatch:
-		reply.Result = RaftResultAcked
-		reply.Message = "Acknowledged as new leader for new term"
-		reply.Term = req.Term
-
-		action.action = true
-		action.newLeader = req.Id
-		action.newTerm = req.Term
-
-		if !logsMatch {
-			f.logger.Info(
-				fmt.Sprintf("due to absent leader, recognizing peer %s as leader", req.Id),
-				slog.Any("appendEntryRPC", req),
+			action.action = true
+			action.newLeader = req.Id
+			action.newTerm = req.Term
+			// follower trying to pose as leader
+		case req.Id != currentLeader:
+			reply.Result = RaftResultRejectedLeader
+			reply.Term = currentTerm
+			reply.PreviousLogIndex = previousLogIndex
+			reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
+			f.logger.Info("request came from illegitimate leader, possibly from a follower since logs match",
+				slog.String("from", req.Id),
+				slog.Uint64("currentTerm", currentTerm),
+				slog.Uint64("requestTerm", req.Term),
+				slog.String("currentLeader", currentLeader),
+			)
+			action.action = false
+		default:
+			f.logger.Info("logsMatch but we feel into dispair, as this case was not forseen",
+				slog.Uint64("currentTerm", currentTerm),
+				slog.String("currentLeader", currentLeader),
+				slog.Any("payload", req),
+			)
+			panic("unhandled edgecase check when logsMatch log file")
+		}
+	} else {
+		if !logsGreater {
+			switch req.Id {
+			case currentLeader:
+				reply.Result = RaftResultLogsOutOfSync
+				reply.Term = currentTerm
+				reply.PreviousLogIndex = previousLogIndex
+				reply.Message = "Recognized as original leader for current term, but logs don't match"
+				f.logger.Info("request came from acknowleged leader with matching logs")
+				action.action = true
+				action.newLeader = req.Id
+				action.newTerm = req.Term
+			}
+		} else {
+			reply.Result = RaftResultRejectedLeader
+			reply.Term = currentTerm
+			reply.PreviousLogIndex = previousLogIndex
+			reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
+			action.action = false
+			f.logger.Info("logs dont match and they're not our leader",
+				slog.Uint64("currentTerm", currentTerm),
+				slog.String("currentLeader", currentLeader),
+				slog.Any("payload", req),
 			)
 		}
 
-	case currentLeader == req.Id:
-		reply.Result = RaftResultLogsOutOfSync
-		reply.Message = "Recognized as original leader for current term"
-		reply.Term = req.Term
-
-		action.action = true
-		action.newLeader = req.Id
-		action.newTerm = req.Term
-
-		f.logger.Info("appendEntry came from a recognized leader",
-			slog.String("currentLeader", currentLeader),
-			slog.Any("appendEntryRPC", req),
-		)
-
-		f.logger.Warn("LEADER LOGS AND FOLLOWER LOGS DONT MATCH YET. STILL IN IMPL", slog.Any("appendRPC", req))
-
-	case currentLeader == "" && !logsMatch:
-		reply.Result = RaftResultRejectedLeader
-		reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
-
-		action.action = false
-		f.logger.Info("appendEntry came from an node claiming to be leader with mismatched logs",
-			slog.Uint64("currentTerm", currentTerm),
-			slog.String("currentLeader", currentLeader),
-			slog.Uint64("lastCommitIndex", lastCommitIndex),
-			slog.Int("logSize", logSize),
-			slog.Any("appendEntryRPC", req),
-		)
-	case currentLeader != "" && req.Id != currentLeader:
-		reply.Result = RaftResultRejectedLeader
-		reply.Message = "Unacknowledged as a leader of current term. We can ban you, you know that?"
-		action.action = false
-		f.logger.Info(
-			"appendEntry came from a node claiming to be a leader while i have a leader",
-			slog.Uint64("currentTerm", currentTerm),
-			slog.String("currentLeader", currentLeader),
-			slog.Any("appendEntryRPC", req),
-		)
-
-	default:
-		f.logger.Info("unforseen circumstance, printing dump before panic",
-			slog.Uint64("currentTerm", currentTerm),
-			slog.String("currentLeader", currentLeader),
-			slog.Uint64("lastCommitIndex", lastCommitIndex),
-			slog.Int("logSize", logSize),
-			slog.Any("appendEntryRPC", req),
-		)
-
-		panic("up above there^^^")
 	}
-
 	return action, reply
 }

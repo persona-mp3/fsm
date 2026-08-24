@@ -46,6 +46,7 @@ func (n *Node) runFollower() {
 				action := handler.HandleAppendEntry(
 					request,
 					n.raft.Term(),
+					n.logs.PreviousLogIndex.Load(),
 					currentLeader,
 					n.logs.LastCommited(),
 					n.logs.Size(),

@@ -45,9 +45,11 @@ func (l *Logs) SnapshotFrom(startIndex uint64) ([]Entry, error) {
 	}
 
 	rest := uint64(len(l.entries)) - startIndex
+		fmt.Printf("\n all_logs:: %+v\n", l.entries)
 	buff := make([]Entry, rest)
 	for i := startIndex; i < rest; i++ {
 		clone := *l.entries[i]
+		fmt.Printf("cloning:: %+v\n", clone)
 		buff = append(buff, clone)
 	}
 	return buff, nil
