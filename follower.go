@@ -42,6 +42,15 @@ func (n *Node) runFollower() {
 					logger.Panic("received wrong rpcRequet payload. Expected AppendEntry:", request, n.Diagnostics())
 				}
 
+				if request.Entry != nil && !n.logs.HasEntry(request.Entry) {
+					n.logs.Append(request.Entry)
+					slogger.Info(
+						"appended new entry from leader",
+						slog.Any("entry", request.Entry),
+						slog.Bool("available", n.logs.HasEntry(request.Entry)),
+					)
+				}
+
 				currentLeader := n.raft.CurrentLeader()
 				action := handler.HandleAppendEntry(
 					request,
@@ -57,24 +66,6 @@ func (n *Node) runFollower() {
 					continue
 				}
 
-				if request.Entry != nil && !n.logs.HasEntry(request.Entry) {
-					slogger.Info(
-						"IN_PROGRESS: received new entry from leader",
-						slog.Group("details",
-							slog.Any("entry", request.Entry),
-							slog.Bool("available", n.logs.HasEntry(request.Entry)),
-						),
-					)
-					n.logs.Append(request.Entry)
-					slog.Info("append new log to entry", slog.Bool("appended", n.logs.HasEntry(request.Entry)))
-				} else {
-					slogger.Info(
-						"entry in request already exists",
-						slog.Any("entry", request.Entry),
-						slog.String("currentLogs", n.logs.String()),
-					)
-				}
-
 				debugLogger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 				if currentLeader == action.newLeader {
 					n.raft.UpdateTerm(action.newTerm, action.newLeader)
@@ -85,26 +76,25 @@ func (n *Node) runFollower() {
 
 					ticker.Reset(n.raft.electionTimeout)
 
-					if request.LeaderCommit != n.logs.LastCommited() {
-						// check if the prevLogIndex matches ours
-						switch {
-						case request.PreviousLogIndex != n.logs.PreviousLogIndex.Load():
-							debugLogger.Warn("prevLogIndexes don't match",
-								slog.Uint64("request::leaderCommit", request.LeaderCommit),
-								slog.Uint64("self::previous_log_index::", n.logs.PreviousLogIndex.Load()),
-								slog.Uint64("request::previous_log_index", request.PreviousLogIndex),
-							)
-							println()
-						case request.LeaderCommit == n.logs.LastCommited():
-							debugLogger.Info("commits match")
-							continue
-						default:
-							err := n.logs.FlushTill(request.LeaderCommit, n.database)
-							if err != nil {
-								slogger.Error(err.Error())
-							}
+					// check if the prevLogIndex matches ours
+					switch {
+					case request.PreviousLogIndex != n.logs.PreviousLogIndex.Load():
+						debugLogger.Warn("prevLogIndexes don't match",
+							slog.Uint64("request::leaderCommit", request.LeaderCommit),
+							slog.Uint64("self::previous_log_index::", n.logs.PreviousLogIndex.Load()),
+							slog.Uint64("request::previous_log_index", request.PreviousLogIndex),
+						)
+						println()
+					case request.LeaderCommit == n.logs.LastCommited():
+						debugLogger.Info("leader commits match")
+						continue
+					default:
+						err := n.logs.FlushTill(request.LeaderCommit, n.database)
+						if err != nil {
+							slogger.Error(err.Error())
 						}
 					}
+					// }
 					continue
 				}
 
