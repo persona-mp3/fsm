@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type RaftResult int
 
 const (
@@ -23,3 +25,49 @@ const (
 	// RaftResultUnknownUnhandled accounts for situations that are unexpected or unhandled
 	RaftResultUnknownUnhandled
 )
+
+type LogStatus int
+
+const (
+	// LogStatusOutOfSync signifies that our local logs don't match with the leaders, which could
+	// be by log index or log term
+	LogStatusOutOfSync LogStatus = iota
+
+	// LogStatusMatch signifies that our local logs match  with the leaders including the leader commits
+	LogStatusMatch
+
+	// LogStatusUpdateCommit signifies that we need to update our commited logs to match with the leaders'
+	LogStatusUpdateCommit
+)
+
+func (rr RaftResult) String() string {
+	switch rr {
+	case RaftResultAcked:
+		return "RaftResultAcked"
+	case RaftResultLogsOutOfSync:
+		return "RaftResultLogsOutOfSync"
+	case RaftResultLowerTerm:
+		return "RaftResultLowerTerm"
+	case RaftResultRejectedLeader:
+		return "RaftResultRejectedLeader"
+	case RaftResultStaleLeader:
+		return "RaftResultStaleLeader"
+	case RaftResultUnknownUnhandled:
+		return "RaftResultUnknownUnhandled"
+	default:
+		panic(fmt.Sprintf("unexpected main.RaftResult: %#v", rr))
+	}
+}
+
+func (ll LogStatus) String() string {
+	switch ll {
+	case LogStatusMatch:
+		return "LogStatusMatch"
+	case LogStatusOutOfSync:
+		return "LogStatusOutOfSync"
+	case LogStatusUpdateCommit:
+		return "LogStatusUpdateCommit"
+	default:
+		panic(fmt.Sprintf("unexpected main.LogStatus: %#v", ll))
+	}
+}

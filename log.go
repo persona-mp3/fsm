@@ -45,7 +45,7 @@ func (l *Logs) SnapshotFrom(startIndex uint64) ([]Entry, error) {
 	}
 
 	rest := uint64(len(l.entries)) - startIndex
-		fmt.Printf("\n all_logs:: %+v\n", l.entries)
+	fmt.Printf("\n all_logs:: %+v\n", l.entries)
 	buff := make([]Entry, rest)
 	for i := startIndex; i < rest; i++ {
 		clone := *l.entries[i]
@@ -55,6 +55,7 @@ func (l *Logs) SnapshotFrom(startIndex uint64) ([]Entry, error) {
 	return buff, nil
 }
 
+// Append adds the entry to it's stored logs, and returns the previous logs index
 func (l *Logs) Append(e *Entry) int {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -120,17 +121,17 @@ func (l *Logs) String() string {
 	return sb.String()
 }
 
-// we assume that the stopCommit is the exact index of the last log the leader applied to it's
-// database, so we can just search for that.
-// NOTE: We might also need the *TERM* of the commmit not sure yet but since the commit only
+// TODO: We might also need the *TERM* of the commmit not sure yet but since the commit only
 // ever increases, ie it syncs with the term, and this nodes [PreviousLogIndex] matches with
 // the leader  it should not be a problem or need
-func (l *Logs) FlushTill(stopCommit uint64, jkvs db.Database) error {
+
+// FlushTill applies all the entries from the last commited entry index, up till stopCommit
+// If the stopCommit is greater than the amount of logs, FlushTill panics
+func (l *Logs) FlushTill(stopCommit uint64, jkvs db.Database) {
 	lastCommited := l.lastCommited.Load()
 	// apply all logs till stopCommit,
 	// check if we have up to size stopCommitLogs
 	if len(l.entries) < int(stopCommit) {
-		println("beuaurusobv")
 		panic(
 			fmt.Sprintf(
 				`recvd a stopCommit greater than the amount of logs stored locally
@@ -171,7 +172,6 @@ func (l *Logs) FlushTill(stopCommit uint64, jkvs db.Database) error {
 	}
 
 	fmt.Println("-------flushed")
-	return nil
 }
 
 func (e *Entry) String() string {
@@ -179,4 +179,26 @@ func (e *Entry) String() string {
 		"Entry: { Idx: %d, Operation: %s, Key: %s, Value: %s }",
 		e.Idx, e.Operation, e.Key, e.Value,
 	)
+}
+
+var (
+	ErrNotEnoughLogs = errors.New("Not enough logs")
+)
+
+// GetPreviousLogEntry returns the previousLogEntry and the current log size. If the
+// If there are not enough logs stored, it returns an [ErrNotEnoughLogs]. If there is only one
+// log stored, it sends an empty log and does not return an error
+func (l *Logs) GetPreviousLogEntry() (Entry, int) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	logSize := len(l.entries)
+	if logSize == 0 {
+		return Entry{}, logSize
+	}
+
+	if logSize == 1 {
+		return Entry{}, logSize
+	}
+	previousLogEntry := l.entries[logSize-2]
+	return *previousLogEntry, logSize
 }

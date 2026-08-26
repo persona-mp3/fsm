@@ -228,7 +228,7 @@ func handleReply(
 
 	case RaftResultLogsOutOfSync:
 		logger.Info(
-			"follower's log out of sync, preparing for snaphost",
+			"follower's log out of sync, preparing for snapshots",
 			slog.String("from", reply.Id),
 			slog.Uint64("replyTerm", reply.Term),
 			slog.Uint64("currentTerm", currentTerm),

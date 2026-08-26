@@ -39,13 +39,12 @@ type AppendEntryRequest struct {
 
 	// PreviousLogIndex is sent by the leader to help the Follower check if they're in sync
 	PreviousLogIndex uint64
+	// PreviousLogTerm is sent by the leader to help the Follower check if they're in sync
+	PreviousLogTerm uint64
 
 	// LeaderCommit is the most recent log index that has been applied to the database of the leader
 	// and is now safe for logs up to this point to be applied for the followers
 	LeaderCommit uint64
-
-	// TODO: Remove this later
-	LogSize int
 }
 
 type AppendEntryReply struct {

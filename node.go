@@ -90,7 +90,6 @@ type Node struct {
 	// and previous terms. It receives these logs from clients when a leader
 	// or from the leader for the currentTerm via the AppendEntryRPCs
 	logs Logs
-
 }
 
 const (
@@ -162,7 +161,7 @@ func (n *Node) Run(parentCtx context.Context) error {
 	defer stateCancel()
 
 	go func() {
-		n.runFollower()
+		n.runFollower(slog.New(slog.NewJSONHandler(n.log.Out(), nil)))
 	}()
 
 	for {
@@ -186,7 +185,7 @@ func (n *Node) Run(parentCtx context.Context) error {
 				n.stateCtxCancel()
 				n.newContext(ctx)
 
-				go n.runFollower()
+				go n.runFollower(slog.New(slog.NewJSONHandler(n.log.Out(), nil)))
 			case Leader:
 				if n.raft.State() == Leader {
 					n.log.Panic(`recvd transition into Leader while in Leader state`, n.Diagnostics())
