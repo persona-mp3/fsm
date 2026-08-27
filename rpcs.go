@@ -53,6 +53,7 @@ type AppendEntryReply struct {
 	Result           RaftResult
 	Message          string
 	PreviousLogIndex uint64
+	PreviousLogTerm  uint64
 	LogSize          int
 	LastCommited     uint64
 }

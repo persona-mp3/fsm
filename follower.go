@@ -88,6 +88,8 @@ func (n *Node) runFollower(logger *slog.Logger) {
 				replyPayload.Id = n.id
 				replyPayload.Term = request.Term
 				replyPayload.LastCommited = latestCommit
+				replyPayload.PreviousLogIndex = uint64(previousLogEntry.Idx)
+				replyPayload.PreviousLogTerm = previousLogEntry.Term
 
 				logStatus := inspectLogs(&request, previousLogEntry, latestCommit, logSize, logger)
 
@@ -115,9 +117,10 @@ func (n *Node) runFollower(logger *slog.Logger) {
 
 				ticker.Reset(n.raft.electionTimeout)
 
-				logger.Info("reseting timer, heartbeat arrived and sending response to server",
+				logger.Info("election timer reset, heartbeat arrived and sending response to server",
 					slog.String("diagnostics", n.Diagnostics()),
 				)
+				// TODO|REVIEW: Replace with [backgroundSendCh]
 				req.reply <- RPCReply{kind: AppendEntry, payload: &replyPayload}
 				logger.Info("heartbeat response sent to server")
 

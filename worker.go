@@ -185,9 +185,9 @@ func (w *Worker) attemptSend(
 	return true
 }
 
-// TASK|CURRENTLY: Right now, we are only logging the actions but not actually doing anything, 
+// TASK|CURRENTLY: Right now, we are only logging the actions but not actually doing anything,
 // esp when we need to send a snapshot to the Follower. Refactor the function or the whole thing
-// if you have to(probably might). We've introduce RaftResult and LogStatus types now, so some things should be 
+// if you have to(probably might). We've introduce RaftResult and LogStatus types now, so some things should be
 // easier. See follower.go
 func handleReply(
 	logger *slog.Logger,
