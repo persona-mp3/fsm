@@ -15,8 +15,9 @@ const (
 	// RaftResultLowerTerm means the Sender was rejected because they had a lower term
 	RaftResultLowerTerm
 
-	// RaftResultRejectedLeader means that the Sender was not acknowledged by the Follower as
-	// the leader of a current term. This can happen if there was a Split brain or network partition
+	// RaftResultRejectedLeader means that the Sender was not acknowledged by a node (Follower, Leader, Candidate)
+	// as the leader of a current term. This can happen if there was a Split brain or network partition
+	// due to the sender having logs that are not up to date
 	RaftResultRejectedLeader
 
 	// RaftResultLogsOutOfSync is sent when the previousLogIndex of the Follower and Leader do not match

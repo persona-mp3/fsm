@@ -3,11 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"fsm/raftlogger"
 	"log/slog"
 	"sync"
 	"sync/atomic"
 )
+
+type leader struct {
+	quitCh     chan struct{}
+	workerErrs chan error
+}
 
 func (n *Node) StartLeader(logger *slog.Logger) {
 	logger.Info("leader state transitioned successfully",
@@ -31,6 +35,27 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 
 	currentTerm := n.raft.Term()
 
+	// 1. Initialise all the workers
+	// _workers := initalizeNewWorkers(n.peers, n.logs.getAtomicCommit(), n.logs.PreviousLogIndex, &n.logs)
+
+	// 2. Start all the workers in parallel
+	/*
+	   wg := sync.WaitGroup{}
+	   for _,worker := range _workers {
+	     wg.Go(func() {
+	       if err := worker.Run(ctx, peerAddr, currentTerm); err != nil {
+	         // log error or propagate via struct or channel to notify the leader incase we'd want to
+	         // respawn the worker
+	       }
+	     })
+	   }
+
+	   go func() {
+	     wg.Wait()
+	     tellLeaderToQuitCh <- struct{}{} // close(tellLeaderToQuitCh)
+	   }
+	*/
+
 	// to track number of workers still active
 	wg := sync.WaitGroup{}
 	allWorkers := []*Worker{}
@@ -53,49 +78,78 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 		})
 	}
 
+	// QUESTION: Why do we need this? if the leader has exited, there's no need for these
 	n.workers = allWorkers
 
 	go func() {
 		wg.Wait()
 		logger.Info("all workers have returned")
 	}()
+	var panicMsg string
+	lh := NewLeaderHandler(n.logs.LastCommited())
 
 	for {
 		select {
 		case <-n.stateCtx.Done():
 			return
-		case req := <-n.incoming:
-			n.handleIncomingPayload(req, currentTerm, logger)
+		case rpcRequest := <-n.incoming:
+			switch rpcRequest.kind {
+			case AppendEntry:
+				request, ok := rpcRequest.payload.(AppendEntryRequest)
+				if !ok {
+					panicMsg = fmt.Sprintf(
+						`recvd unexpected payload. Expected AppendEntry
+             payload: %+v,
+             ---
+             diagnostics:
+             %+v
+            `, request, n.Diagnostics())
+					panic(panicMsg)
+				}
+				previousLogEntry, _ := n.logs.GetPreviousLogEntry()
+				raftResult := lh.verifyAppendEntry(&request, previousLogEntry, currentTerm, logger)
+
+				if raftResult == RaftResultAcked {
+					reply := AppendEntryReply{
+						Id:               n.id,
+						Result:           raftResult,
+						Term:             request.Term,
+						Message:          "stepping down from leader",
+						PreviousLogIndex: uint64(previousLogEntry.Idx),
+						LastCommited:     lh.latestCommit,
+					}
+
+					rpcReply := RPCReply{kind: AppendEntry, payload: &reply}
+					backgroundSendCh(ctx, rpcRequest.reply, rpcReply)
+					n.raft.UpdateTerm(request.Term, request.Id)
+					n.transition <- Follower
+					logger.Info("stepping down from leader to follower")
+					return
+				}
+
+				rpcReply := RPCReply{kind: AppendEntry, payload: &AppendEntryReply{
+					Id:               n.id,
+					Result:           raftResult,
+					Term:             request.Term,
+					Message:          "ignoring append entry from node",
+					PreviousLogIndex: uint64(previousLogEntry.Idx),
+					LastCommited:     n.logs.LastCommited(),
+				}}
+
+				backgroundSendCh(ctx, rpcRequest.reply, rpcReply)
+				logger.Info("ignoring append entry payload while a leader from a node",
+					slog.Uint64("currentTerm", currentTerm),
+					slog.Any("payload", request),
+				)
+			case Vote:
+			}
 		}
 	}
 }
 
 func (n *Node) handleIncomingPayload(req RPC, currentTerm uint64, logger *slog.Logger) {
 	switch req.kind {
-	case AppendEntry:
-		request, ok := req.payload.(AppendEntryRequest)
-		if !ok {
-			logger.Warn(
-				"received wrong rpcRequet payload. Expected AppendEntry",
-				slog.Any("payload", req.payload),
-				slog.String("diagnostics", n.Diagnostics()))
-			panic("recvd wrong payload ^^")
-		}
-
-		action := n.handleAppendEntry(
-			request,
-			req.reply,
-			raftlogger.NewHumaneLogger(n.id, "AE", n.raft.Term(), nil),
-		)
-
-		if !action.action {
-			return
-		}
-
-		n.raft.UpdateTerm(action.newTerm, action.newLeader)
-		logger.Info("leader dropping down to follower succesfully updated term", "diagnostics", n.Diagnostics())
-		n.transition <- Follower
-		return
+	// CURRENTLY: Refactoring, moved AppendEntry up to main loop
 
 	case Vote:
 		request, ok := req.payload.(VoteRequest)
