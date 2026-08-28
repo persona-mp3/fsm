@@ -99,31 +99,18 @@ func (n *Node) runFollower(logger *slog.Logger) {
 				case LogStatusOutOfSync:
 					replyPayload.Result = RaftResultLogsOutOfSync
 					replyPayload.Message = "Logs out of sync"
-					fmt.Println(`[debug] logs out of sync with leaders'`)
 				case LogStatusMatch:
-					logger.Info("logStatusMatch",
-						slog.Any("logs", n.logs.Snapshot()),
-						slog.Any("payload", request),
-						slog.Any("diganostics", n.Diagnostics()),
-					)
 					replyPayload.Result = RaftResultAcked
 					replyPayload.Message = "Logs match"
 				case LogStatusUpdateCommit:
-					logger.Info("logStatusUpdateCommit",
-						slog.Any("latestCommit", latestCommit),
-						slog.Any("request", req),
-						slog.Any("debug_logs", n.logs.Snapshot()))
 					n.logs.FlushTill(request.LeaderCommit, n.database)
 					replyPayload.Result = RaftResultAcked
 					replyPayload.LastCommited = request.LeaderCommit
-					fmt.Printf(`[debug] need to update commit entiries, %d, %d\n`, latestCommit, request.LeaderCommit)
 				default:
-					msg := fmt.Sprintf(`
-								unhandled case of enum type LogStatus when after inspectLogs()
-								LogStatusRecvd: %s,
-								request: %+v
-								Please make sure that it is handled
-					`, logStatus.String(), request)
+					msg :=
+						fmt.Sprintf(`
+					unhandled case of enum type LogStatus when after inspectLogs()
+					LogStatusRecvd: %s, request: %+v`, logStatus.String(), request)
 
 					panic(msg)
 				}
@@ -157,12 +144,11 @@ func (n *Node) runFollower(logger *slog.Logger) {
 				}
 
 			case ClientCommand:
-				logger.Info("in follower state, need to forward request to leader")
 				req.reply <- RPCReply{
 					kind: ClientCommand,
 					payload: &CommandReply{
 						From:   n.id,
-						Result: "FOLLOWER_STUB: Forward request to leader, currently follower",
+						Result: "[follower] Forward request to leader, currently follower",
 					},
 				}
 
