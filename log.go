@@ -35,26 +35,6 @@ func NewLogs() Logs {
 
 var ErrLogNotFound = errors.New("log with index not found")
 
-// SnapshotFrom returns a slice of logs that  start from `startIndex` provided. If the logs
-// are not up to that index, it returns an [ErrLogNotFound]
-func (l *Logs) SnapshotFrom(startIndex uint64) ([]Entry, error) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	if startIndex > uint64(len(l.entries)) {
-		return []Entry{}, ErrLogNotFound
-	}
-
-	rest := uint64(len(l.entries)) - startIndex
-	fmt.Printf("\n all_logs:: %+v\n", l.entries)
-	buff := make([]Entry, rest)
-	for i := startIndex; i < rest; i++ {
-		clone := *l.entries[i]
-		fmt.Printf("cloning:: %+v\n", clone)
-		buff = append(buff, clone)
-	}
-	return buff, nil
-}
-
 // Append adds the entry to it's stored logs, and returns the previous logs index
 func (l *Logs) Append(e *Entry) int {
 	l.mu.Lock()
@@ -201,4 +181,59 @@ func (l *Logs) GetPreviousLogEntry() (Entry, int) {
 	}
 	previousLogEntry := l.entries[logSize-2]
 	return *previousLogEntry, logSize
+}
+
+// Snapshot returns a copy of all the logs currently stored
+func (l *Logs) Snapshot() []Entry {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	buff := make([]Entry, len(l.entries))
+	for _, entry := range l.entries {
+		clone := *entry
+		buff = append(buff, clone)
+	}
+	return buff
+}
+
+// SnapshotFrom returns a slice of logs that  start from `startIndex` provided. If the logs
+// are not up to that index, it returns an [ErrLogNotFound]
+func (l *Logs) SnapshotFrom(startIndex, targetTerm uint64) ([]Entry, error) {
+	// TODO: Should ideally be SnapshotFrom(startIndex, startTerm)
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if startIndex > uint64(len(l.entries)) {
+		return []Entry{}, ErrLogNotFound
+	}
+
+	rest := uint64(len(l.entries)) - startIndex
+	matchingEntry := l.entries[startIndex]
+	// 	TODO|QUESTION| revisit this!
+	// 	In Raft, the leader handles inconsistencies by forcing
+	// the followers’ logs to duplicate its own. This means that
+	// conflicting entries in follower logs will be overwritten
+	// with entries from the leader’s log. Section 5.4 will show
+	// that this is safe when coupled with one more restriction.
+	// To bring a follower’s log into consistency with its own,
+	// the leader must find the latest log entry where the two
+	// logs agree, delete any entries in the follower’s log after
+	// that point, and send the follower all of the leader’s entries
+	// after that point. All of these actions happen in response
+	// to the consistency check performed by AppendEntries
+	// RPCs. The leader maintains a nextIndex for each follower,
+	// which is the index of the next log entry the leader will
+	// send to that follower
+	if matchingEntry.Term != targetTerm {
+		fmt.Printf(`
+		[logs] found a log with specified index, but their terms don't match. Follower should 
+		overwrite with ours. RaftResultLogNotFound
+		`)
+	}
+
+	buff := make([]Entry, rest)
+	for i := startIndex; i < rest; i++ {
+		clone := *l.entries[i]
+		buff = append(buff, clone)
+	}
+	return buff, nil
 }

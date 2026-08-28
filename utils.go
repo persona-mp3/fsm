@@ -33,3 +33,6 @@ func backgroundSendCh[T any](parentCtx context.Context, ch chan T, data T) {
 		}
 	}()
 }
+
+func clearScreen() {
+}

@@ -1,13 +1,18 @@
+```go
 package main
 
 import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
 	"sync"
 	"sync/atomic"
 )
+
+type leader struct {
+	quitCh     chan struct{}
+	workerErrs chan error
+}
 
 func (n *Node) StartLeader(logger *slog.Logger) {
 	logger.Info("leader state transitioned successfully",
@@ -53,7 +58,6 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 	*/
 
 	// to track number of workers still active
-	defer n.closeConnections()
 	wg := sync.WaitGroup{}
 	allWorkers := []*Worker{}
 	for _, peer := range connectedPeers {
@@ -61,19 +65,17 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 			continue
 		}
 
-		fmt.Printf(`[debug] assigning %s to a worker\n`, peer.addr)
 		worker := NewWorker(
 			peer.id,
 			n.logs.getAtomicCommit(),
 			n.logs.PreviousLogIndex,
 			&n.logs,
-			slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+			logger.With(),
 		)
-
 		allWorkers = append(allWorkers, worker)
 
 		wg.Go(func() {
-			worker.run(ctx, n.id, currentTerm, peer)
+			worker.Run(ctx, n.id, peer, currentTerm)
 		})
 	}
 
@@ -84,7 +86,6 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 		wg.Wait()
 		logger.Info("all workers have returned")
 	}()
-
 	var panicMsg string
 	lh := NewLeaderHandler(n.logs.LastCommited())
 
@@ -103,7 +104,7 @@ func (n *Node) StartLeader(logger *slog.Logger) {
              ---
              diagnostics:
              %+v
-            `, rpcRequest, n.Diagnostics())
+            `, request, n.Diagnostics())
 					panic(panicMsg)
 				}
 				previousLogEntry, _ := n.logs.GetPreviousLogEntry()
@@ -141,8 +142,7 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 					slog.Uint64("currentTerm", currentTerm),
 					slog.Any("payload", request),
 				)
-			default:
-				n.handleIncomingPayload(rpcRequest, currentTerm, logger)
+			case Vote:
 			}
 		}
 	}
@@ -151,6 +151,7 @@ func (n *Node) StartLeader(logger *slog.Logger) {
 func (n *Node) handleIncomingPayload(req RPC, currentTerm uint64, logger *slog.Logger) {
 	switch req.kind {
 	// CURRENTLY: Refactoring, moved AppendEntry up to main loop
+
 	case Vote:
 		request, ok := req.payload.(VoteRequest)
 		if !ok {
@@ -169,7 +170,7 @@ func (n *Node) handleIncomingPayload(req RPC, currentTerm uint64, logger *slog.L
 					Id:       n.id,
 					Term:     request.Term,
 					VotedFor: true,
-					Message:  "falling back to leader",
+					Message:  "retreating back to leader",
 				},
 			}
 
@@ -204,7 +205,6 @@ func (n *Node) handleIncomingPayload(req RPC, currentTerm uint64, logger *slog.L
 		panic("recvd snapshot request instead of the workers")
 	case ClientCommand:
 		request, ok := req.payload.(CommandRequest)
-		fmt.Println("[debug] handling client command")
 		if !ok {
 			logger.Warn("received wrong rpcRequet payload. Expected CommandRequest",
 				slog.Any("payload", req.payload),
@@ -227,7 +227,7 @@ func (n *Node) handleIncomingPayload(req RPC, currentTerm uint64, logger *slog.L
 		}
 
 		// replicate entry accross workers
-		fmt.Println("[debug] replicating across workers")
+		// go func(entry Entry, replyCh chan RPCReply, workers []*Worker) {
 		safeForReplication := replicateEntry(entry, n.workers, len(n.peers), logger.With())
 		reply := CommandReply{
 			From:   "fsm-leader",
@@ -235,7 +235,6 @@ func (n *Node) handleIncomingPayload(req RPC, currentTerm uint64, logger *slog.L
 		}
 
 		if !safeForReplication {
-			fmt.Println("[debug] not safe for replication")
 			select {
 			case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
 			default:
@@ -244,7 +243,6 @@ func (n *Node) handleIncomingPayload(req RPC, currentTerm uint64, logger *slog.L
 			return
 		}
 
-		fmt.Println("[debug] it is safe for replication")
 		// NOTE:
 		// we should typically not log or replicate 'GET' commands
 		// as jkvs itself does not either. It just causes noise and extra
@@ -320,12 +318,11 @@ func replicateEntry(
 	for i := range workers {
 		_ = i
 		if replicasMade.Load() >= uint32(quorumTarget) {
-			fmt.Printf("quorum for replication was reached, %d\n", replicasMade.Load())
+			logger.Info("quorum for replication was reached", slog.Uint64("total", uint64(replicasMade.Load())))
 			return true
 		}
 		select {
 		case <-timeoutCtx.Done():
-			fmt.Printf("failed to reach quorum. Could not replicate entries to all workers within deadline")
 			logger.Info("failed to reach quorum. Could not replicate entries to all workers within deadline")
 			return false
 		case <-done:
@@ -344,3 +341,4 @@ func replicateEntry(
 
 	return false
 }
+```

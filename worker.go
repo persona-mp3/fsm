@@ -41,7 +41,7 @@ func NewWorker(
 	logEntries *Logs,
 	logger *slog.Logger,
 ) *Worker {
-	logger.Info("starting woker with following config:",
+	logger.Info("starting worker with following config:",
 		slog.Int("id", id),
 		slog.Uint64("leaderCommit: ", leaderCommit.Load()),
 	)
@@ -56,9 +56,9 @@ func NewWorker(
 }
 
 func (w *Worker) Run(
-	ctx context.Context, leaderId string, peer *Peer, currentTerm uint64, heartbeat time.Duration,
+	ctx context.Context, leaderId string, peer *Peer, currentTerm uint64,
 ) {
-	ticker := time.NewTicker(heartbeat)
+	ticker := time.NewTicker(HeartBeatInterval)
 	defer func() {
 		ticker.Stop()
 		if peer.rpcConn != nil {
@@ -133,7 +133,7 @@ func (w *Worker) Run(
 					slog.Int("workerId", w.id),
 					slog.Any("heartbeatRPC", reply),
 				)
-				ticker.Reset(heartbeat)
+				ticker.Reset(HeartBeatInterval)
 			}
 		}
 	}
@@ -238,7 +238,7 @@ func handleReply(
 			slog.Uint64("currentTerm", currentTerm),
 			slog.Uint64("followerPrevLogIndex", reply.PreviousLogIndex),
 		)
-		snapshot, err := logEntries.SnapshotFrom(reply.PreviousLogIndex)
+		snapshot, err := logEntries.SnapshotFrom(reply.PreviousLogIndex, reply.PreviousLogTerm)
 		if err != nil {
 			panic(fmt.Sprintf("could not get snapshot of logs. Reason: %d\n", err))
 		}

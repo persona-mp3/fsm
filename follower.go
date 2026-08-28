@@ -77,6 +77,8 @@ func (n *Node) runFollower(logger *slog.Logger) {
 				if request.Entry != nil {
 					n.logs.Append(request.Entry)
 					logger.Info("new payload received from leader, updated prevLogEntry")
+				} else {
+					logger.Info("empty payload just a hearbeat")
 				}
 
 				// update term and leader
@@ -97,13 +99,24 @@ func (n *Node) runFollower(logger *slog.Logger) {
 				case LogStatusOutOfSync:
 					replyPayload.Result = RaftResultLogsOutOfSync
 					replyPayload.Message = "Logs out of sync"
+					fmt.Println(`[debug] logs out of sync with leaders'`)
 				case LogStatusMatch:
+					logger.Info("logStatusMatch",
+						slog.Any("logs", n.logs.Snapshot()),
+						slog.Any("payload", request),
+						slog.Any("diganostics", n.Diagnostics()),
+					)
 					replyPayload.Result = RaftResultAcked
 					replyPayload.Message = "Logs match"
 				case LogStatusUpdateCommit:
+					logger.Info("logStatusUpdateCommit",
+						slog.Any("latestCommit", latestCommit),
+						slog.Any("request", req),
+						slog.Any("debug_logs", n.logs.Snapshot()))
 					n.logs.FlushTill(request.LeaderCommit, n.database)
 					replyPayload.Result = RaftResultAcked
 					replyPayload.LastCommited = request.LeaderCommit
+					fmt.Printf(`[debug] need to update commit entiries, %d, %d\n`, latestCommit, request.LeaderCommit)
 				default:
 					msg := fmt.Sprintf(`
 								unhandled case of enum type LogStatus when after inspectLogs()
@@ -153,6 +166,8 @@ func (n *Node) runFollower(logger *slog.Logger) {
 					},
 				}
 
+			case Snapshot:
+				fmt.Printf("[FOLLOWER] recvd snapshot request: %+v\n", req)
 			default:
 				panicMsg = fmt.Sprintf(
 					`Unhandled RPC Not yet implemented:

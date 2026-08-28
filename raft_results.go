@@ -25,6 +25,8 @@ const (
 
 	// RaftResultUnknownUnhandled accounts for situations that are unexpected or unhandled
 	RaftResultUnknownUnhandled
+
+	RaftResultSnapshot
 )
 
 type LogStatus int
