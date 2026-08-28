@@ -39,7 +39,7 @@ func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, p
 				return
 			}
 
-			success := w.handleReplicateCommand(replicate, leaderId, &reply, currentTerm, peer)
+			success := w.handleReplicateCommand(&reply)
 			if !success {
 				w.logger.Info("[w2] replica was a failure")
 				return
@@ -68,6 +68,42 @@ func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, p
 					slog.Any("currentTerm", request.Term),
 					slog.Any("reply", reply),
 				)
+
+				switch reply.Result {
+				case RaftResultAcked:
+					w.logger.Info("heartbeat recognized by follower")
+					// CURRENTLY: When we send the follower a snapshot request
+					// Do we do it here?
+				case RaftResultLogsOutOfSync:
+					fmt.Printf(`[debug] getting snapshot for: prevIndex:%d, prevTerm:%d\n`,
+						reply.PreviousLogIndex, reply.PreviousLogTerm)
+
+					snapshot := w.getSnapshot(reply.PreviousLogIndex, reply.PreviousLogTerm)
+					ssReq := SnapshotRequest{}
+					ssReq.Id = leaderId
+					ssReq.Term = currentTerm
+					ssReq.LastCommited = w.leaderCommit.Load()
+					ssReq.Snapshot = snapshot
+					ssReq.Message = "snapshot message"
+					ssReq.Result = RaftResultAcked
+
+					fmt.Printf(`[debug] sending snapshot to follower: %+v`, snapshot)
+
+					go func() {
+						ssReply := SnapshotReply{}
+						err := attemptRequest(ServiceNameSnapshot, ssReq, &ssReply, peer, w.logger)
+						if err != nil {
+							fmt.Printf("[debug] failed to send SSRequest. Reason %+v\n", err)
+							return
+						}
+						fmt.Printf("[debug] successfully sent snapshotReq %+v\n", reply)
+					}()
+
+				default:
+					fmt.Printf("[debug] got rejected by follower or demoted or paniced")
+					fmt.Printf("payload:%+v", reply)
+					return
+				}
 				ticker.Reset(HeartBeatInterval)
 
 			case replicate := <-w.replicateCh:
@@ -86,7 +122,7 @@ func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, p
 					return
 				}
 
-				success := w.handleReplicateCommand(replicate, leaderId, &reply, currentTerm, peer)
+				success := w.handleReplicateCommand(&reply)
 				if !success {
 					fmt.Println(`[debug] replication failed`)
 					replicate.done <- false
@@ -114,40 +150,8 @@ func (w *Worker) cleanUp(peer *Peer) {
 	w.logger.Info("worker resources cleaned up")
 }
 
-func attemptRequest[Request any, Reply any](
-	service RPCServiceName,
-	req Request,
-	reply *Reply,
-	peer *Peer,
-	logger *slog.Logger,
-) error {
-	var failedDials int
-	var rpcErr error
-	delay := randomTimeout(time.Millisecond)
-
-	// reply := AppendEntryReply{}
-	for failedDials < MAX_RPC_CALL_RETRIALS {
-		if rpcErr = peer.rpcConn.Call(string(service), req, reply); rpcErr != nil {
-			logger.Error(
-				"failed to dial peer, retrying again after",
-				slog.Any("failedDials", failedDials),
-				slog.Any("peerAddr", peer.addr), slog.Any("reason", rpcErr),
-			)
-			failedDials++
-			time.Sleep(delay)
-		}
-	}
-
-	if failedDials == MAX_RPC_CALL_RETRIALS {
-		return fmt.Errorf("failed to dial contact client after retrials. %w", rpcErr)
-	}
-
-	return nil
-}
-
-func (w *Worker) handleLogsOutOfSync(reply *AppendEntryReply) []Entry {
-	// what we actually want to do is get the snapshot, and just send it over to SnapshotRPC
-	snapshot, err := w.logEntries.SnapshotFrom(reply.PreviousLogIndex, reply.PreviousLogTerm)
+func (w *Worker) getSnapshot(previousLogIndex, previousLogTerm uint64) []Entry {
+	snapshot, err := w.logEntries.SnapshotFrom(previousLogIndex, previousLogTerm)
 	if err != nil {
 		snapshot = w.logEntries.Snapshot()
 	}

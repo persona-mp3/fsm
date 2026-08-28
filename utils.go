@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"log"
+	"log/slog"
 	"math/big"
 	"time"
 )
@@ -34,5 +35,38 @@ func backgroundSendCh[T any](parentCtx context.Context, ch chan T, data T) {
 	}()
 }
 
-func clearScreen() {
+func debugClearScreen() {
+	fmt.Print("\033[H\033[2J")
+}
+
+func attemptRequest[Request any, Reply any](
+	service RPCServiceName,
+	req Request,
+	reply *Reply,
+	peer *Peer,
+	logger *slog.Logger,
+) error {
+	var failedDials int
+	var rpcErr error
+	delay := randomTimeout(time.Millisecond)
+
+	for failedDials < MAX_RPC_CALL_RETRIALS {
+		if rpcErr = peer.rpcConn.Call(string(service), req, reply); rpcErr != nil {
+			logger.Error(
+				"failed to dial peer, retrying again after",
+				slog.Any("failedDials", failedDials),
+				slog.Any("peerAddr", peer.addr), slog.Any("reason", rpcErr),
+			)
+			failedDials++
+			time.Sleep(delay)
+		} else {
+			break
+		}
+	}
+
+	if failedDials == MAX_RPC_CALL_RETRIALS {
+		return fmt.Errorf("failed to dial contact client after retrials. %w", rpcErr)
+	}
+
+	return nil
 }

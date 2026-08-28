@@ -6,11 +6,7 @@ import (
 )
 
 func (w *Worker) handleReplicateCommand(
-	replicate replicate,
-	leaderId string,
 	reply *AppendEntryReply,
-	currentTerm uint64,
-	peer *Peer,
 ) bool {
 	var panicMsg string
 	switch reply.Result {
@@ -25,20 +21,7 @@ func (w *Worker) handleReplicateCommand(
 		w.logger.Info("successfully replicated by follower")
 		return true
 	case RaftResultLogsOutOfSync:
-		snapshot := w.handleLogsOutOfSync(reply)
-		req := SnapshotRequest{}
-		req.Id = leaderId
-		req.Term = currentTerm
-		req.Result = RaftResultSnapshot
-		req.Snapshot = snapshot
-
-		reply := SnapshotReply{}
-		err := attemptRequest(ServiceNameSnapshot, req, &reply, peer, w.logger)
-		if err != nil {
-			w.logger.Error("could not send snapshot request", "reason", err)
-			return false
-		}
-		fmt.Println(`[debug] snapshot reply`, reply)
+		fmt.Printf("skipping outOfSyncLogs while replication: %+v\n", reply)
 		return true
 	default:
 		panicMsg = fmt.Sprintf(
