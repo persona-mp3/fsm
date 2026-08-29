@@ -86,7 +86,7 @@ func TestVerifyLeader(t *testing.T) {
 				Id:   tt.reqId,
 				Term: tt.reqTerm,
 			}
-			result := verifyLeader(req, tt.currentLeader, tt.currentTerm, testLogger(t))
+			result := verifyLeader(req, tt.currentLeader, tt.currentTerm)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

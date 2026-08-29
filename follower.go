@@ -52,7 +52,7 @@ func (n *Node) runFollower(logger *slog.Logger) {
 				previousLogIndex := n.logs.PreviousLogIndex.Load()
 				latestCommit := n.logs.LastCommited()
 
-				raftLeaderVerification := verifyLeader(&request, currentLeader, currentTerm, logger)
+				raftLeaderVerification := verifyLeader(&request, currentLeader, currentTerm)
 
 				if raftLeaderVerification != RaftResultAcked {
 					req.reply <- RPCReply{kind: AppendEntry,
@@ -77,11 +77,8 @@ func (n *Node) runFollower(logger *slog.Logger) {
 				if request.Entry != nil {
 					n.logs.Append(request.Entry)
 					logger.Info("new payload received from leader, updated prevLogEntry")
-				} else {
-					logger.Info("empty payload just a hearbeat")
 				}
 
-				// update term and leader
 				n.raft.UpdateTerm(request.Term, request.Id)
 
 				previousLogEntry, logSize := n.logs.GetPreviousLogEntry()
@@ -175,7 +172,7 @@ func (n *Node) runFollower(logger *slog.Logger) {
 func verifyLeader(
 	req *AppendEntryRequest,
 	currentLeader string,
-	currentTerm uint64, logger *slog.Logger,
+	currentTerm uint64,
 ) RaftResult {
 	termsMatch := req.Term == currentTerm
 	fromHigherTerm := req.Term > currentTerm
@@ -195,23 +192,11 @@ func verifyLeader(
 
 		// at this point, the request came from a fellow follower claiming to be a leader
 		default:
-			logger.Info(
-				"recvd AppendEntry from a fellow follower claiming to be leader",
-				slog.String("currentLeader", currentLeader),
-				slog.String("from", req.Id), slog.Uint64("currentTerms", currentTerm),
-			)
 			return RaftResultRejectedLeader
 		}
 	}
 
 	if fromHigherTerm {
-		logger.Info(
-			"recvd AppendEntry from a higher term,  assigning them as leader",
-			slog.String("currentLeader", currentLeader),
-			slog.String("from", req.Id),
-			slog.Uint64("higherTerm", req.Term),
-			slog.Uint64("currentTerm", currentTerm),
-		)
 		return RaftResultAcked
 	}
 
