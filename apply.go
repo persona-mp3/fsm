@@ -8,11 +8,11 @@ import (
 	"os"
 )
 
-func (n *Node) Apply(e Entry) (*database.Response, error) {
+func (lh leaderHandler) Apply(e Entry, logEntries *Logs) (*database.Response, error) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	leaderCommit := n.logs.LastCommited()
-	logSize := n.logs.Size() - 1
+	leaderCommit := logEntries.LastCommited()
+	logSize := logEntries.Size() - 1
 
 	// we have x logs and want to know where we stopped, y
 	// and what we have left
@@ -28,11 +28,11 @@ func (n *Node) Apply(e Entry) (*database.Response, error) {
 			Value:     e.Value,
 		}
 
-		res, err := n.database.Commit(cmd)
+		res, err := lh.db.Commit(cmd)
 		if err != nil {
 			return nil, err
 		}
-		n.logs.lastCommited.Add(1)
+		logEntries.lastCommited.Add(1)
 		return res, nil
 
 	} else {
@@ -42,8 +42,8 @@ func (n *Node) Apply(e Entry) (*database.Response, error) {
 		fmt.Printf(
 			`remaining-logs: %+s
 			leaderCommit:: %+v
-			`, n.logs.String(),
-			n.logs.lastCommited.Load(),
+			`, logEntries.String(),
+			logEntries.lastCommited.Load(),
 		)
 	}
 

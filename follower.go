@@ -150,8 +150,10 @@ func (n *Node) runFollower(logger *slog.Logger) {
 				}
 
 			case Snapshot:
-				fmt.Printf("[FOLLOWER] recvd snapshot request: %+v\n", req)
-				panic("[MAGNENTS]")
+				fmt.Printf("[debug|FOLLOWER] recvd snapshot request: %+v\n", req)
+				prevLogEntry, _ := n.logs.GetPreviousLogEntry()
+				fmt.Printf("[debug|current_state] %+v\n", prevLogEntry)
+				panic("[debug] this is a good panic")
 			default:
 				panicMsg = fmt.Sprintf(
 					`Unhandled RPC Not yet implemented:

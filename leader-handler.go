@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	db "fsm/database"
 	"log/slog"
 	"time"
 )
@@ -47,11 +48,199 @@ const SEND_TIMEOUT = 120 * time.Millisecond
 // TODO|PROBLEM|QUESTION: So this part of an issue on Voting problem
 
 type leaderHandler struct {
-	latestCommit uint64
+	workers     []*Worker
+	clusterSize int
+	db          db.Database
 }
 
-func NewLeaderHandler(latestCommit uint64) leaderHandler {
-	return leaderHandler{latestCommit: latestCommit}
+func NewLeaderHandler(workers []*Worker, clusterSize int, database db.Database) leaderHandler {
+	return leaderHandler{
+		workers:     workers,
+		clusterSize: clusterSize,
+		db:          database,
+	}
+}
+
+func (lh leaderHandler) AppendEntryRequest(
+	id string,
+	req *AppendEntryRequest,
+	previousLogEntry *Entry,
+	currentTerm uint64,
+	latestCommit uint64,
+	logger *slog.Logger,
+
+) (RPCReply, RaftState, error) {
+	reply := AppendEntryReply{}
+	raftResult := lh.verifyAppendEntry(req, *previousLogEntry, currentTerm)
+
+	if raftResult == RaftResultAcked {
+		reply = AppendEntryReply{
+			Id:               id,
+			Result:           raftResult,
+			Term:             req.Term,
+			Message:          "stepping down from leader",
+			PreviousLogIndex: uint64(previousLogEntry.Idx),
+			LastCommited:     latestCommit,
+		}
+
+		rpcReply := RPCReply{kind: AppendEntry, payload: &reply}
+		logger.Info("stepping down from leader to follower")
+		return rpcReply, Follower, nil
+	}
+
+	rpcReply := RPCReply{kind: AppendEntry, payload: &AppendEntryReply{
+		Id:               id,
+		Result:           raftResult,
+		Term:             req.Term,
+		Message:          "ignoring append entry from node",
+		PreviousLogIndex: uint64(previousLogEntry.Idx),
+		LastCommited:     latestCommit,
+	}}
+
+	logger.Info("ignoring append entry payload while a leader from a node",
+		slog.Uint64("currentTerm", currentTerm),
+		slog.Any("payload", req),
+	)
+	return rpcReply, Remain, nil
+
+}
+
+func (lh leaderHandler) VoteRequest(
+	id string,
+	req *VoteRequest,
+	previousLogEntry *Entry,
+	currentTerm uint64,
+	latestCommit uint64,
+	logger *slog.Logger,
+) (RPCReply, RaftState, error) {
+	var rpcReply RPCReply
+	if req.Term > currentTerm {
+		rpcReply = RPCReply{
+			kind: Vote,
+			payload: &VoteReply{
+				Id:       id,
+				Term:     req.Term,
+				Result:   RaftResultAcked,
+				VotedFor: true,
+				Message:  "falling back to leader",
+			},
+		}
+
+		logger.Info("leader dropping down to follower succesfully updated term due to higher term",
+			slog.Uint64("currentTerm", currentTerm),
+			slog.Any("voteRPC", req),
+		)
+
+		return rpcReply, Follower, nil
+	}
+
+	rpcReply = RPCReply{
+		kind: Vote,
+		payload: &VoteReply{
+			Id:       id,
+			Term:     req.Term,
+			Result:   RaftResultRejectedLeader,
+			VotedFor: false,
+			Message:  "Coportate espionage is punishable just so you know",
+		},
+	}
+	logger.Info(
+		"rejecting voteRPC from a node without a higher term",
+		slog.Uint64("currentTerm", currentTerm),
+		slog.Any("voteRPC", req),
+	)
+	return rpcReply, Remain, nil
+}
+
+func (lh leaderHandler) SnapshotRequest(
+	id string,
+	req *SnapshotRequest,
+	previousLogEntry *Entry,
+	currentTerm uint64,
+	latestCommit uint64,
+	logger *slog.Logger,
+) (RPCReply, RaftState, error) {
+	panicMsg := fmt.Sprintf("recvd snapshot request instead of the workers\n%+v\n", req)
+	panic(panicMsg)
+}
+
+func (lh leaderHandler) CommandRequest(
+	id string,
+	req *CommandRequest,
+	logEntries *Logs,
+	currentTerm uint64,
+	latestCommit uint64,
+	logger *slog.Logger,
+) (RPCReply, RaftState, error) {
+	var rpcReply RPCReply
+	entry, exists := checkLogs(req, currentTerm, logEntries)
+	if exists {
+		rpcReply = RPCReply{
+			kind: ClientCommand,
+			payload: &CommandReply{
+				From:   id,
+				Result: fmt.Sprintf("cached::%s", entry.Value),
+			},
+		}
+		return rpcReply, Remain, nil
+	}
+	logger.Info("leader-handler begining replication")
+
+	safeForReplication := replicateEntry(entry, lh.workers, lh.clusterSize, logger)
+	commandReply := CommandReply{
+		From:   "fsm-leader",
+		Result: "quorum could not be reached please try again later",
+	}
+
+	if !safeForReplication {
+		logger.Warn("[debug] entry is not safe for replication")
+		rpcReply = RPCReply{kind: ClientCommand, payload: &commandReply}
+		return rpcReply, Remain, nil
+	}
+
+	logger.Info("commiting entry to logs, safe for replication")
+	res, err := lh.Apply(entry, logEntries)
+	if err != nil {
+		logger.Error("could not apply entry to database", slog.String("err", err.Error()))
+		commandReply.Result = err.Error()
+	} else {
+		commandReply.Result = res.Message
+	}
+
+	rpcReply = RPCReply{kind: ClientCommand, payload: &commandReply}
+	return rpcReply, Remain, nil
+}
+
+// HandleCommandRPC checks if the request already exists in this nodes logs. If it exists in it's logs
+// it returns the log and true, otherwise it appends it to the node's logs and returns false
+func checkLogs(req *CommandRequest, currentTerm uint64, logs *Logs) (Entry, bool) {
+	entry := Entry{
+		Operation: req.Operation,
+		Term:      currentTerm,
+		Key:       req.Key,
+		Value:     req.Value,
+	}
+
+	if logs.HasEntry(&entry) {
+		return entry, true
+	}
+
+	logs.Append(&entry)
+	return entry, false
+}
+
+func (lh leaderHandler) UnknownRequest(
+	req any,
+	currentTerm uint64,
+	latestCommit uint64,
+	logger *slog.Logger,
+
+) (RPCReply, RaftState, error) {
+	panicMsg := fmt.Sprintf(`
+	recvd unknown request::
+	%+v,
+	`, req)
+	panic(panicMsg)
 }
 
 // docs: the leader will only ack if it steps down from leader position
@@ -62,7 +251,6 @@ func (lh leaderHandler) verifyAppendEntry(
 	req *AppendEntryRequest,
 	previousLogEntry Entry,
 	currentTerm uint64,
-	logger *slog.Logger,
 ) RaftResult {
 	if req.Term < currentTerm {
 		return RaftResultLowerTerm

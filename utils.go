@@ -7,6 +7,8 @@ import (
 	"log"
 	"log/slog"
 	"math/big"
+	"net/rpc"
+	"sync"
 	"time"
 )
 
@@ -23,13 +25,12 @@ func randomTimeout(d time.Duration) time.Duration {
 }
 
 func backgroundSendCh[T any](parentCtx context.Context, ch chan T, data T) {
-	ctx, cancel := context.WithTimeout(parentCtx, SEND_TIMEOUT)
+	// ctx, cancel := context.WithTimeout(parentCtx, SEND_TIMEOUT)// ctx, cancel := context.WithTimeout(parentCtx, SEND_TIMEOUT)
 	go func() {
-		defer cancel()
 		select {
 		case ch <- data:
-		case <-ctx.Done():
-			fmt.Printf("[backgroundSendCh] timeout for sending reached: %s, %+v\n", SEND_TIMEOUT, ctx.Err())
+		case <-time.After(3000 * time.Millisecond):
+			fmt.Printf("[backgroundSendCh] timeout for sending reached: %s\n", SEND_TIMEOUT)
 			return
 		}
 	}()
@@ -50,7 +51,7 @@ func attemptRequest[Request any, Reply any](
 	var rpcErr error
 	delay := randomTimeout(time.Millisecond)
 
-	for failedDials < MAX_RPC_CALL_RETRIALS {
+	for failedDials < MAX_RPC_DIALS {
 		if rpcErr = peer.rpcConn.Call(string(service), req, reply); rpcErr != nil {
 			logger.Error(
 				"failed to dial peer, retrying again after",
@@ -64,9 +65,45 @@ func attemptRequest[Request any, Reply any](
 		}
 	}
 
-	if failedDials == MAX_RPC_CALL_RETRIALS {
+	if failedDials == MAX_RPC_DIALS {
 		return fmt.Errorf("failed to dial contact client after retrials. %w", rpcErr)
 	}
 
+	fmt.Println("[debug] sent payload successully::", string(service))
 	return nil
+}
+
+func backgroundWait(name string, wg *sync.WaitGroup, signal chan<- struct{}) {
+	wg.Wait()
+	select {
+	case signal <- struct{}{}:
+	default:
+		fmt.Printf(`[warn] could not send signal after wg fired for %s\n`, name)
+	}
+}
+
+func connectTo(id int, network, addr string) (*Peer, error) {
+	failedDials := 0
+	var rpcConn *rpc.Client
+	var err error
+	for failedDials <= MAX_RPC_DIALS {
+		if rpcConn, err = rpc.Dial(network, addr); err == nil {
+			fmt.Printf("[debug] connected to %s successfully\n", addr)
+			break
+		}
+		failedDials++
+		fmt.Println("[debug] failed dials while connecting: ", failedDials)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &Peer{
+		id:          id,
+		addr:        addr,
+		rpcConn:     rpcConn,
+		replicateCh: make(chan replicate),
+	}, nil
+
 }

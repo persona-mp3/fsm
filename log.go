@@ -196,44 +196,67 @@ func (l *Logs) Snapshot() []Entry {
 	return buff
 }
 
-// SnapshotFrom returns a slice of logs that  start from `startIndex` provided. If the logs
-// are not up to that index, it returns an [ErrLogNotFound]
-func (l *Logs) SnapshotFrom(startIndex, targetTerm uint64) ([]Entry, error) {
-	// TODO: Should ideally be SnapshotFrom(startIndex, startTerm)
+/*
+	A follower needs to check it's prevLogIndex and prevLogTerm against the leaders
+	If it finds out that it's logs are not in-sync with the leader it sends logs
+	out of sync. When the leader recvs it, it sends a snapshot
+*/
+
+func (l *Logs) SnapshotFrom(startIndex, term uint64) []*Entry {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	if startIndex > uint64(len(l.entries)) {
-		return []Entry{}, ErrLogNotFound
+
+	if startIndex > uint64(len(l.entries)) || len(l.entries) == 0 {
+		return l.entries
 	}
 
-	rest := uint64(len(l.entries)) - startIndex
-	matchingEntry := l.entries[startIndex]
-	// 	TODO|QUESTION| revisit this!
-	// 	In Raft, the leader handles inconsistencies by forcing
-	// the followers’ logs to duplicate its own. This means that
-	// conflicting entries in follower logs will be overwritten
-	// with entries from the leader’s log. Section 5.4 will show
-	// that this is safe when coupled with one more restriction.
-	// To bring a follower’s log into consistency with its own,
-	// the leader must find the latest log entry where the two
-	// logs agree, delete any entries in the follower’s log after
-	// that point, and send the follower all of the leader’s entries
-	// after that point. All of these actions happen in response
-	// to the consistency check performed by AppendEntries
-	// RPCs. The leader maintains a nextIndex for each follower,
-	// which is the index of the next log entry the leader will
-	// send to that follower
-	if matchingEntry.Term != targetTerm {
-		fmt.Printf(`
-		[logs] found a log with specified index, but their terms don't match. Follower should 
-		overwrite with ours. RaftResultLogNotFound
-		`)
+	for idx, entry := range l.entries {
+		if uint64(entry.Idx) == startIndex && term == entry.Term {
+			return l.entries[idx:]
+		}
 	}
-
-	buff := make([]Entry, rest)
-	for i := startIndex; i < rest; i++ {
-		clone := *l.entries[i]
-		buff = append(buff, clone)
-	}
-	return buff, nil
+	// TODO: couldn't find anything so we just send them all our logs
+	return l.entries
 }
+
+// // SnapshotFrom returns a slice of logs that  start from `startIndex` provided. If the logs
+// // are not up to that index, it returns an [ErrLogNotFound]
+// func (l *Logs) SnapshotFrom(startIndex, targetTerm uint64) ([]Entry, error) {
+// 	// TODO: Should ideally be SnapshotFrom(startIndex, startTerm)
+// 	l.mu.Lock()
+// 	defer l.mu.Unlock()
+// 	if startIndex > uint64(len(l.entries)) {
+// 		return []Entry{}, ErrLogNotFound
+// 	}
+//
+// 	rest := uint64(len(l.entries)) - startIndex
+// 	matchingEntry := l.entries[startIndex]
+// 	// 	TODO|QUESTION| revisit this!
+// 	// 	In Raft, the leader handles inconsistencies by forcing
+// 	// the followers’ logs to duplicate its own. This means that
+// 	// conflicting entries in follower logs will be overwritten
+// 	// with entries from the leader’s log. Section 5.4 will show
+// 	// that this is safe when coupled with one more restriction.
+// 	// To bring a follower’s log into consistency with its own,
+// 	// the leader must find the latest log entry where the two
+// 	// logs agree, delete any entries in the follower’s log after
+// 	// that point, and send the follower all of the leader’s entries
+// 	// after that point. All of these actions happen in response
+// 	// to the consistency check performed by AppendEntries
+// 	// RPCs. The leader maintains a nextIndex for each follower,
+// 	// which is the index of the next log entry the leader will
+// 	// send to that follower
+// 	if matchingEntry.Term != targetTerm {
+// 		fmt.Printf(`
+// 		[logs] found a log with specified index, but their terms don't match. Follower should
+// 		overwrite with ours. RaftResultLogNotFound
+// 		`)
+// 	}
+//
+// 	buff := make([]Entry, rest)
+// 	for i := startIndex; i < rest; i++ {
+// 		clone := *l.entries[i]
+// 		buff = append(buff, clone)
+// 	}
+// 	return buff, nil
+// }

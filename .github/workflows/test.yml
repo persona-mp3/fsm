@@ -16,6 +16,9 @@ jobs:
         with:
           go-version: "1.26.x"
 
+      - name: Running formatter
+        run: go fmt
+
       - name: Checking Go version
         run: go version
 

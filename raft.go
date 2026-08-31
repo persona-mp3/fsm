@@ -15,6 +15,8 @@ const (
 	Leader RaftState = iota
 	Follower
 	Candidate
+	// None means no transition should occur
+	Remain
 )
 
 // Raft holds the RaftState and information about this node
@@ -151,6 +153,6 @@ func (rs RaftState) String() string {
 	case Leader:
 		return "Leader"
 	default:
-		panic(fmt.Sprintf("unexpected main.RaftState: %#v", rs))
+		panic(fmt.Sprintf("unexpected main.RaftState: %+v", rs))
 	}
 }

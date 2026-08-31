@@ -11,7 +11,7 @@ import (
 const (
 	// MAX_RPC_CALL_RETRIALS is the maxium amout of time a [Worker] can dial a peer for sending rpcs
 	// before exiting
-	MAX_RPC_CALL_RETRIALS = 5
+	MAX_RPC_DIALS = 5
 
 	// WORKER_CHAN_BUFFER is the maximum amount of packets a worker can receive before being blocked
 	// This is tuned to the same level as [NETWORK_CHAN_BUFFER]
@@ -70,7 +70,7 @@ func (w *Worker) Run(
 
 	var failedCalls int
 	for {
-		if failedCalls == MAX_RPC_CALL_RETRIALS {
+		if failedCalls == MAX_RPC_DIALS {
 			w.logger.Warn("max retrials reached for rpcClient. worker exiting")
 			return
 		}
@@ -147,7 +147,7 @@ func (w *Worker) attemptSend(
 	req.Entry = &replica.entry
 	req.Message = "Replicate appendEntryRPC"
 
-	for failedCalls < MAX_RPC_CALL_RETRIALS {
+	for failedCalls < MAX_RPC_DIALS {
 		if err := peer.rpcConn.Call("Server.AppendEntryRPC", req, &reply); err != nil {
 			logger.Info("failed to Call Server.AppendEntryRPC for heartbeats.",
 				slog.String("error", err.Error()), slog.Int("peerId", peer.id),
@@ -165,7 +165,7 @@ func (w *Worker) attemptSend(
 		break
 	}
 
-	if failedCalls == MAX_RPC_CALL_RETRIALS {
+	if failedCalls == MAX_RPC_DIALS {
 		logger.Warn("max fail calls reached", slog.Int("totalFailed", failedCalls))
 		return false
 	}
@@ -238,13 +238,11 @@ func handleReply(
 			slog.Uint64("currentTerm", currentTerm),
 			slog.Uint64("followerPrevLogIndex", reply.PreviousLogIndex),
 		)
-		snapshot, err := logEntries.SnapshotFrom(reply.PreviousLogIndex, reply.PreviousLogTerm)
-		if err != nil {
-			panic(fmt.Sprintf("could not get snapshot of logs. Reason: %d\n", err))
-		}
-
+		snapshot := logEntries.SnapshotFrom(reply.PreviousLogIndex, reply.PreviousLogTerm)
 		// Again, would we want to actually make a new RPC from here?
-		fmt.Printf("%s\n", fmt.Sprintf("this is good panic;; we got snapshot;; %+v\n", snapshot))
+		panicMsg := fmt.Sprintf("%s\n", fmt.Sprintf("this is good panic;; we got snapshot;; %+v\n", snapshot))
+		panicMsg = fmt.Sprintf("\n %s request from client: %+v\n", panicMsg, reply)
+		panic(panicMsg)
 
 	case RaftResultUnknownUnhandled:
 		logger.Warn(

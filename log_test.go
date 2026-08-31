@@ -10,36 +10,13 @@ import (
 	"pgregory.net/rapid"
 )
 
-/*
-	A follower needs to check it's prevLogIndex and prevLogTerm against the leaders
-	If it finds out that it's logs are not in-sync with the leader it sends logs
-	out of sync. When the leader recvs it, it sends a snapshot
-*/
-
-func (l *Logs) _SnapshotFrom(startIndex, term uint64) []*Entry {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	if startIndex > uint64(len(l.entries)) || len(l.entries) == 0 {
-		return l.entries
-	}
-
-	for idx, entry := range l.entries {
-		if uint64(entry.Idx) == startIndex && term == entry.Term {
-			return l.entries[idx:]
-		}
-	}
-	// TODO: couldn't find anything so we just send them all our logs
-	return l.entries
-}
-
 func TestSnapshot(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		// 1. Generate sequential logs instead of completely random IDs
 		numEntries := rapid.IntRange(0, 100).Draw(t, "numEntries")
 		logEntries := make([]*Entry, numEntries)
 
-		for i := 0; i < numEntries; i++ {
+		for i := range numEntries {
 			logEntries[i] = &Entry{
 				Idx:  i, // Sequential index makes slicing safe and predictable
 				Term: rapid.Uint64Range(0, 20).Draw(t, fmt.Sprintf("term-%d", i)),
@@ -68,7 +45,7 @@ func TestSnapshot(t *testing.T) {
 		startIndex := uint64NumberGen.Draw(t, "startIndex")
 		targetTerm := uint64NumberGen.Draw(t, "targetTerm")
 
-		results := logs._SnapshotFrom(startIndex, targetTerm)
+		results := logs.SnapshotFrom(startIndex, targetTerm)
 
 		var expectedResults []*Entry
 

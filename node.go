@@ -194,12 +194,18 @@ func (n *Node) Run(parentCtx context.Context) error {
 				n.log.Println("recvd transition to Leader")
 				n.raft.UpdateState(raftState)
 				// cancel context and make a new one
-				n.stateCtxCancel()
-				n.newContext(ctx)
+				// n.stateCtxCancel()
+				leaderCtx, cancel := context.WithCancel(ctx)
 
-				// rlog := rlog.NewHumaneLogger(n.id, "leader", n.raft.Term(), n.log.Out())
-				// go n.runLeader(rlog)
-				go n.StartLeader(slog.New(slog.NewJSONHandler(n.log.Out(), nil)))
+				leader := NewLeader(n.id, n.incoming, n.raft, &n.logs, n.transition, slog.New(slog.NewJSONHandler(n.log.Out(), nil)), n.peers)
+				go func() {
+					defer cancel()
+					if err := leader.Start(leaderCtx, n.raft.Term(), n.database); err != nil {
+						debugClearScreen()
+						err := fmt.Sprintf("leader.Start %s", err)
+						panic(err)
+					}
+				}()
 			case Candidate:
 				if n.raft.State() == Candidate {
 					n.log.Panic(`recvd transition into Candidate while in Candidate state`, n.Diagnostics())

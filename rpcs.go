@@ -12,6 +12,7 @@ const (
 	Vote
 	ClientCommand
 	Snapshot
+	Unknown
 )
 
 type RPC struct {
@@ -69,6 +70,7 @@ type VoteReply struct {
 	Id       string
 	Term     uint64
 	VotedFor bool
+	Result   RaftResult
 	Message  string
 }
 
@@ -98,7 +100,7 @@ type SnapshotRequest struct {
 	Term         uint64
 	Result       RaftResult
 	Message      string
-	Snapshot     []Entry
+	Snapshot     []*Entry
 	LastCommited uint64
 }
 

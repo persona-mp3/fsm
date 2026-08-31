@@ -3,285 +3,149 @@ package main
 import (
 	"context"
 	"fmt"
+	db "fsm/database"
 	"log/slog"
 	"os"
 	"sync"
 	"sync/atomic"
 )
 
-func (n *Node) StartLeader(logger *slog.Logger) {
-	logger.Info("leader state transitioned successfully",
-		slog.Any("diagnostics", n.Diagnostics()),
-	)
+type leader struct {
+	leaderId       string
+	transitionCh   chan RaftState
+	networkCh      chan RPC
+	workers        []*Worker
+	raft           *Raft
+	logEntries     *Logs
+	connectedPeers []*Peer
+	peerAddrs      []string
+	logger         *slog.Logger
+}
 
-	ctx, cancel := context.WithCancel(n.stateCtx)
-	defer cancel()
+func NewLeader(
+	leaderId string,
+	networkCh chan RPC,
+	raft *Raft,
+	logEntries *Logs,
+	transitionCh chan RaftState,
+	logger *slog.Logger,
+	peerAddrs []string,
+) *leader {
+	connectedPeers := []*Peer{}
+	workers := []*Worker{}
 
-	// TODO: not sure if we want to redial here, but the connections
-	// with the peers should still be kept alive from the election
-	connectedPeers := n.getRPCPeers()
-	if len(connectedPeers) == 0 {
-		logger.Warn(
-			"no peers have been connected, possibly dropped or closed from election",
-			slog.Any("connectedPeers", connectedPeers),
-		)
-		n.transition <- Follower
-		return
+	return &leader{
+		leaderId:       leaderId,
+		transitionCh:   transitionCh,
+		networkCh:      networkCh,
+		workers:        workers,
+		raft:           raft,
+		logEntries:     logEntries,
+		connectedPeers: connectedPeers,
+		logger:         logger,
+		peerAddrs:      peerAddrs,
 	}
+}
 
-	currentTerm := n.raft.Term()
+func (l *leader) Start(
+	ctx context.Context,
+	currentTerm uint64,
+	db db.Database,
+) error {
 
-	// 1. Initialise all the workers
-	// _workers := initalizeNewWorkers(n.peers, n.logs.getAtomicCommit(), n.logs.PreviousLogIndex, &n.logs)
+	childCtx, cancel := context.WithCancel(ctx)
+	defer l.cleanUp(cancel)
 
-	// 2. Start all the workers in parallel
-	/*
-	   wg := sync.WaitGroup{}
-	   for _,worker := range _workers {
-	     wg.Go(func() {
-	       if err := worker.Run(ctx, peerAddr, currentTerm); err != nil {
-	         // log error or propagate via struct or channel to notify the leader incase we'd want to
-	         // respawn the worker
-	       }
-	     })
-	   }
-
-	   go func() {
-	     wg.Wait()
-	     tellLeaderToQuitCh <- struct{}{} // close(tellLeaderToQuitCh)
-	   }
-	*/
-
-	// to track number of workers still active
-	defer n.closeConnections()
-	wg := sync.WaitGroup{}
 	allWorkers := []*Worker{}
-	for _, peer := range connectedPeers {
-		if peer == nil {
-			continue
-		}
+	workerWg := sync.WaitGroup{}
 
-		fmt.Printf(`[debug] assigning %s to a worker\n`, peer.addr)
-		worker := NewWorker(
-			peer.id,
-			n.logs.getAtomicCommit(),
-			n.logs.PreviousLogIndex,
-			&n.logs,
-			slog.New(slog.NewJSONHandler(os.Stdout, nil)),
-		)
+	latestCommit := l.logEntries.getAtomicCommit()
+	prevLogIdx := l.logEntries.PreviousLogIndex
 
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	for i, peerAddr := range l.peerAddrs {
+		// TODO: attach peerId so the worker can dial
+		worker := NewWorker(i, latestCommit, prevLogIdx, l.logEntries, logger)
 		allWorkers = append(allWorkers, worker)
+		workerWg.Go(func() {
+			err := worker.run(childCtx, l.leaderId, peerAddr, currentTerm)
+			if err != nil {
+				fmt.Println("[worker.run] err: ", err)
+			}
 
-		wg.Go(func() {
-			worker.run(ctx, n.id, currentTerm, peer)
+			fmt.Println("[worker.run] exited: ")
 		})
+
 	}
 
-	// QUESTION: Why do we need this? if the leader has exited, there's no need for these
-	n.workers = allWorkers
+	l.workers = append(l.workers, allWorkers...)
 
-	go func() {
-		wg.Wait()
-		logger.Info("all workers have returned")
-	}()
-
-	var panicMsg string
-	lh := NewLeaderHandler(n.logs.LastCommited())
-
+	workersDone := make(chan struct{})
+	go backgroundWait("workersWg", &workerWg, workersDone)
+	handler := NewLeaderHandler(l.workers, len(l.peerAddrs), db)
 	for {
 		select {
-		case <-n.stateCtx.Done():
-			return
-		case rpcRequest := <-n.incoming:
-			switch rpcRequest.kind {
-			case AppendEntry:
-				request, ok := rpcRequest.payload.(AppendEntryRequest)
-				if !ok {
-					panicMsg = fmt.Sprintf(
-						`recvd unexpected payload. Expected AppendEntry
-             payload: %+v,
-             ---
-             diagnostics:
-             %+v
-            `, rpcRequest, n.Diagnostics())
-					panic(panicMsg)
-				}
-				previousLogEntry, _ := n.logs.GetPreviousLogEntry()
-				raftResult := lh.verifyAppendEntry(&request, previousLogEntry, currentTerm, logger)
-
-				if raftResult == RaftResultAcked {
-					reply := AppendEntryReply{
-						Id:               n.id,
-						Result:           raftResult,
-						Term:             request.Term,
-						Message:          "stepping down from leader",
-						PreviousLogIndex: uint64(previousLogEntry.Idx),
-						LastCommited:     lh.latestCommit,
-					}
-
-					rpcReply := RPCReply{kind: AppendEntry, payload: &reply}
-					backgroundSendCh(ctx, rpcRequest.reply, rpcReply)
-					n.raft.UpdateTerm(request.Term, request.Id)
-					n.transition <- Follower
-					logger.Info("stepping down from leader to follower")
-					return
-				}
-
-				rpcReply := RPCReply{kind: AppendEntry, payload: &AppendEntryReply{
-					Id:               n.id,
-					Result:           raftResult,
-					Term:             request.Term,
-					Message:          "ignoring append entry from node",
-					PreviousLogIndex: uint64(previousLogEntry.Idx),
-					LastCommited:     n.logs.LastCommited(),
-				}}
-
-				backgroundSendCh(ctx, rpcRequest.reply, rpcReply)
-				logger.Info("ignoring append entry payload while a leader from a node",
-					slog.Uint64("currentTerm", currentTerm),
-					slog.Any("payload", request),
-				)
-			default:
-				n.handleIncomingPayload(rpcRequest, currentTerm, logger)
+		case <-ctx.Done():
+			errMsg := fmt.Errorf("somone terminated my ctx:: %s", ctx.Err().Error())
+			return errMsg
+		case rpcPayload := <-l.networkCh:
+			l.logger.Info("recvd new payload", slog.Any("paylaod", rpcPayload))
+			reply, state, err := handlePayload(
+				l.leaderId,
+				rpcPayload,
+				l.logEntries,
+				currentTerm,
+				handler,
+				l.logger)
+			if err != nil {
+				panic(err)
 			}
+
+			fmt.Printf(
+				`replyPayload: %+v
+				state: %+v, 
+				`, reply.payload, state,
+			)
+
+			backgroundSendCh(ctx, rpcPayload.reply, reply)
+			if state != Remain {
+				l.transitionCh <- state
+				// panic("transiting")
+				return nil
+			}
+		case <-workersDone:
+			l.transitionCh <- Follower
+			l.logger.Info("all workers have returned, need to turn to candidate")
+			panic("allWorkers done before transition")
 		}
 	}
 }
 
-func (n *Node) handleIncomingPayload(req RPC, currentTerm uint64, logger *slog.Logger) {
-	switch req.kind {
-	// CURRENTLY: Refactoring, moved AppendEntry up to main loop
-	case Vote:
-		request, ok := req.payload.(VoteRequest)
-		if !ok {
-			logger.Warn("received wrong rpcRequet payload. Expected VoteRPC",
-				slog.Any("payload", req.payload),
-				slog.String("diagnostics", n.Diagnostics()),
-			)
-			panic("recvd wrong payload ^^")
-		}
-
-		switch {
-		case request.Term > currentTerm:
-			req.reply <- RPCReply{
-				kind: Vote,
-				payload: &VoteReply{
-					Id:       n.id,
-					Term:     request.Term,
-					VotedFor: true,
-					Message:  "falling back to leader",
-				},
-			}
-
-			n.raft.GiveVote(request.Term, request.Id)
-			logger.Info("leader dropping down to follower succesfully updated term due to higher term",
-				slog.Any("voteRPC", request),
-				slog.Any("diagnostics", n.Diagnostics()),
-			)
-			n.transition <- Follower
-			return
-
-		// TODO(persona) will need to do a check here in the event that two nodes might
-		// think they're a leader. We then compare against their logs
-		default:
-			req.reply <- RPCReply{
-				kind: Vote,
-				payload: &VoteReply{
-					Id:       n.id,
-					Term:     request.Term,
-					VotedFor: false,
-					Message:  "Coportate espionage is punishable just so you know",
-				},
-			}
-			logger.Info(
-				"rejecting voteRPC from a node without a higher term",
-				slog.Uint64("currentTerm", n.raft.Term()),
-				slog.Any("voteRPC", req),
-			)
-		}
-
-	case Snapshot:
-		panic("recvd snapshot request instead of the workers")
-	case ClientCommand:
-		request, ok := req.payload.(CommandRequest)
-		fmt.Println("[debug] handling client command")
-		if !ok {
-			logger.Warn("received wrong rpcRequet payload. Expected CommandRequest",
-				slog.Any("payload", req.payload),
-				slog.String("diagnostics", n.Diagnostics()),
-			)
-			panic("recvd wrong payload ^^")
-		}
-
-		entry, exists := HandleCommandRPC(&request, currentTerm, &n.logs)
-		if exists {
-			value, _ := n.logs.Get(entry.Operation, entry.Key)
-			req.reply <- RPCReply{
-				kind: ClientCommand,
-				payload: &CommandReply{
-					From:   n.id,
-					Result: fmt.Sprintf("cached::%s", value),
-				},
-			}
-			return
-		}
-
-		// replicate entry accross workers
-		fmt.Println("[debug] replicating across workers")
-		safeForReplication := replicateEntry(entry, n.workers, len(n.peers), logger.With())
-		reply := CommandReply{
-			From:   "fsm-leader",
-			Result: "quorum not reached please try again later",
-		}
-
-		if !safeForReplication {
-			fmt.Println("[debug] not safe for replication")
-			select {
-			case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
-			default:
-				return
-			}
-			return
-		}
-
-		fmt.Println("[debug] it is safe for replication")
-		// NOTE:
-		// we should typically not log or replicate 'GET' commands
-		// as jkvs itself does not either. It just causes noise and extra
-		// stuff when debugging
-		dbResponse, err := n.Apply(entry)
-		if err != nil {
-			reply.Result = err.Error()
-		} else {
-			reply.Result = dbResponse.Message
-		}
-		select {
-		case req.reply <- RPCReply{kind: ClientCommand, payload: &reply}:
-		default:
-			return
-		}
-
-		logger.Info("leader inspection", slog.Any("diagnostics", n.Diagnostics()))
-
-	}
+func (l *leader) cleanUp(cancel context.CancelFunc) {
+	// panic("leader mode exiting")
+	cancel()
 }
 
-// HandleCommandRPC checks if the request already exists in this nodes logs. If it exists in it's logs
-// it returns the log and true, otherwise it appends it to the node's logs and returns false
-func HandleCommandRPC(req *CommandRequest, currentTerm uint64, logs *Logs) (Entry, bool) {
-	entry := Entry{
-		Operation: req.Operation,
-		Term:      currentTerm,
-		Key:       req.Key,
-		Value:     req.Value,
+// CURRENTLY TODO
+func handlePayload(id string, payload RPC, logEntries *Logs, currentTerm uint64, h RPCHandler, logger *slog.Logger) (RPCReply, RaftState, error) {
+	var reply RPCReply
+	var state RaftState
+	var err error
+	previousLogEntry, _ := logEntries.GetPreviousLogEntry()
+	latestCommit := logEntries.LastCommited()
+	switch req := payload.payload.(type) {
+	case AppendEntryRequest:
+		reply, state, err = h.AppendEntryRequest(id, &req, &previousLogEntry, currentTerm, latestCommit, logger)
+	case VoteRequest:
+		reply, state, err = h.VoteRequest(id, &req, &previousLogEntry, currentTerm, latestCommit, logger)
+	case SnapshotRequest:
+		reply, state, err = h.SnapshotRequest(id, &req, &previousLogEntry, currentTerm, latestCommit, logger)
+	case CommandRequest:
+		reply, state, err = h.CommandRequest(id, &req, logEntries, currentTerm, latestCommit, logger)
+	default:
+		reply, state, err = h.UnknownRequest(&req, currentTerm, latestCommit, logger)
 	}
-
-	if logs.HasEntry(&entry) {
-		return entry, true
-	}
-
-	logs.Append(&entry)
-	return entry, false
+	return reply, state, err
 }
 
 // replicateEntry tries to send the new entry to all the workers. If a majority of the workers

@@ -55,11 +55,9 @@ func (n *Node) runCandidate(logger rlog.RLogger) {
 
 	wg := sync.WaitGroup{}
 	for _, peer := range connectedPeers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			n.collectVote(peer, &voteCount, logger.Inherit("collectVote"))
-		}()
+		})
 	}
 
 	done := make(chan struct{})

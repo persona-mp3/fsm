@@ -7,19 +7,28 @@ import (
 	"time"
 )
 
-func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, peer *Peer) {
+func (w *Worker) run(ctx context.Context, leaderId string, peerAddr string, currentTerm uint64) error {
 	w.logger.Info("[w2] running")
-	ticker := time.NewTicker(2100 * time.Millisecond)
-	defer func() {
-		ticker.Stop()
-		w.cleanUp(peer)
-	}()
+	ticker := time.NewTicker(HeartBeatInterval * time.Millisecond)
 
 	// 1. listen on replicaCh
 	// 2. listen on heartbeat timer
 	var request AppendEntryRequest
 	request.Id = leaderId
 	request.Term = currentTerm
+
+	peer, err := connectTo(w.id, "tcp", peerAddr)
+	if err != nil {
+		panic("failed to connect")
+		// return err
+	}
+
+	w.logger.Info("connected to peer succesfully")
+
+	defer func() {
+		ticker.Stop()
+		w.cleanUp(peer)
+	}()
 
 	for {
 		select {
@@ -36,13 +45,13 @@ func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, p
 				w.logger.Error("could not send replication request.", "reason", err)
 				// TODO: We might not even need the replicate.done ch
 				replicate.done <- false
-				return
+				return nil
 			}
 
 			success := w.handleReplicateCommand(&reply)
 			if !success {
 				w.logger.Info("[w2] replica was a failure")
-				return
+				return nil
 			}
 
 			w.logger.Info("[w2] replica was a success")
@@ -53,7 +62,7 @@ func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, p
 			case <-ctx.Done():
 				w.logger.Error("worker returning, context cancelled",
 					slog.Any("workerId", w.id), slog.Any("reason:", ctx.Err().Error()))
-				return
+				return ctx.Err()
 			case <-ticker.C:
 				request.Entry = nil
 				request.LeaderCommit = w.leaderCommit.Load()
@@ -62,7 +71,7 @@ func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, p
 				reply := AppendEntryReply{}
 				err := attemptRequest(ServiceNameAppendEntry, request, &reply, peer, w.logger)
 				if err != nil {
-					return
+					return err
 				}
 				w.logger.Info("heartbeat recognized by follower",
 					slog.Any("currentTerm", request.Term),
@@ -75,6 +84,7 @@ func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, p
 					// CURRENTLY: When we send the follower a snapshot request
 					// Do we do it here?
 				case RaftResultLogsOutOfSync:
+
 					fmt.Printf(`[debug] getting snapshot for: prevIndex:%d, prevTerm:%d\n`,
 						reply.PreviousLogIndex, reply.PreviousLogTerm)
 
@@ -102,7 +112,7 @@ func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, p
 				default:
 					fmt.Printf("[debug] got rejected by follower or demoted or paniced")
 					fmt.Printf("payload:%+v", reply)
-					return
+					return nil
 				}
 				ticker.Reset(HeartBeatInterval)
 
@@ -119,14 +129,14 @@ func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, p
 					w.logger.Error("could not send replication request.", "reason", err)
 					// TODO: We might not even need the replicate.done ch
 					replicate.done <- false
-					return
+					return nil
 				}
 
 				success := w.handleReplicateCommand(&reply)
 				if !success {
 					fmt.Println(`[debug] replication failed`)
 					replicate.done <- false
-					return
+					return nil
 				}
 
 				replicate.done <- true
@@ -135,7 +145,6 @@ func (w *Worker) run(ctx context.Context, leaderId string, currentTerm uint64, p
 				ticker.Reset(HeartBeatInterval)
 			}
 		}
-		// here
 	}
 }
 
@@ -150,10 +159,7 @@ func (w *Worker) cleanUp(peer *Peer) {
 	w.logger.Info("worker resources cleaned up")
 }
 
-func (w *Worker) getSnapshot(previousLogIndex, previousLogTerm uint64) []Entry {
-	snapshot, err := w.logEntries.SnapshotFrom(previousLogIndex, previousLogTerm)
-	if err != nil {
-		snapshot = w.logEntries.Snapshot()
-	}
+func (w *Worker) getSnapshot(previousLogIndex, previousLogTerm uint64) []*Entry {
+	snapshot := w.logEntries.SnapshotFrom(previousLogIndex, previousLogTerm)
 	return snapshot
 }
